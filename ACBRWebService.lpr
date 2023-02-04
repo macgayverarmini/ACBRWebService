@@ -6,7 +6,7 @@ uses Interfaces,
      Horse.Jhonson,
      Horse.HandleException,
      route.acbr.nfe,
-     route,
+     route, jsonconvert,
      method.acbr.nfe;
 
 begin
