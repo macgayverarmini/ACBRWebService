@@ -9,8 +9,32 @@ uses
 
 function StreamToBase64String(AStream: TMemoryStream): string;
 function FileToStringBase64(const FileName: string; const Apagar: Boolean; out size: integer): string;
+function Base64StreamToString(AStream: TMemoryStream): string;
+function StringToBase64Stream(AString: string): TMemoryStream;
 
 implementation
+
+function Base64StreamToString(AStream: TMemoryStream): string;
+var
+  LBytes: TBytes;
+  strBase64: string;
+begin
+  SetLength(LBytes, AStream.Size);
+  AStream.Position := 0;
+  AStream.Read(LBytes[0], AStream.Size);
+  strBase64 := TEncoding.UTF8.GetString(LBytes);
+  Result := base64.DecodeStringBase64(strBase64);
+end;
+
+function StringToBase64Stream(AString: string): TMemoryStream;
+var
+  LBytes: TBytes;
+begin
+  LBytes := TEncoding.UTF8.GetBytes(AString);
+  Result := TMemoryStream.Create;
+  Result.WriteBuffer(base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes))[1], Length(base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes))));
+  Result.Position := 0;
+end;
 
 function StreamToBase64String(AStream: TMemoryStream): string;
 var

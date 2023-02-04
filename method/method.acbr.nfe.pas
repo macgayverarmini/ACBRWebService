@@ -7,15 +7,16 @@ interface
 
 uses streamtools,
   ACBrNFeDANFeRLClass,
-
-  LCLIntf, LCLType,   Variants, Graphics,
-  Controls, Forms, Dialogs, ComCtrls,   Buttons, ExtCtrls,
+  ACBrNFeWebServices,
+  StrUtils,
+  LCLIntf, LCLType, Variants, Graphics,
+  Controls, Forms, Dialogs, ComCtrls, Buttons, ExtCtrls,
   fpjson, jsonconvert,
-   ACBrDFeDANFeReport,
-  ACBrNFe,  ACBrMail,
-  Horse.HandleException, Base64, jsonparser, ACBrDFeSSL,
+  ACBrDFeDANFeReport,
+  ACBrNFe, ACBrMail,
+  Base64, jsonparser, ACBrDFeSSL,
   pcnConversaoNFe, pcnConversao, pcnEnvEventoNFe, ACBrDFeConfiguracoes,
-   ACBrNFeConfiguracoes, Classes, SysUtils;
+  ACBrNFeConfiguracoes, Classes, SysUtils;
 
 type
 
@@ -37,7 +38,7 @@ type
     // Envia um evento
     function Evento(const jEventos: TJSONArray): string;
     // Distribuição
-    function Distribuicao(const jDistribuicao: TJSONObject): string;
+    function Distribuicao(const jDistribuicao: TJSONObject): TJSONObject;
     // DANFE
     function Danfe(const xmlData: TJSONObject): TJSONObject;
 
@@ -58,6 +59,8 @@ type
   end;
 
 implementation
+
+
 
 { TACBRModelosJSON }
 
@@ -134,7 +137,7 @@ var
   xmlBase64: string;
 begin
   try
-    xmlBase64 := jsonData.Extract('xml').Value;
+    xmlBase64 := jsonData.Extract('xml').AsString;
   except
     on E: Exception do
     begin
@@ -195,9 +198,60 @@ begin
     facbr.WebServices.EnvEvento.EventoRetorno.retEvento);
 end;
 
-function TACBRBridgeNFe.Distribuicao(const jDistribuicao: TJSONObject): string;
+function TACBRBridgeNFe.Distribuicao(const jDistribuicao: TJSONObject): TJSONObject;
+var
+  objDistribuicao: TDistribuicaoDFe;
+  UF: TJSONString;
+  CNPJCPF, ultNSU, NSU, chNFe: TJSONString;
+const
+  CodigosIBGE: array [0..26] of string = (
+    '11', '12', '13', '14', '15', '16', '17', '21', '22', '23', '24',
+    '25', '26', '27', '28', '29', '31',
+    '32', '33', '35', '41', '42', '43', '50', '51', '52', '53');
 begin
+  CarregaConfig;
 
+  Result := TJSONObject.Create;
+
+  objDistribuicao := facbr.WebServices.DistribuicaoDFe;
+
+  if jDistribuicao.Find('UF', UF) then
+  begin
+    if not MatchStr(UF.ToString, CodigosIBGE) then
+    begin
+      Result.Add('error', 'Código de UF inválido');
+      Exit;
+    end;
+    objDistribuicao.cUFAutor := StrToInt(UF.ToString);
+  end;
+
+  if jDistribuicao.Find('CNPJCPF', CNPJCPF) then
+    objDistribuicao.CNPJCPF := CNPJCPF.ToString;
+
+  if jDistribuicao.Find('ultNSU', ultNSU) then
+    objDistribuicao.ultNSU := ultNSU.ToString;
+
+  if jDistribuicao.Find('NSU', NSU) then
+    objDistribuicao.NSU := NSU.ToString;
+
+  if jDistribuicao.Find('chNFe', chNFe) then
+    objDistribuicao.chNFe := chNFe.ToString;
+
+  try
+    objDistribuicao.Executar;
+  except
+    on E: Exception do
+    begin
+      if objDistribuicao.RetDistDFeInt.cStat <> 0 then
+        Result := TJSONObject(TJSONTools.ObjToJson(
+          objDistribuicao.RetDistDFeInt))
+      else
+        Result.Add('error', E.message);
+      Exit;
+    end;
+  end;
+
+  Result := TJSONObject(TJSONTools.ObjToJson(objDistribuicao.RetDistDFeInt));
 end;
 
 function TACBRBridgeNFe.Danfe(const xmlData: TJSONObject): TJSONObject;

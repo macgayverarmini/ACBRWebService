@@ -83,7 +83,7 @@ begin
   Ac := TACBRBridgeNFe.Create(O.Extract('config').AsJSON);
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
-      .Send(Ac.Distribuicao(O));
+      .Send<TJSONObject>(Ac.Distribuicao(O));
   finally
     O.Free;
     Ac.Free;
