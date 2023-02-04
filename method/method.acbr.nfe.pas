@@ -1,19 +1,21 @@
+{%RunFlags MESSAGES+}
 unit method.acbr.nfe;
 
 {$mode Delphi}
 
 interface
 
-uses
-  ACBrNFeDANFeLazReport,
-  LCLIntf, LCLType, LMessages, Messages, Variants, Graphics,
-  Controls, Forms, Dialogs, ComCtrls, StdCtrls, Spin, Buttons, ExtCtrls,
-  fpjson, jsonconvert, ACBrNFeDANFeRLClass, ACBrNFeDANFEClass, ACBrDANFCeFortesFr,
-  ACBrDFeReport, ACBrDFeDANFeReport, ACBrBase, ACBrDFe,
-  ACBrNFe, ACBrUtil, ACBrMail, ACBrIntegrador, ACBrDANFCeFortesFrA4,
+uses streamtools,
+  ACBrNFeDANFeRLClass,
+
+  LCLIntf, LCLType,   Variants, Graphics,
+  Controls, Forms, Dialogs, ComCtrls,   Buttons, ExtCtrls,
+  fpjson, jsonconvert,
+   ACBrDFeDANFeReport,
+  ACBrNFe,  ACBrMail,
   Horse.HandleException, Base64, jsonparser, ACBrDFeSSL,
   pcnConversaoNFe, pcnConversao, pcnEnvEventoNFe, ACBrDFeConfiguracoes,
-  pcnEventoNFe, ACBrNFeConfiguracoes, Classes, SysUtils, fpjsonrtti;
+   ACBrNFeConfiguracoes, Classes, SysUtils;
 
 type
 
@@ -24,8 +26,10 @@ type
   private
     fcfg: string;
     facbr: TACBrNFe;
-    fdanfe: TACBrNFeDANFeLazReport;
+    fdanfe: TACBrNFeDANFeRL;
     procedure CarregaConfig;
+
+    function ReadXMLFromJSON(const jsonData: TJSONObject): string;
   public
     constructor Create(const Cfg: string);
     destructor Destroy; override;
@@ -109,18 +113,51 @@ end;
 { TACBRBridgeNFe }
 
 procedure TACBRBridgeNFe.CarregaConfig;
+var
+  O: TJSONObject;
 begin
   if fcfg = '' then
     exit;
 
-  TJSONTools.JsonStringToObj(fcfg, facbr.Configuracoes);
+  O := GetJSON(fcfg) as TJSONObject;
+  try
+    TJSONTools.JsonToObj(O, facbr.Configuracoes);
+  finally
+    O.Free;
+  end;
+
   fcfg := '';
+end;
+
+function TACBRBridgeNFe.ReadXMLFromJSON(const jsonData: TJSONObject): string;
+var
+  xmlBase64: string;
+begin
+  try
+    xmlBase64 := jsonData.Extract('xml').Value;
+  except
+    on E: Exception do
+    begin
+      raise Exception.Create('Erro na leitura do parâmetro "xml" do JSON: ' +
+        E.Message);
+    end;
+  end;
+
+  try
+    Result := DecodeStringBase64(xmlBase64);
+    xmlBase64 := '';
+  except
+    on E: Exception do
+    begin
+      raise Exception.Create('A string XML em base64 é inválida: ' + E.Message);
+    end;
+  end;
 end;
 
 constructor TACBRBridgeNFe.Create(const Cfg: string);
 begin
   facbr := TACBrNFe.Create(nil);
-  fdanfe := TACBrNFeDANFeLazReport.Create(nil);
+  fdanfe := TACBrNFeDANFeRL.Create(nil);
   fcfg := Cfg;
   facbr.DANFE := fdanfe;
 end;
@@ -160,51 +197,30 @@ end;
 
 function TACBRBridgeNFe.Distribuicao(const jDistribuicao: TJSONObject): string;
 begin
-  CarregaConfig;
-  TJSONTools.JsonToObj(jDistribuicao, facbr.WebServices.DistribuicaoDFe);
-  facbr.WebServices.DistribuicaoDFe.Executar;
-  Result := TJSONTools.ObjToJsonString(facbr.WebServices.DistribuicaoDFe.retDistDFeInt);
-end;
 
-function StreamToBase64String(AStream: TMemoryStream): string;
-var
-  LBytes: TBytes;
-begin
-  SetLength(LBytes, AStream.Size);
-  AStream.Position := 0;
-  AStream.Read(LBytes[0], AStream.Size);
-  Result := base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes));
 end;
 
 function TACBRBridgeNFe.Danfe(const xmlData: TJSONObject): TJSONObject;
 var
-  xmlBase64: string;
+  arquivofinal: string;
   stringXml: string;
-  streamPdf: TMemoryStream;
+  tamanho: integer;
   id: TJSONString;
+  fileName: string;
 begin
+  CarregaConfig;
   Result := TJSONObject.Create;
 
   try
-    xmlBase64 := xmlData.Extract('xml').Value;
+    stringXml := ReadXMLFromJSON(xmlData);
   except
+    on E: Exception do
     begin
-      Result.Add('error', 'Erro na leitura do par xml no JSON.');
+      Result.Add('error', E.Message);
       Exit;
     end;
   end;
 
-  try
-    stringXml := DecodeStringBase64(xmlBase64);
-  except
-    begin
-      Result.Add('error', 'A string XML em base64 é inválida');
-      Exit;
-    end;
-  end;
-
-  // esvazia o xml em base64 logo da memória
-  xmlBase64 := '';
   try
     facbr.NotasFiscais.LoadFromString(stringXml);
   except
@@ -214,6 +230,7 @@ begin
       Exit;
     end;
   end;
+
   // Esvazia a string para liberar da memória logo o xml
   stringXml := '';
   // O acesso a propriedade TipoDanfe se faz somente diretamente pelo objeto.
@@ -222,35 +239,46 @@ begin
   else
     fdanfe.TipoDANFE := tiPaisagem;
 
-  streamPdf := TMemoryStream.Create;
-  try
-    // Realiza o processo de transformar o XML em PDF (Danfe)
-    try
-      fDANFe.ImprimirDANFEPDF;
-    except
-      begin
-        Result.Add('error', 'Falha ao gerar o PDF.');
-        Exit;
-      end;
-    end;
+  // Como é um aplicativo console, jamais a propriedade MostraStatus deve ser true.
+  fdanfe.MostraPreview := False;
+  fdanfe.MostraStatus := False;
+  fdanfe.MostraSetup := False;
 
-    if streamPdf.Size = 0 then
+  //Gerando arquivo temporário
+  fileName := GetTempFileName;
+  // Realiza o processo de transformar o XML em PDF (Danfe)
+  try
+    fDAnFe.PathPDF := filename;
+    facbr.NotasFiscais.ImprimirPDF;
+    filename := fdanfe.ArquivoPDF;
+  except
     begin
-      Result.Add('error', 'O pdf gerado não parece ser válido.');
+      Result.Add('error', 'Falha ao gerar o PDF.');
       Exit;
     end;
-    // Converte a stream do relatório para base64
-    Result.Add('pdf', StreamToBase64String(streamPdf));
-    // Chave de Acesso da NF-e
-    Result.Add('chave', facbr.NotasFiscais.Items[0].NFe.infNFe.ID);
-    // Tamanho em Bytes
-    Result.Add('tamanho', streamPdf.Size.ToString);
-    // Adiciona o identificador único se ele existir
-    if xmlData.Find('id', id) then
-      Result.Add('id', id);
-  finally
-    streamPdf.Free;
   end;
+
+  // Converte o arquivo para base64
+  try
+    arquivofinal := FileToStringBase64(filename, True, tamanho);
+  except
+    on E: Exception do
+    begin
+      Result.Add('error', E.Message);
+      Exit;
+    end;
+  end;
+
+  // Converte a stream do relatório para base64
+  Result.Add('pdf', arquivofinal);
+  // Chave de Acesso da NF-e
+  Result.Add('chave', facbr.NotasFiscais.Items[0].NFe.infNFe.ID);
+  // Tamanho em Bytes
+  Result.Add('tamanho', tamanho.ToString);
+  // Adiciona o identificador único se ele existir
+  if xmlData.Find('id', id) then
+    Result.Add('id', id);
+
 end;
 
 function TACBRBridgeNFe.TesteConfig: boolean;

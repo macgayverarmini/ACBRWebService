@@ -8,33 +8,34 @@
       <Unit>
         <Filename Value="ACBRWebService.lpr"/>
         <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="4"/>
-        <CursorPos X="43" Y="14"/>
-        <UsageCount Value="71"/>
+        <CursorPos X="29" Y="15"/>
+        <UsageCount Value="74"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="routes\route.acbr.nfe.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="75"/>
-        <CursorPos Y="98"/>
-        <UsageCount Value="71"/>
+        <EditorIndex Value="7"/>
+        <CursorPos X="64" Y="15"/>
+        <UsageCount Value="74"/>
+        <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="route.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="27" Y="16"/>
-        <UsageCount Value="71"/>
+        <UsageCount Value="74"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
       <Unit>
         <Filename Value="method\method.acbr.nfe.pas"/>
         <IsPartOfProject Value="True"/>
-        <CursorPos X="51" Y="10"/>
-        <UsageCount Value="70"/>
+        <TopLine Value="17"/>
+        <CursorPos X="33" Y="40"/>
+        <UsageCount Value="73"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -42,7 +43,7 @@
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="28" Y="24"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="27"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
       <Unit>
@@ -52,7 +53,7 @@
         <WindowIndex Value="1"/>
         <TopLine Value="8"/>
         <CursorPos Y="39"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="27"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
       <Unit>
@@ -62,7 +63,7 @@
         <WindowIndex Value="1"/>
         <TopLine Value="11"/>
         <CursorPos X="27" Y="37"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="27"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
       <Unit>
@@ -71,7 +72,7 @@
         <EditorIndex Value="-1"/>
         <WindowIndex Value="-1"/>
         <CursorPos X="48" Y="10"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="27"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
       <Unit>
@@ -80,8 +81,15 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="9"/>
         <CursorPos X="25" Y="40"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="27"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\LazReport\ACBrNFeDANFeLazReport.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="50" Y="1827"/>
+        <UsageCount Value="21"/>
       </Unit>
       <Unit>
         <Filename Value="modules\horse\src\Horse.Core.pas"/>
@@ -342,155 +350,217 @@
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\ACBrDFeDANFeReport.pas"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="66"/>
-        <CursorPos X="15" Y="88"/>
+        <TopLine Value="276"/>
+        <CursorPos X="47" Y="277"/>
         <UsageCount Value="10"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\Fortes\ACBrNFeDANFeRLClass.pas"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="251"/>
         <CursorPos X="3" Y="276"/>
         <UsageCount Value="10"/>
-        <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\ACBrNFeDANFEClass.pas"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="223"/>
-        <CursorPos X="22" Y="61"/>
-        <UsageCount Value="10"/>
-      </Unit>
-      <Unit>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\LazReport\ACBrNFeDANFeLazReport.pas"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="1"/>
-        <TopLine Value="25"/>
+        <EditorIndex Value="6"/>
+        <TopLine Value="171"/>
+        <CursorPos X="45" Y="207"/>
         <UsageCount Value="10"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="C:\fpcupdeluxe\lazarus\components\lazreport\source\lr_class.pas"/>
         <UnitName Value="LR_Class"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="10"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrDFeReport.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="289"/>
+        <CursorPos Y="293"/>
+        <UsageCount Value="10"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFeNotasFiscais.pas"/>
+        <EditorIndex Value="5"/>
+        <TopLine Value="3923"/>
+        <CursorPos X="3" Y="3925"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="C:\fpcupdeluxe\lazarus\components\lazreport\source\lr_dbset.pas"/>
+        <UnitName Value="LR_DBSet"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="7"/>
+        <CursorPos X="3" Y="25"/>
+        <UsageCount Value="10"/>
+      </Unit>
+      <Unit>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\objpas\classes\classesh.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="1942"/>
+        <CursorPos X="17" Y="1964"/>
+        <UsageCount Value="10"/>
+      </Unit>
+      <Unit>
+        <Filename Value="modules\horse\src\Horse.Core.RouterTree.NextCaller.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="56"/>
+        <CursorPos Y="79"/>
+        <UsageCount Value="10"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\Fortes\ACBrNFeDANFeRLRetrato.pas"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="163"/>
+        <CursorPos X="21" Y="62"/>
         <UsageCount Value="10"/>
         <Loaded Value="True"/>
       </Unit>
+      <Unit>
+        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\Fortes\ACBrNFeDANFeRL.pas"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="25"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tools\streamtools.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="6"/>
+        <CursorPos X="19" Y="40"/>
+        <UsageCount Value="21"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit>
     </Units>
-    <JumpHistory HistoryIndex="28">
+    <Debugger>
+      <Backend Value="{514D45D2-1BEC-49C6-B1C1-7EF5FBE5597E}"/>
+    </Debugger>
+    <JumpHistory HistoryIndex="29">
       <Position>
         <Filename Value="method\method.acbr.nfe.pas"/>
-        <Caret Line="183" TopLine="168"/>
+        <Caret Line="31" Column="14" TopLine="18"/>
       </Position>
       <Position>
         <Filename Value="method\method.acbr.nfe.pas"/>
-        <Caret Line="8" Column="42"/>
+        <Caret Line="139" Column="21" TopLine="122"/>
       </Position>
       <Position>
         <Filename Value="method\method.acbr.nfe.pas"/>
-        <Caret Line="185" TopLine="171"/>
+        <Caret Line="41" Column="17" TopLine="8"/>
       </Position>
       <Position>
         <Filename Value="method\method.acbr.nfe.pas"/>
-        <Caret Line="187" TopLine="171"/>
+        <Caret Line="213" Column="28" TopLine="185"/>
       </Position>
       <Position>
         <Filename Value="method\method.acbr.nfe.pas"/>
-        <Caret Line="188" TopLine="171"/>
+        <Caret Line="39" Column="14" TopLine="17"/>
       </Position>
       <Position>
         <Filename Value="method\method.acbr.nfe.pas"/>
-        <Caret Line="187" TopLine="171"/>
+        <Caret Line="197" Column="3" TopLine="195"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="37" Column="14" TopLine="15"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="177" Column="3" TopLine="169"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="41" Column="14" TopLine="13"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="212" Column="7" TopLine="191"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="31" Column="14" TopLine="17"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="145" Column="19" TopLine="131"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="41" Column="14" TopLine="8"/>
+      </Position>
+      <Position>
+        <Filename Value="tools\streamtools.pas"/>
+        <Caret Line="11" Column="54"/>
+      </Position>
+      <Position>
+        <Filename Value="tools\streamtools.pas"/>
+        <Caret Line="32" Column="20" TopLine="7"/>
+      </Position>
+      <Position>
+        <Filename Value="tools\streamtools.pas"/>
+        <Caret Line="29" Column="58" TopLine="6"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="213" Column="40" TopLine="194"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="9" Column="24"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="12" Column="29"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="18" Column="44"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="14" Column="46"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="10" Column="31"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="40" Column="33" TopLine="17"/>
+      </Position>
+      <Position>
+        <Filename Value="routes\route.acbr.nfe.pas"/>
+        <Caret Line="11" Column="27"/>
+      </Position>
+      <Position>
+        <Filename Value="routes\route.acbr.nfe.pas"/>
+        <Caret Line="12" Column="68"/>
+      </Position>
+      <Position>
+        <Filename Value="routes\route.acbr.nfe.pas"/>
+        <Caret Line="15" Column="64"/>
       </Position>
       <Position>
         <Filename Value="ACBRWebService.lpr"/>
-        <Caret Line="18"/>
+        <Caret Line="5" Column="15"/>
       </Position>
       <Position>
         <Filename Value="ACBRWebService.lpr"/>
-        <Caret Line="19"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.nfe.pas"/>
-        <Caret Line="185" TopLine="161"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.nfe.pas"/>
-        <Caret Line="187" TopLine="161"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.nfe.pas"/>
-        <Caret Line="231" TopLine="206"/>
+        <Caret Line="8" Column="34"/>
       </Position>
       <Position>
         <Filename Value="ACBRWebService.lpr"/>
-        <Caret Line="18"/>
+        <Caret Line="6" Column="42"/>
       </Position>
       <Position>
-        <Filename Value="method\method.acbr.nfe.pas"/>
-        <Caret Line="185" TopLine="161"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.nfe.pas"/>
-        <Caret Line="228" Column="27" TopLine="206"/>
-      </Position>
-      <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\Fortes\ACBrNFeDANFeRLClass.pas"/>
-        <Caret Line="107" Column="15" TopLine="85"/>
-      </Position>
-      <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\Fortes\ACBrNFeDANFeRLClass.pas"/>
-        <Caret Line="310" Column="3" TopLine="291"/>
-      </Position>
-      <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\Fortes\ACBrNFeDANFeRLClass.pas"/>
-        <Caret Line="106" Column="15" TopLine="85"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.nfe.pas"/>
-        <Caret Line="37" Column="21" TopLine="16"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.nfe.pas"/>
-        <Caret Line="30" Column="21" TopLine="18"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.nfe.pas"/>
-        <Caret Line="228" Column="7" TopLine="202"/>
-      </Position>
-      <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\LazReport\ACBrNFeDANFeLazReport.pas"/>
-        <Caret Line="46" Column="13" TopLine="24"/>
-      </Position>
-      <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\LazReport\ACBrNFeDANFeLazReport.pas"/>
-        <Caret Line="47" Column="11" TopLine="24"/>
-      </Position>
-      <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\LazReport\ACBrNFeDANFeLazReport.pas"/>
-        <Caret Line="49" Column="2" TopLine="24"/>
-      </Position>
-      <Position>
-        <Filename Value="C:\fpcupdeluxe\lazarus\components\lazreport\source\lr_class.pas"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.nfe.pas"/>
-        <Caret Line="8" Column="3"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.nfe.pas"/>
-        <Caret Line="20" Column="36"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.nfe.pas"/>
-        <Caret Line="8" Column="3"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.nfe.pas"/>
-        <Caret Line="7" Column="21"/>
-      </Position>
-      <Position>
-        <Filename Value="C:\fpcupdeluxe\lazarus\components\lazreport\source\lr_class.pas"/>
+        <Filename Value="ACBRWebService.lpr"/>
+        <Caret Line="7" Column="3"/>
       </Position>
     </JumpHistory>
     <RunParams>
@@ -500,13 +570,6 @@
   </ProjectSession>
   <Debugging>
     <BreakPoints>
-      <Item>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="method\method.acbr.nfe.pas"/>
-        <Line Value="186"/>
-      </Item>
       <Item>
         <Kind Value="bpkSource"/>
         <WatchScope Value="wpsLocal"/>
@@ -532,13 +595,6 @@
         <Kind Value="bpkSource"/>
         <WatchScope Value="wpsLocal"/>
         <WatchKind Value="wpkWrite"/>
-        <Source Value="method\method.acbr.nfe.pas"/>
-        <Line Value="229"/>
-      </Item>
-      <Item>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
         <Source Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\Fortes\ACBrNFeDANFeRLClass.pas"/>
         <Line Value="171"/>
       </Item>
@@ -548,6 +604,69 @@
         <WatchKind Value="wpkWrite"/>
         <Source Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\Fortes\ACBrNFeDANFeRLClass.pas"/>
         <Line Value="289"/>
+      </Item>
+      <Item>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\LazReport\ACBrNFeDANFeLazReport.pas"/>
+        <Line Value="214"/>
+      </Item>
+      <Item>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\LazReport\ACBrNFeDANFeLazReport.pas"/>
+        <Line Value="213"/>
+      </Item>
+      <Item>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFeNotasFiscais.pas"/>
+        <Line Value="3925"/>
+      </Item>
+      <Item>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\ACBrDFeDANFeReport.pas"/>
+        <Line Value="153"/>
+      </Item>
+      <Item>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="..\acbr\Fontes\ACBrDFe\ACBrDFeReport.pas"/>
+        <Line Value="293"/>
+      </Item>
+      <Item>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\ACBrNFeDANFEClass.pas"/>
+        <Line Value="193"/>
+      </Item>
+      <Item>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\LazReport\ACBrNFeDANFeLazReport.pas"/>
+        <Line Value="1494"/>
+      </Item>
+      <Item>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\LazReport\ACBrNFeDANFeLazReport.pas"/>
+        <Line Value="1495"/>
+      </Item>
+      <Item>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\LazReport\ACBrNFeDANFeLazReport.pas"/>
+        <Line Value="1831"/>
       </Item>
     </BreakPoints>
     <Watches>
