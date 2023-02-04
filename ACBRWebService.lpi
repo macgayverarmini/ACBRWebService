@@ -26,6 +26,12 @@
     </RunParams>
     <RequiredPackages>
       <Item>
+        <PackageName Value="ACBr_NFe_Danfe_LazReport"/>
+      </Item>
+      <Item>
+        <PackageName Value="frce"/>
+      </Item>
+      <Item>
         <PackageName Value="LCLBase"/>
       </Item>
       <Item>
