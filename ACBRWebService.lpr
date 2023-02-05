@@ -5,7 +5,7 @@ uses
   Interfaces, Horse, Horse.Jhonson,
   Horse.HandleException, route.acbr.nfe,
    route.acbr.diversos.extenso,
-  route.acbr.diversos.validador, method.acbr.diversos.validador;
+  route.acbr.diversos.validador;
 
 begin
   THorse.Use(Jhonson);
