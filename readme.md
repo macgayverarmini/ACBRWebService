@@ -7,7 +7,7 @@ O projeto ACBRWebService é uma solução de integração entre o ACBR e o Lazar
 ## Requisitos
 - Versão 3.2.0 do Free Pascal Compiler (FPC).
 - Versão 2.2.0 do Lazarus.
-- fpcupdeluxe instalado para compilar o código fonte. (https://github.com/LongDirtyAnimAlf/fpcupdeluxe)
+- fpcupdeluxe instalado para compilar o código fonte. (https://github.com/LongDirtyAnimAlf/fpcupdeluxe/releases/tag/v2.2.0n)
 - Componente ACBR (informações disponíveis em http://acbr.sourceforge.net/).
 - FortesReport-CE4 (informações disponíveis em http://www.fortesinformatica.com.br/produtos/report-ce/).
 - Horse (informações disponíveis em https://github.com/HashLoad/horse).
@@ -27,3 +27,4 @@ O nome "ACBR" no nome do projeto não é de autoria do desenvolvedor e pertence 
 ## Clonando o Repositório
 Abra o terminal ou prompt de comando e navegue até a pasta onde deseja clonar o repositório. Em seguida, execute o seguinte comando:
 
+git clone https://github.com/macgayverarmini/ACBRWebService.git
