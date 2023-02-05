@@ -6,9 +6,9 @@ interface
 
 uses
   fpjson,
-  Horse.HandleException, Base64, jsonparser, ACBrDFeSSL,
-  ACBrNFe, pcnConversaoNFe, pcnConversao, pcnEnvEventoNFe, ACBrDFeConfiguracoes,
-  pcnEventoNFe, ACBrNFeConfiguracoes, Classes, SysUtils, fpjsonrtti;
+  Horse.HandleException, jsonparser,
+  pcnConversaoNFe, pcnConversao,
+  Classes, SysUtils, fpjsonrtti;
 
 type
 
@@ -36,7 +36,7 @@ begin
     Streamer.Options := Streamer.Options + [jsoDateTimeAsString, jsoTStringsAsArray];
     Result := Streamer.ObjectToJSONString(Obj);
   finally
-    Streamer.Destroy;
+    FreeAndNil(Streamer);
   end;
 end;
 
@@ -49,7 +49,7 @@ begin
     Streamer.Options := Streamer.Options + [jsoDateTimeAsString, jsoTStringsAsArray];
     Result := Streamer.ObjectToJSON(Obj);
   finally
-    Streamer.Destroy;
+    FreeAndNil(Streamer)
   end;
 end;
 
@@ -62,7 +62,7 @@ begin
     Streamer.Options := [jdoIgnorePropertyErrors];
     Streamer.JSONToObject(JsonString, Obj);
   finally
-    Streamer.Destroy;
+    FreeAndNil(Streamer);
   end;
 end;
 
@@ -75,7 +75,7 @@ begin
     Streamer.Options := [jdoIgnorePropertyErrors];
     Streamer.JSONToObject(Json, Obj);
   finally
-    Streamer.Destroy;
+    FreeAndNil(Streamer);
   end;
 end;
 

@@ -6,14 +6,19 @@ unit method.acbr.nfe;
 interface
 
 uses streamtools,
+  RTTI,
+  pcnProcNFe,
+  ACBrNFeNotasFiscais,
   ACBrNFeDANFeRLClass,
   ACBrNFeWebServices,
+  ACBRNfe,
+  pcnNFe,
   StrUtils,
   LCLIntf, LCLType, Variants, Graphics,
   Controls, Forms, Dialogs, ComCtrls, Buttons, ExtCtrls,
   fpjson, jsonconvert,
   ACBrDFeDANFeReport,
-  ACBrNFe, ACBrMail,
+  ACBrMail,
   Base64, jsonparser, ACBrDFeSSL,
   pcnConversaoNFe, pcnConversao, pcnEnvEventoNFe, ACBrDFeConfiguracoes,
   ACBrNFeConfiguracoes, Classes, SysUtils;
@@ -41,6 +46,8 @@ type
     function Distribuicao(const jDistribuicao: TJSONObject): TJSONObject;
     // DANFE
     function Danfe(const xmlData: TJSONObject): TJSONObject;
+    // Envia uma NFE
+    function NFe(const jNFe: TJSONObject): TJSONObject;
 
     // Teste a configuração passada em JSON
     function TesteConfig: boolean;
@@ -56,6 +63,7 @@ type
     function ModelConfig: TJSONObject;
     function ModelEvento: TJSONObject;
     function ModelDistribuicao: string;
+    function ModelNFe: TJSONObject;
   end;
 
 implementation
@@ -106,6 +114,16 @@ begin
   facbr.EventoNFe.Evento.Clear;
 end;
 
+
+function TACBRModelosJSON.ModelNFe: TJSONObject;
+var
+  NF: NotaFiscal;
+begin
+  NF := facbr.NotasFiscais.Add;
+  Result := TJSONTools.ObjToJson(NF);
+  facbr.NotasFiscais.Clear;
+end;
+
 function TACBRModelosJSON.ModelDistribuicao: string;
 begin
   //  Evento := facbr.WebServices.DistribuicaoDFe.new;
@@ -114,6 +132,43 @@ begin
 end;
 
 { TACBRBridgeNFe }
+
+function TACBRBridgeNFe.NFe(const jNFe: TJSONObject): TJSONObject;
+var
+  Nota: NotaFiscal;
+  Lote: integer;
+  // Unit pcnProcNFe
+  RetWS: TProcNFe;
+begin
+  CarregaConfig;
+
+  Result := TJSONObject.Create;
+  //Gera objeto TNotaFiscal da unit ACBrNFeNotasFiscais
+  Nota := facbr.NotasFiscais.Add;
+  // Inicia o número do lote do envio da NFe
+  Lote := 1;
+  // Alimenta o objeto Nota com os valores passandos por JSON
+  try
+    TJSONTools.JsonToObj(jNFe, Nota);
+  except
+    on E: Exception do
+    begin
+      Result.Add('status', 'erro');
+      Result.Add('message', 'Erro na leitura do objeto JSON: ' + E.Message);
+      Exit;
+    end;
+  end;
+
+  try
+    // Pede a ACBR para transmitir os dados
+    facbr.WebServices.Envia(Lote, True, False);
+  finally
+    Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.Retorno));
+  end;
+
+  facbr.NotasFiscais.Clear;
+end;
+
 
 procedure TACBRBridgeNFe.CarregaConfig;
 var

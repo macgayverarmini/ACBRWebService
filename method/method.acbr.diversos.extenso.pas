@@ -5,9 +5,9 @@ unit method.acbr.diversos.extenso;
 interface
 
 uses
-  fpjson,jsonconvert, ACBrExtenso,
-  Horse.HandleException, Base64, jsonparser,
-  Classes, SysUtils, fpjsonrtti;
+  fpjson, jsonconvert, ACBrExtenso,
+  Horse.HandleException, jsonparser,
+  Classes, SysUtils;
 
 type
 
@@ -15,7 +15,7 @@ type
 
   TACBRBridgeExtenso = class
   private
-  facbr: TACBrExtenso;
+    facbr: TACBrExtenso;
   public
 
     function Modelo: TJSONObject;
@@ -52,4 +52,3 @@ begin
 end;
 
 end.
-

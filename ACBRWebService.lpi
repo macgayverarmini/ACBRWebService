@@ -26,6 +26,9 @@
     </RunParams>
     <RequiredPackages>
       <Item>
+        <PackageName Value="ACBr_NFe_DanfeRL"/>
+      </Item>
+      <Item>
         <PackageName Value="ACBr_NFe_Danfe_LazReport"/>
       </Item>
       <Item>
