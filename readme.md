@@ -2,7 +2,11 @@
 
 # ACBRWebService
 
-O projeto ACBRWebService é uma solução de integração entre o ACBR e o Lazarus. Ele permite enviar e receber informações dos serviços da Receita Federal usando o ACBR e o Lazarus.
+O projeto ACBRWebService é uma tentativa de usar a ACBR por meio de uma API REST. Devido ao tamanho da ACBR os benefícios são ilimitados, qualquer tipo de microservice pode se tornar poderoso tentao um endpoint para um serviço assim. Por exemplo a classe ACBR Validador aceleraria qualquer projeto em que um backend precisaria validar documentos nacionais, Gerar uma DANFE por XML com muita simplicidade e obter o PDF em base64, transformar uma estação qualquer, ou mesmo um Raspberry em uma central de impressão, enviando comandos para uma impressora ESCPOS, a lista seria enorme.
+
+É importante notar que o projeto inicialmente não vai se preocupar com autenticação da API, hava visto que inicialmente a idéia é utilizar junto a outro backend de outra linguágem de progração, ou serviços de automação como o N8N, você facilmente poderia inserir em uma imagem DOCKER do N8N e tornar uma ferramenta que já é poderosa, ainda mais.
+
+Esse projeto não tem intenção de funcionar no Delphi, apenas no Lazarus, isso é devido não apenas por ser uma ferramenta gratuita, mas porque o RTTI do lazarus ao transformar um JSON em TObject ser mais eficiente, e somente por isso que o código desse repositório se tornou viável.
 
 ## Requisitos
 - Versão 3.2.0 do Free Pascal Compiler (FPC).
@@ -11,12 +15,15 @@ O projeto ACBRWebService é uma solução de integração entre o ACBR e o Lazar
 - Componente ACBR (informações disponíveis em http://acbr.sourceforge.net/).
 - FortesReport-CE4 (informações disponíveis em http://www.fortesinformatica.com.br/produtos/report-ce/).
 - Horse (informações disponíveis em https://github.com/HashLoad/horse).
+- Python 3 (Para permitir converter a propriedade dos arquivos da ACBRDFe (inteira) em publish
 
 ## Instalação
 1. Faça o download do fpcupdeluxe em https://github.com/LongDirtyAnimAlf/fpcupdeluxe.
-2. Instale o fpcupdeluxe seguindo as instruções fornecidas.
+2. Instale o fpcupdeluxe seguindo as versões informada em requisitos.
 3. Baixe e instale os componentes ACBR, FortesReport-CE4 e Horse no Lazarus.
-4. Clone o repositório ACBRWebService em sua máquina.
+4. Baixe e instale o Python3.
+5. Clone o repositório ACBRWebService em sua máquina.
+6. Execute o compando na sua pasta clonada "python script_altera_acbr.py"
 
 ## Licença
 O projeto ACBRWebService é licenciado sob a mesma licença do projeto ACBR.
