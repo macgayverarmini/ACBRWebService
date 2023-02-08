@@ -118,9 +118,37 @@ end;
 function TACBRModelosJSON.ModelNFe: TJSONObject;
 var
   NF: NotaFiscal;
+  Det: TDetCollectionItem;
 begin
   NF := facbr.NotasFiscais.Add;
+  NF.NFe.Cobr.Dup.New;
+  Det := NF.NFe.Det.New;
+  Det.Prod.DI.New.adi.New;
+  Det.Prod.NVE.New;
+  Det.Prod.arma.New;
+  Det.Prod.detExport.New;
+  Det.Prod.med.New;
+  Det.Prod.rastro.New;
+
+  NF.NFe.Ide.NFref.New;
+  NF.NFe.InfAdic.obsCont.New;
+  NF.NFe.InfAdic.obsFisco.New;
+  NF.NFe.InfAdic.procRef.New;
+  NF.NFe.Transp.Reboque.New;
+  NF.NFe.Transp.Vol.New.Lacres.New;
+  NF.NFe.cana.fordia.New;
+  NF.Nfe.cana.deduc.New;
+  NF.NFe.pag.New.tBand:= TpcnBandeiraCartao.bcAlelo;
+
   Result := TJSONTools.ObjToJson(NF);
+  Result.Delete('XML');
+  Result.Delete('XMLOriginal');
+  Result.Delete('NomeArq');
+  Result.Delete('ErroValidacaoCompleto');
+  Result.Delete('ErroValidacao');
+  Result.Delete('ErroRegrasdeNegocios');
+  Result.Delete('Alertas');
+
   facbr.NotasFiscais.Clear;
 end;
 

@@ -3,19 +3,26 @@
 import os
 import shutil
 
+backups_file_list = []
+
 def backup_file(file_path):
+    backups_file_list.append(file_path)
     backup_path = file_path + ".clone"
     if os.path.exists(backup_path):
         os.remove(backup_path)
     shutil.copy(file_path, backup_path)
 
-def restore_file(file_path):
-    backup_file_path = file_path + ".clone"
-    if os.path.exists(backup_file_path):
-        shutil.copy(backup_file_path, file_path)
-        print("Arquivo restaurado com sucesso")
-    else:
-        print("Arquivo de backup não encontrado")
+def restore_files(contador = 0):
+    for pre_backup_file_path in backups_file_list:
+        backup_file_path = pre_backup_file_path + ".clone"
+        if os.path.exists(backup_file_path):
+            shutil.copy(backup_file_path, pre_backup_file_path)
+            os.remove(backup_file_path)
+            
+            print(("." * contador))
+            contador += 1
+        else:
+            print("Arquivo de backup não encontrado")
 
 def read_file(file_path):
     encoding = None
@@ -37,9 +44,9 @@ def backup_linha(indice, lines):
 
 def modify_file(file_path, modified_files):    
     lines, encoding = read_file(file_path)
-    file_modified = False
-    adding_property_lines = False
+    file_modified = False    
     start_monitor = False
+    start_public = False
     property_lines = []
     #usado para desfazer as alterações caso encontre uma propriedade published
     backup_linhas = []
@@ -49,15 +56,28 @@ def modify_file(file_path, modified_files):
     # passando pelas linhas
     while i < len(lines):
         line = lines[i]
+
         # só inicia a verificação quando achar a sessão public no arquivo pascal.
-        if "public" in line:
+        if "type" in line:
+            start_public = True
+        elif "public" in line and start_public:
             start_monitor = True
         # quando achar na linha a palavra property, devemos verificar a partir da aqui, todas as linhas por ";"
         # a fim de garantir mover as propriedades que são multilinhas corretamente.
         elif "published" in line:        
-            published_found = True        
+            published_found = True   
         elif "property " in line and start_monitor:
             property_line = line
+
+            if "property Certificado: PCCERT_CONTEXT" in property_line:
+                continue;
+            
+            if "property Certificado: pX509" in property_line:
+                continue;
+            
+            if "property SaveOptions: TSaveOptions" in property_line:
+                continue;
+
             alimpar = []
             alimpar.append(i)            
             #caso especial, quando a propriedade está em mais de uma linha
@@ -71,28 +91,32 @@ def modify_file(file_path, modified_files):
                                     
             # para uma propriedade ser válida para se tornar published, ela precisa ter na property_line
             # os termos "write F" e "read F".
-            if "write F" in property_line and "read F" in property_line:
+            if "read F" in property_line:
                 property_lines.append(property_line)
                 
                 #limpando as linhas, e fazendo o backup delas
                 for index in alimpar:                                    
                     backup_linhas.append(backup_linha(index, lines))                
                     lines[index] = ''
-                adding_property_lines = True
+                    file_modified = True
+
         # quando encontrar o end, provávlemente foi encontrado o fim da classe que estamos passando
         # nesse caso vamos adicionar as propriedades uma linha antes.
-        elif "end" in line and adding_property_lines:
-            adding_property_lines = False            
-            # se achou published, que dizer que a classe atual que está sendo processada no arquivo 
-            # não precisa de alteração.
-            if not published_found:
-                lines[i-1] = lines[i-1] + "\npublished\n" + "".join(property_lines)                                        
-            else:
-                for item in backup_linhas:
-                    lines[int(item['codigo'])] = item['valor']
-
-            file_modified = True                    
-            property_lines.clear()
+        elif "end;" in line.replace(" ", ""):            
+            if (len(property_lines) > 0):
+                # se achou published, que dizer que a classe atual que está sendo processada no arquivo 
+                # não precisa de alteração.
+                if not published_found:
+                    lines[i-1] = lines[i-1] + "\n  published\n" + "".join(property_lines)                                        
+                else:
+                    for item in backup_linhas:
+                        lines[int(item['codigo'])] = item['valor']
+                file_modified = True                                
+            
+                backup_linhas.clear()
+                property_lines.clear()
+            
+            published_found = False            
             start_monitor = False
         # quando encontrar "implementation", é hora de terminar a função. 
         elif "implementation" in line:
@@ -143,7 +167,7 @@ def alter_files(path, search_subdirectories):
 path = input("Digite o caminho da pasta ACBR: ")
 
 if path == '':
-    path = 'C:\\NFMonitor\\acbr\\Fontes\\ACBrDFe\\ACBrNFe\\'
+    path = 'C:\\NFMonitor\\acbr\\Fontes\\ACBrDFe\\'
 
 search_subdirectories = input("Deseja pesquisar em subdiretórios (s/n)? ")
 
@@ -153,9 +177,8 @@ print_result(files_altered, modified_files)
 
 if files_altered > 0:
     undo = input("Deseja desfazer as alterações (s/n)? (Dica: você pode tentar compilar no Lazarus antes de tentar desfazer aqui!) ")
-    if undo == "s":
-        for file_path in modified_files:
-            restore_file(os.path.join(path, file_path))
+    if undo == "s":        
+        restore_files()
         print("Alterações desfeitas.")
 
 

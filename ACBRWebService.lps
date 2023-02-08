@@ -10,7 +10,7 @@
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="31" Y="9"/>
-        <UsageCount Value="95"/>
+        <UsageCount Value="100"/>
       </Unit>
       <Unit>
         <Filename Value="routes\route.acbr.nfe.pas"/>
@@ -18,41 +18,38 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="20"/>
         <CursorPos X="33" Y="43"/>
-        <UsageCount Value="95"/>
+        <UsageCount Value="100"/>
       </Unit>
       <Unit>
         <Filename Value="route.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="27" Y="16"/>
-        <UsageCount Value="95"/>
+        <UsageCount Value="100"/>
       </Unit>
       <Unit>
         <Filename Value="method\method.acbr.nfe.pas"/>
         <IsPartOfProject Value="True"/>
-        <TopLine Value="55"/>
-        <CursorPos X="34" Y="68"/>
-        <UsageCount Value="94"/>
+        <TopLine Value="114"/>
+        <CursorPos X="39" Y="151"/>
+        <UsageCount Value="99"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="tools\jsonconvert.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="10"/>
-        <TopLine Value="6"/>
-        <CursorPos X="25" Y="39"/>
-        <UsageCount Value="48"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="25"/>
+        <CursorPos Y="48"/>
+        <UsageCount Value="53"/>
         <Loaded Value="True"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
       <Unit>
         <Filename Value="method\method.acbr.diversos.extenso.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="1"/>
+        <EditorIndex Value="-1"/>
         <CursorPos X="43" Y="14"/>
-        <UsageCount Value="48"/>
-        <Loaded Value="True"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+        <UsageCount Value="53"/>
       </Unit>
       <Unit>
         <Filename Value="routes\route.acbr.diversos.extenso.pas"/>
@@ -60,14 +57,14 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="9"/>
         <CursorPos X="27" Y="37"/>
-        <UsageCount Value="48"/>
+        <UsageCount Value="53"/>
       </Unit>
       <Unit>
         <Filename Value="routes\route.acbr.diversos.validador.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="48" Y="10"/>
-        <UsageCount Value="48"/>
+        <UsageCount Value="53"/>
       </Unit>
       <Unit>
         <Filename Value="method\method.acbr.diversos.validador.pas"/>
@@ -75,14 +72,14 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="9"/>
         <CursorPos X="25" Y="40"/>
-        <UsageCount Value="48"/>
+        <UsageCount Value="53"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\LazReport\ACBrNFeDANFeLazReport.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="50" Y="1827"/>
-        <UsageCount Value="42"/>
+        <UsageCount Value="47"/>
       </Unit>
       <Unit>
         <Filename Value="tools\streamtools.pas"/>
@@ -90,7 +87,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="30"/>
         <CursorPos X="24" Y="45"/>
-        <UsageCount Value="42"/>
+        <UsageCount Value="47"/>
       </Unit>
       <Unit>
         <Filename Value="modules\horse\src\Horse.Core.pas"/>
@@ -159,17 +156,16 @@
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFe.pas"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="172"/>
-        <CursorPos X="34" Y="183"/>
-        <UsageCount Value="14"/>
+        <TopLine Value="139"/>
+        <CursorPos X="11" Y="158"/>
+        <UsageCount Value="16"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFeConfiguracoes.pas"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="53"/>
         <CursorPos X="45" Y="74"/>
-        <UsageCount Value="15"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="16"/>
       </Unit>
       <Unit>
         <Filename Value="routes\backup\route.acbr.pas"/>
@@ -188,12 +184,10 @@
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFeWebServices.pas"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="597"/>
-        <CursorPos X="17" Y="622"/>
-        <UsageCount Value="12"/>
-        <Loaded Value="True"/>
+        <CursorPos X="40" Y="613"/>
+        <UsageCount Value="14"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\PCNNFe\pcnRetAdmCSCNFCe.pas"/>
@@ -205,9 +199,9 @@
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\PCNNFe\pcnEnvEventoNFe.pas"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="60"/>
-        <CursorPos X="67" Y="88"/>
-        <UsageCount Value="9"/>
+        <TopLine Value="59"/>
+        <CursorPos X="22" Y="105"/>
+        <UsageCount Value="12"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\PCNNFe\pcnEventoNFe.pas"/>
@@ -246,10 +240,11 @@
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\PCNComum\pcnConversao.pas"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="47"/>
-        <CursorPos X="18" Y="51"/>
-        <UsageCount Value="3"/>
+        <EditorIndex Value="7"/>
+        <TopLine Value="135"/>
+        <CursorPos X="21" Y="158"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\PCNNFe\pcnConversaoNFe.pas"/>
@@ -260,11 +255,10 @@
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrDFeSSL.pas"/>
-        <EditorIndex Value="9"/>
-        <TopLine Value="442"/>
-        <CursorPos X="43" Y="467"/>
-        <UsageCount Value="13"/>
-        <Loaded Value="True"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="207"/>
+        <CursorPos X="62" Y="241"/>
+        <UsageCount Value="14"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\PCNNFe\pcnRetEnvEventoNFe.pas"/>
@@ -297,11 +291,9 @@
       </Unit>
       <Unit>
         <Filename Value="modules\handle-exception\Src\Horse.HandleException.pas"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="4"/>
-        <UsageCount Value="12"/>
-        <Loaded Value="True"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+        <UsageCount Value="14"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\PCNComum\pcnRetDistDFeInt.pas"/>
@@ -389,10 +381,10 @@
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFeNotasFiscais.pas"/>
-        <EditorIndex Value="3"/>
-        <TopLine Value="152"/>
-        <CursorPos X="32" Y="176"/>
-        <UsageCount Value="18"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="97"/>
+        <CursorPos X="13" Y="133"/>
+        <UsageCount Value="19"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -433,10 +425,10 @@
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\PCNNFe\pcnNFe.pas"/>
-        <EditorIndex Value="8"/>
-        <TopLine Value="1394"/>
-        <CursorPos X="22" Y="1413"/>
-        <UsageCount Value="17"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="1832"/>
+        <CursorPos X="38" Y="1847"/>
+        <UsageCount Value="18"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -448,11 +440,10 @@
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\PCNNFe\pcnProcNFe.pas"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="66"/>
         <CursorPos X="34" Y="70"/>
-        <UsageCount Value="15"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="16"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\PCNNFe\pcnNFeW.pas"/>
@@ -463,10 +454,41 @@
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\PCNNFe\pcnNFeR.pas"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="433"/>
         <CursorPos X="37" Y="476"/>
-        <UsageCount Value="15"/>
+        <UsageCount Value="16"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrXmlDocument.pas"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="6"/>
+        <TopLine Value="313"/>
+        <CursorPos X="77" Y="333"/>
+        <UsageCount Value="12"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFCe\Fortes\ACBrDANFCeFortesFr.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="61"/>
+        <CursorPos X="49" Y="81"/>
+        <UsageCount Value="10"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrDFeWinCrypt.pas"/>
+        <EditorIndex Value="4"/>
+        <TopLine Value="68"/>
+        <CursorPos X="61" Y="88"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrDFeOpenSSL.pas"/>
+        <EditorIndex Value="5"/>
+        <TopLine Value="76"/>
+        <CursorPos X="44" Y="97"/>
+        <UsageCount Value="10"/>
         <Loaded Value="True"/>
       </Unit>
     </Units>
@@ -475,121 +497,124 @@
     </Debugger>
     <JumpHistory HistoryIndex="29">
       <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\PCNNFe\pcnNFeR.pas"/>
-        <Caret Line="479" Column="28" TopLine="454"/>
+        <Filename Value="tools\jsonconvert.pas"/>
+        <Caret Line="47" TopLine="25"/>
+      </Position>
+      <Position>
+        <Filename Value="tools\jsonconvert.pas"/>
+        <Caret Line="48" TopLine="25"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="144" TopLine="122"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="145" TopLine="122"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="146" TopLine="122"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="147" TopLine="122"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="148" TopLine="122"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="149" TopLine="122"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="150" TopLine="122"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="151" TopLine="122"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="132" Column="32" TopLine="112"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="126" Column="18" TopLine="103"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="143" TopLine="129"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="126" Column="22" TopLine="123"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="150" Column="28" TopLine="130"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="141" Column="25" TopLine="114"/>
       </Position>
       <Position>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\PCNNFe\pcnNFe.pas"/>
-        <Caret Line="1408" Column="48" TopLine="1394"/>
+        <Caret Line="1900" Column="14" TopLine="1877"/>
       </Position>
       <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrDFeSSL.pas"/>
-        <Caret Line="466" Column="9" TopLine="443"/>
+        <Filename Value="..\acbr\Fontes\PCNComum\pcnConversao.pas"/>
+        <Caret Line="144" Column="23" TopLine="135"/>
       </Position>
       <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrDFeSSL.pas"/>
-        <Caret Line="464" Column="67" TopLine="446"/>
+        <Filename Value="..\acbr\Fontes\PCNComum\pcnConversao.pas"/>
+        <Caret Line="158" Column="21" TopLine="135"/>
       </Position>
       <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrDFeSSL.pas"/>
-        <Caret Line="476" Column="14" TopLine="459"/>
+        <Filename Value="..\acbr\Fontes\PCNComum\pcnConversao.pas"/>
+        <Caret Line="358" Column="57" TopLine="319"/>
       </Position>
       <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrDFeSSL.pas"/>
-        <Caret Line="426" Column="41" TopLine="418"/>
+        <Filename Value="..\acbr\Fontes\PCNComum\pcnConversao.pas"/>
+        <Caret Line="359" Column="61" TopLine="320"/>
       </Position>
       <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrDFeSSL.pas"/>
-        <Caret Line="467" Column="43" TopLine="442"/>
+        <Filename Value="..\acbr\Fontes\PCNComum\pcnConversao.pas"/>
+        <Caret Line="360" Column="83" TopLine="321"/>
       </Position>
       <Position>
-        <Filename Value="tools\jsonconvert.pas"/>
-        <Caret Line="9" Column="38"/>
+        <Filename Value="..\acbr\Fontes\PCNComum\pcnConversao.pas"/>
+        <Caret Line="1328" Column="61" TopLine="1328"/>
       </Position>
       <Position>
-        <Filename Value="tools\jsonconvert.pas"/>
-        <Caret Line="10" Column="36"/>
+        <Filename Value="..\acbr\Fontes\PCNComum\pcnConversao.pas"/>
+        <Caret Line="1363" Column="57" TopLine="1343"/>
       </Position>
       <Position>
-        <Filename Value="tools\jsonconvert.pas"/>
-        <Caret Line="11" Column="3"/>
+        <Filename Value="..\acbr\Fontes\PCNComum\pcnConversao.pas"/>
+        <Caret Line="1375" Column="50" TopLine="1355"/>
       </Position>
       <Position>
-        <Filename Value="tools\jsonconvert.pas"/>
-        <Caret Line="15" Column="41"/>
+        <Filename Value="..\acbr\Fontes\PCNComum\pcnConversao.pas"/>
+        <Caret Line="1378" Column="83" TopLine="1355"/>
       </Position>
       <Position>
-        <Filename Value="method\method.acbr.nfe.pas"/>
-        <Caret Line="16" Column="57"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.nfe.pas"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.nfe.pas"/>
-        <Caret Line="68" Column="34" TopLine="55"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.diversos.extenso.pas"/>
-        <Caret Line="10" Column="11"/>
-      </Position>
-      <Position>
-        <Filename Value="modules\handle-exception\Src\Horse.HandleException.pas"/>
-        <Caret TopLine="4"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.diversos.extenso.pas"/>
-        <Caret Line="9" Column="26"/>
-      </Position>
-      <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFeNotasFiscais.pas"/>
-        <Caret Line="107" Column="44" TopLine="89"/>
-      </Position>
-      <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFeNotasFiscais.pas"/>
-        <Caret Line="54" Column="22" TopLine="45"/>
-      </Position>
-      <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFeNotasFiscais.pas"/>
-      </Position>
-      <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFeNotasFiscais.pas"/>
-        <Caret Line="54" Column="22" TopLine="15"/>
-      </Position>
-      <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\PCNNFe\pcnProcNFe.pas"/>
-        <Caret Line="70" Column="34" TopLine="66"/>
-      </Position>
-      <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFeNotasFiscais.pas"/>
-        <Caret Line="176" Column="32" TopLine="152"/>
-      </Position>
-      <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFeWebServices.pas"/>
-        <Caret Line="598" Column="35" TopLine="593"/>
-      </Position>
-      <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFeWebServices.pas"/>
-        <Caret Line="3914" Column="30" TopLine="3895"/>
-      </Position>
-      <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFeWebServices.pas"/>
-        <Caret Line="623" Column="32" TopLine="613"/>
+        <Filename Value="..\acbr\Fontes\PCNComum\pcnConversao.pas"/>
+        <Caret Line="1390" Column="54" TopLine="1355"/>
       </Position>
       <Position>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\PCNNFe\pcnNFe.pas"/>
-        <Caret Line="1413" Column="22" TopLine="1394"/>
+        <Caret Line="1847" Column="38" TopLine="1832"/>
       </Position>
       <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFeWebServices.pas"/>
-        <Caret Line="603" Column="45" TopLine="596"/>
+        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrDFeWinCrypt.pas"/>
+        <Caret Line="88" Column="61" TopLine="68"/>
       </Position>
       <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFeWebServices.pas"/>
-        <Caret Line="595" Column="20" TopLine="589"/>
-      </Position>
-      <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFeWebServices.pas"/>
+        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrDFeOpenSSL.pas"/>
+        <Caret Line="97" Column="44" TopLine="76"/>
       </Position>
     </JumpHistory>
     <RunParams>
