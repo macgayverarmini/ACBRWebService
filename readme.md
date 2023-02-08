@@ -2,9 +2,9 @@
 
 # ACBRWebService
 
-O projeto ACBRWebService é uma tentativa de usar a ACBR por meio de uma API REST. Devido ao tamanho da ACBR os benefícios são ilimitados, qualquer tipo de microservice pode se tornar poderoso tentao um endpoint para um serviço assim. Por exemplo a classe ACBR Validador aceleraria qualquer projeto em que um backend precisaria validar documentos nacionais, Gerar uma DANFE por XML com muita simplicidade e obter o PDF em base64, transformar uma estação qualquer, ou mesmo um Raspberry em uma central de impressão, enviando comandos para uma impressora ESCPOS, a lista seria enorme.
+O projeto ACBRWebService é uma tentativa de usar a ACBR por meio de uma API REST. Devido ao tamanho da ACBR os benefícios são ilimitados, qualquer tipo de microservice pode se tornar poderoso havendo um endpoint para a ACBR. Por exemplo a classe ACBR Validador aceleraria qualquer projeto em que um backend precisaria validar documentos nacionais, Gerar uma DANFE por XML com muita simplicidade e obter o PDF em base64, transformar uma estação qualquer, ou mesmo um Raspberry em uma central de impressão, enviando comandos para uma impressora ESCPOS ou mesmo lendo um peso de Balança, a lista seria enorme.
 
-É importante notar que o projeto inicialmente não vai se preocupar com autenticação da API, hava visto que inicialmente a idéia é utilizar junto a outro backend de outra linguágem de progração, ou serviços de automação como o N8N, você facilmente poderia inserir em uma imagem DOCKER do N8N e tornar uma ferramenta que já é poderosa, ainda mais.
+É importante notar que o projeto inicialmente não vai se preocupar com autenticação da API, haja visto que inicialmente a idéia é utilizar junto a outro backend de outra linguágem de progração, ou serviços de automação como o N8N, você facilmente poderia inserir em uma imagem DOCKER do N8N e tornar uma ferramenta que já é poderosa, ainda mais.
 
 Esse projeto não tem intenção de funcionar no Delphi, apenas no Lazarus, isso é devido não apenas por ser uma ferramenta gratuita, mas porque o RTTI do lazarus ao transformar um JSON em TObject ser mais eficiente, e somente por isso que o código desse repositório se tornou viável.
 
