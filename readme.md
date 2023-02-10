@@ -35,3 +35,297 @@ O nome "ACBR" no nome do projeto não é de autoria do desenvolvedor e pertence 
 Abra o terminal ou prompt de comando e navegue até a pasta onde deseja clonar o repositório. Em seguida, execute o seguinte comando:
 
 git clone https://github.com/macgayverarmini/ACBRWebService.git
+
+# Project: ACBRWebAPI Public
+API Rest para integração com ACBR por HTTP
+# 📁 Collection: NFe 
+
+
+## End-point: nfeEventos
+#### LoadXML *("LoadXML": XmlBase64)*
+
+Qualquer requisição de qualquer tipo de eventos, uma chave personalizada chamada **LoadXML** pode ser usada, nela deve ir o XML em **base64,**
+
+Quando informada, o componente da ACBR carrega o XML antes de carregar os demais parâmetros, permitindo realizar um cancelamento por XML.
+### Method: POST
+>```
+>{{baseurl}}/{{nfe}}/eventos
+>```
+### Body (**raw**)
+
+```json
+{
+    "config": {},
+    "eventos": [
+        {
+            "InfEvento": {
+                "CNPJ": "",
+                "cOrgao": 0,
+                "chNFe": "",
+                "detEvento": {
+                    "IE": "",
+                    "autXML": [],
+                    "cOrgaoAutor": 0,
+                    "chNFeRef": "",
+                    "descEvento": "",
+                    "dest": {
+                        "CNPJCPF": "",
+                        "IE": "",
+                        "UF": "",
+                        "idEstrangeiro": ""
+                    },
+                    "dhEmi": "1899-12-30T00:00:00",
+                    "dhEntrega": "1899-12-30T00:00:00",
+                    "dhHashComprovante": "1899-12-30T00:00:00",
+                    "hashComprovante": "",
+                    "idPedidoCancelado": "",
+                    "itemPedido": [],
+                    "latGPS": 0.0000000000000000E+000,
+                    "longGPS": 0.0000000000000000E+000,
+                    "nDoc": "",
+                    "nProt": "",
+                    "nProtEvento": "",
+                    "tpAutor": "taEmpresaEmitente",
+                    "tpAutorizacao": "taNaoPermite",
+                    "tpNF": "tnEntrada",
+                    "vICMS": 0.0000000000000000E+000,
+                    "vNF": 0.0000000000000000E+000,
+                    "vST": 0.0000000000000000E+000,
+                    "verAplic": "",
+                    "versao": "",
+                    "xCondUso": "",
+                    "xCorrecao": "",
+                    "xJust": "",
+                    "xNome": ""
+                },
+                "dhEvento": "1899-12-30T00:00:00",
+                "id": "",
+                "nSeqEvento": 0,
+                "tpAmb": "taProducao",
+                "tpEvento": "teNaoMapeado",
+                "versaoEvento": ""
+            }
+        }
+    ]
+}
+```
+
+
+⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃
+
+## End-point: nfeDanfe
+#### LoadXML *("LoadXML": XmlBase64)*
+
+Qualquer requisição de qualquer tipo de eventos, uma chave personalizada chamada **LoadXML** pode ser usada, nela deve ir o XML em **base64,**
+
+Quando informada, o componente da ACBR carrega o XML antes de carregar os demais parâmetros, permitindo realizar um cancelamento por XML.
+### Method: POST
+>```
+>{{baseurl}}/{{nfe}}/danfe
+>```
+### Body (**raw**)
+
+```json
+{
+    "config": {},
+    "xml": ""
+}
+```
+
+
+⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃
+
+## End-point: nfeManifDestConfirmacao
+### Method: POST
+>```
+>{{baseurl}}/{{nfe}}/eventos
+>```
+### Body (**raw**)
+
+```json
+{
+    "config": {},
+    "eventos": [
+        {
+            "InfEvento": {
+                "CNPJ": "00000000000000",
+                "cOrgao": 91,
+                "chNFe": "32220400000000000000550010000000681967374995",
+                "dhEvento": "2022-04-10T18:21:00",
+                "id": "",
+                "nSeqEvento": 0,
+                "tpAmb": "taHomologacao",
+                "tpEvento": "teManifDestConfirmacao"
+            }
+        }
+    ]
+}
+```
+
+
+⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃
+
+## End-point: nfeCancelarComXML
+#### LoadXML *("LoadXML": XmlBase64)*
+
+Qualquer requisição de qualquer tipo de eventos, uma chave personalizada chamada **LoadXML** pode ser usada, nela deve ir o XML em **base64,**
+
+Quando informada, o componente da ACBR carrega o XML antes de carregar os demais parâmetros, permitindo realizar um cancelamento por XML.
+### Method: POST
+>```
+>{{baseurl}}/{{nfe}}/eventos
+>```
+### Body (**raw**)
+
+```json
+{
+    "config": {},
+    "eventos": [
+        {
+            "InfEvento": {
+                "LoadXML": "",
+                "CNPJ": "00000000000000",
+                "cOrgao": 91,
+                "chNFe": "32220400000000000000550010000000681967374995",
+                "dhEvento": "2022-04-10T18:21:00",
+                "id": "",
+                "nSeqEvento": 0,
+                "tpAmb": "taHomologacao",
+                "tpEvento": "teManifDestConfirmacao"
+            }
+        }
+    ]
+}
+```
+
+
+⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃
+
+## End-point: nfeDistribuicao
+### Method: POST
+>```
+>{{baseurl}}/{{nfe}}/distribuicao
+>```
+### Body (**raw**)
+
+```json
+{
+    "config":  {},   
+    "CNPJCPF": "00000000000000",
+    "ListaArqs": [],
+    "NSU": "400",    
+    "cUFAutor": 32,
+    "chNFe": "",
+    "ultNSU": "" 
+}
+```
+
+
+⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃
+# 📁 Collection: Modelos 
+
+
+## End-point: nfeModeloConfig
+### Method: GET
+>```
+>{{baseurl}}/modelo/{{nfe}}/config
+>```
+
+⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃
+
+## End-point: extensoModelo
+### Method: GET
+>```
+>{{baseurl}}/modelo/{{diversos}}/extenso
+>```
+
+⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃
+
+## End-point: validadorModelo
+### Method: GET
+>```
+>{{baseurl}}/modelo/{{diversos}}/validador
+>```
+
+⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃
+
+## End-point: nfeModeloEvento
+### Method: GET
+>```
+>{{baseurl}}/modelo/{{nfe}}/evento
+>```
+
+⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃
+
+## End-point: nfeModeloEvento Copy
+### Method: GET
+>```
+>{{baseurl}}/modelo/{{nfe}}/evento
+>```
+
+⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃
+
+## End-point: nfeModeloDistribuicao
+### Method: GET
+>```
+>{{baseurl}}/modelo/{{nfe}}/distribuicao
+>```
+
+⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃
+# 📁 Collection: Diversos 
+
+
+## End-point: extenso
+### Method: GET
+>```
+>{{baseurl}}/{{diversos}}/extenso
+>```
+### Body (**raw**)
+
+```json
+{
+    "AboutACBr": "ACBrAbout",
+    "Formato": "extPadrao",
+    "Name": "",
+    "StrCentavo": "Centavo",
+    "StrCentavos": "Centavos",
+    "StrMoeda": "Real",
+    "StrMoedas": "Reais",
+    "Tag": 0,
+    "Texto": "",
+    "Valor": 150,
+    "ZeroAEsquerda": true
+}
+```
+
+
+⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃
+
+## End-point: validador
+### Method: GET
+>```
+>{{baseurl}}/{{diversos}}/validador
+>```
+### Body (**raw**)
+
+```json
+{
+    "AboutACBr": "ACBrAbout",
+    "AjustarTamanho": false,
+    "Complemento": "",
+    "Documento": "12215052708",
+    "ExibeDigitoCorreto": false,
+    "IgnorarChar": "./-",
+    "Name": "",
+    "PermiteVazio": false,
+    "RaiseExcept": false,
+    "Tag": 0,
+    "TipoDocto": "docCPF"
+}
+```
+
+
+⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃ ⁃
+_________________________________________________
+Powered By: [postman-to-markdown](https://github.com/bautistaj/postman-to-markdown/)
+
