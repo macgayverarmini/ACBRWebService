@@ -1,70 +1,73 @@
 {
-    "version": "2.0.0",
-    "runner": "terminal",
-    "tasks": [
-        {
-            "command": ".vscode/CompileOmniPascalServerProject.bat",
-            "args": [
-                "build"
-            ],
-            "type": "shell",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared"
-            },
-            "label": "build",
-            "problemMatcher": {
-                "owner": "external",
-               "fileLocation": ["absolute"],
-               "pattern": {
-                   "regexp": "(([A-Za-z]):\\\\(?:[^\\/:*?\"<>|\\r\\n]+\\\\)*[^\\/\\s\\(:*?\"<>|\\r\\n]*)\\((\\d+),(\\d+)\\)\\s.*(Fatal|Error|Warning|Hint|Note):\\s\\((\\d+)\\)\\s(.*)$",
-                   "file": 1,
-                   "line": 3,
-                   "column": 4,
-                   "severity": 5,
-                   "code": 6,
-                   "message": 7
-                },
-                "severity": "info"
-            },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+  "version": "2.0.0",
+  "runner": "terminal",
+  "tasks": [
+    {
+      "label": "build",
+      "detail": "Build the Pascal project using lazbuild",
+      "command": ".vscode/CompileOmniPascalServerProject.bat",
+      "args": ["build"],
+      "type": "shell",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "problemMatcher": {
+        "owner": "pascal",
+        "fileLocation": ["absolute"],
+        "pattern": {
+          "regexp": "(([A-Za-z]):\\\\(?:[^\\/:*?\"<>|\\r\\n]+\\\\)*[^\\/\\s\\(:*?\"<>|\\r\\n]*)\\((\\d+),(\\d+)\\)\\s.*(Fatal|Error|Warning|Hint|Note):\\s\\((\\d+)\\)\\s(.*)$",
+          "file": 1,
+          "line": 3,
+          "column": 4,
+          "severity": 5,
+          "code": 6,
+          "message": 7
         },
-        {
-            "command": ".vscode/CompileOmniPascalServerProject.bat",
-            "args": [
-                "test"
-            ],
-            "type": "shell",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared"
-            },
-            "label": "test",
-            "problemMatcher": {
-                "owner": "external",
-               "fileLocation": ["absolute"],
-               "pattern": {
-                   "regexp": "(([A-Za-z]):\\\\(?:[^\\/:*?\"<>|\\r\\n]+\\\\)*[^\\/\\s\\(:*?\"<>|\\r\\n]*)\\((\\d+),(\\d+)\\)\\s.*(Fatal|Error|Warning|Hint|Note):\\s\\((\\d+)\\)\\s(.*)$",
-                   "file": 1,
-                   "line": 3,
-                   "column": 4,
-                   "severity": 5,
-                   "code": 6,
-                   "message": 7
-                },
-                "severity": "info"
-            },
-            "group": {
-                "kind": "test",
-                "isDefault": true
-            }
-        }
-    ]
+        "severity": "info"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "test",
+      "detail": "Build and run the Pascal project",
+      "command": ".vscode/CompileOmniPascalServerProject.bat",
+      "args": ["test"],
+      "type": "shell",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": true
+      },
+      "problemMatcher": {
+        "owner": "pascal",
+        "fileLocation": ["absolute"],
+        "pattern": {
+          "regexp": "(([A-Za-z]):\\\\(?:[^\\/:*?\"<>|\\r\\n]+\\\\)*[^\\/\\s\\(:*?\"<>|\\r\\n]*)\\((\\d+),(\\d+)\\)\\s.*(Fatal|Error|Warning|Hint|Note):\\s\\((\\d+)\\)\\s(.*)$",
+          "file": 1,
+          "line": 3,
+          "column": 4,
+          "severity": 5,
+          "code": 6,
+          "message": 7
+        },
+        "severity": "info"
+      },
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "dependsOn": ["build"]
+    }
+  ]
 }
