@@ -107,8 +107,8 @@ begin
 
   with facbr.Configuracoes.Certificados do
   begin
-    ArquivoPFX := 'C:\NFMonitor\src\jb3.pfx';
-    Senha := '33711388';
+    ArquivoPFX := 'C:\NFMonitor\src\exemplo.pfx';
+    Senha := '123';
   end;
 
 
