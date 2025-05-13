@@ -3,4 +3,5 @@ backup
 modules
 lib
 out
+*.res
 .aider*

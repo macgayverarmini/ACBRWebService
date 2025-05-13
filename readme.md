@@ -15,6 +15,9 @@ Esse projeto não tem intenção de funcionar no Delphi, apenas no Lazarus, isso
 - Componente ACBR (informações disponíveis em http://acbr.sourceforge.net/).
 - FortesReport-CE4 (informações disponíveis em http://www.fortesinformatica.com.br/produtos/report-ce/).
 - Horse (informações disponíveis em https://github.com/HashLoad/horse).
+- Handle-Exception - (informações disponíveis em https://github.com/HashLoad/handle-exception)
+- Jhonson - (informações disponíveis em https://github.com/HashLoad/jhonson)
+- 
 - Python 3 (Para permitir converter a propriedade dos arquivos da ACBRDFe (inteira) em publish
 
 ## Instalação

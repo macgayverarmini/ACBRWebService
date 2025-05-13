@@ -99,7 +99,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="modules\horse\src;routes;method;modules\jhonson\src;modules\handle-exception\Src;tools;..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\LazReport"/>
+      <OtherUnitFiles Value="..\horse-master\src;routes;method;..\handle-exception\src;tools;..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\LazReport;..\jhonson\src;..\acbr\Fontes\Terceiros\synalist"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Parsing>
