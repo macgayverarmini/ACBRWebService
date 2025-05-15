@@ -26,6 +26,12 @@
     </RunParams>
     <RequiredPackages>
       <Item>
+        <PackageName Value="ACBr_CTe_DACTeRL"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBr_CTe"/>
+      </Item>
+      <Item>
         <PackageName Value="ACBr_NFe_DanfeRL"/>
       </Item>
       <Item>
@@ -89,6 +95,14 @@
         <Filename Value="tools\streamtools.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
+      <Unit>
+        <Filename Value="routes\method.acbr.cte.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes\router.acbr.cte.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -99,7 +113,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="..\horse-master\src;routes;method;..\handle-exception\src;tools;..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\LazReport;..\jhonson\src;..\acbr\Fontes\Terceiros\synalist"/>
+      <OtherUnitFiles Value="..\horse-master\src;routes;method;..\handle-exception\src;tools;..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\LazReport;..\acbr\Fontes\ACBrDFe\ACBrCTe\DACTE\Fortes;..\jhonson\src;..\acbr\Fontes\Terceiros\synalist;..\acbr\Fontes\ACBrDFe\ACBrCTe"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Parsing>

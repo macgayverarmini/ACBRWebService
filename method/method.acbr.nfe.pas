@@ -21,7 +21,6 @@ uses streamtools,
   ACBrNFe.Classes,
   pcnConversaoNFe,
   pcnConversao,
-
   pcnProcNFe,
   StrUtils,
   LCLIntf, LCLType, Variants, Graphics,
@@ -146,7 +145,7 @@ begin
   NF.NFe.Transp.Vol.New.Lacres.New;
   NF.NFe.cana.fordia.New;
   NF.Nfe.cana.deduc.New;
-  NF.NFe.pag.New.tBand:= TpcnBandeiraCartao.bcAlelo;
+  NF.NFe.pag.New.tBand := TpcnBandeiraCartao.bcAlelo;
 
   Result := TJSONTools.ObjToJson(NF);
   Result.Delete('XML');

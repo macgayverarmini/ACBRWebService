@@ -11,7 +11,7 @@ uses
   route.acbr.nfe,
   route.acbr.diversos.extenso,
   route.acbr.diversos.validador,
-  route.acbr.certificados;
+  route.acbr.certificados, router.acbr.cte;
 
 // Helper simples para log formatado (Opcional, mas ajuda a organizar)
 procedure LogInfo(const AMessage: string);
@@ -42,10 +42,13 @@ begin
 
   LogInfo('Initializing routes...');
 
-  // Log antes de chamar cada registrador de rota
   LogRouteMapping('route.acbr.nfe');
   route.acbr.nfe.regRouter;
   LogInfo('  ✓ ACBR NFe routes mapped.');
+
+  LogRouteMapping('route.acbr.cte');
+  route.acbr.nfe.regRouter;
+  LogInfo('  ✓ ACBR CTe routes mapped.');
 
   LogRouteMapping('route.acbr.diversos.extenso');
   route.acbr.diversos.extenso.regRouter;

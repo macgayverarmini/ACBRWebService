@@ -5,27 +5,23 @@ unit route.acbr.certificados;
 interface
 
 uses
-  // Unit com a lógica de negócio dos certificados
   method.acbr.certificados,
-  // Units do Horse e JSON
   fpjson, Horse, Horse.Commons, Classes, SysUtils;
 
-// --- Handlers para Endpoints de Modelos (GET) ---
+
 procedure GetModeloUploadCertificado(Req: THorseRequest; Res: THorseResponse;
   Next: TNextProc);
 
-// --- Handlers para Endpoints de Operações (POST) ---
+
 procedure PostUploadCertificado(Req: THorseRequest; Res: THorseResponse;
   Next: TNextProc);
 procedure PostLerDadosCertificado(Req: THorseRequest; Res: THorseResponse;
   Next: TNextProc);
 
-// Procedure para registrar todas as rotas no Horse
+
 procedure regRouter;
 
 implementation
-
-// --- Implementação dos Handlers de Modelos (GET) ---
 
 procedure GetModeloUploadCertificado(Req: THorseRequest; Res: THorseResponse;
   Next: TNextProc);
@@ -34,7 +30,6 @@ var
 begin
   Ac := TACBRBridgeCertificados.Create;
   try
-    // Envia o JSON do modelo de upload de certificado
     Res.Send<TJSONObject>(Ac.ModeloUpload);
   finally
     Ac.Free;
@@ -49,16 +44,9 @@ var
   O: TJSONObject;
   Ac: TACBRBridgeCertificados;
   CertificadoBase64, Senha, CNPJ, NomeArquivo: string;
-
-  // Variáveis para receber os out-parameters dos métodos Find
   JsonStr: TJSONString;
-  // Se você precisasse de outros tipos:
-  // JsonObj: TJSONObject;
-  // JsonArr: TJSONArray;
-  // JsonBool: TJSONBoolean;
-  // JsonNum: TJSONNumber;
 begin
-  // 1. Obtenção mais robusta do TJSONObject (mantendo a melhoria)
+
   try
     LJsonBody := GetJSON(Req.Body);
   except
@@ -87,18 +75,14 @@ begin
   O := LJsonBody as TJSONObject;
   try
     try
-      // 2. Extração de valores usando os métodos Find que você especificou
-
-      // Campo: certificado_base64 (obrigatório)
-      if O.Find('certificado_base64', JsonStr) then // JsonStr é TJSONString
+      if O.Find('certificado_base64', JsonStr) then
       begin
-        CertificadoBase64 := JsonStr.Value; // Ou JsonStr.AsString
+        CertificadoBase64 := JsonStr.Value;
         if CertificadoBase64 = '' then
           raise Exception.Create('Campo "certificado_base64" não pode ser vazio.');
       end
       else
       begin
-        // Se O.Find retorna false, ou a chave não existe, ou não é TJSONString
         raise Exception.Create(
           'Campo "certificado_base64" não encontrado ou não é do tipo string no corpo da requisição JSON.');
       end;
