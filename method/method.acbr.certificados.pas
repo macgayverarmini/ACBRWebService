@@ -1,69 +1,77 @@
+
 unit method.acbr.certificados;
 
 {$mode Delphi}
 
 interface
 
-uses
+uses 
   blcksock,
-  fpjson, jsonparser, // Removed jsonconvert, fpjsonrtti as they weren't explicitly used in logic
+  fpjson,
+  jsonparser,
   System.NetEncoding,
   Classes, SysUtils,
-  ACBrDFeSSL, ACBrDFe; // Assuming ACBrDFe provides base types if needed
+  ACBrDFeSSL, ACBrDFe;
 
-type
+type 
 
   { TACBRBridgeCertificados }
 
   TACBRBridgeCertificados = class
-  private
+  private 
     FCertificadosDir: string;
-    FACBrDFeSSL: TDFeSSL; // Component for SSL operations and certificate reading
+    FACBrDFeSSL: TDFeSSL;
+    function DecodeBase64ToBytes(const Base64String: String; out ErrorMessage:
+      String): TBytes;
 
-    // Helper to decode Base64, centralizing the call
-    function DecodeBase64ToBytes(const Base64String: string; out ErrorMessage: string): TBytes;
-
-    // Internal validation logic using ACBr
-    function DoActualCertificateValidation(const TempPfxFile: string; const Senha: string): Boolean;
-    function ExtractCertificateData(const TempPfxFile: string; const Senha: string;
-      out CNPJ, NumSerie, RazaoSocial, Tipo: string; out Validade: TDateTime): Boolean;
-
-    // Refined internal methods
-    function InternalValidarCertificado(const CertificadoBase64: string; const Senha: string; out ErrorMsg: string): Boolean;
-    function InternalLerDadosCertificado(const CertificadoBase64: string; const Senha: string): TJSONObject;
-    function InternalGerarNomeArquivoFinal(const CNPJParam: string; const NomeArquivoParam: string;
-                                       const CNPJDoCert: string; const NumSerieDoCert: string): string;
-  public
+    function DoActualCertificateValidation(const TempPfxFile: String; const
+      Senha: String): Boolean;
+    function ExtractCertificateData(const TempPfxFile: String; const Senha:
+      String;
+      out CNPJ, NumSerie, RazaoSocial, Tipo:
+      String; out Validade: TDateTime): Boolean;
+    function InternalValidarCertificado(const CertificadoBase64: String; const
+      Senha: String; out ErrorMsg: String):Boolean;
+    function InternalLerDadosCertificado(const CertificadoBase64: String;
+      const Senha: String): TJSONObject;
+    function InternalGerarNomeArquivoFinal(const CNPJParam: String; const
+      NomeArquivoParam: String;
+      const CNPJDoCert: String; const
+      NumSerieDoCert: String): string;
+  public 
     function ModeloUpload: TJSONObject;
-    function SalvarCertificado(const CertificadoBase64: string;
-               const Senha: string; const CNPJ_Param: string; const NomeArquivo_Param: string): TJSONObject;
-    function ObterDadosCertificado(const CertificadoBase64: string; const Senha: string): TJSONObject;
+    function SalvarCertificado(const CertificadoBase64: String;
+      const Senha: String; const CNPJ_Param: String;
+      const NomeArquivo_Param: String): TJSONObject;
+    function ObterDadosCertificado(const CertificadoBase64: String; const
+      Senha: String): TJSONObject;
 
-    constructor Create(ACustomCertDir: string = ''); // Allow custom dir or default
-    destructor Destroy; override;
+    constructor Create(ACustomCertDir: String = '');
+    destructor Destroy;
+      override;
   end;
 
 implementation
 
-uses Math; // For Max function if needed, or string utils
+uses Math;
 
 { TACBRBridgeCertificados }
 
-constructor TACBRBridgeCertificados.Create(ACustomCertDir: string = '');
+constructor TACBRBridgeCertificados.Create(ACustomCertDir: String = '');
 begin
-  inherited Create; // Call inherited constructor if TACBRBridgeCertificados descends from a class that has one
+  inherited Create;
 
   if ACustomCertDir.Trim <> '' then
     FCertificadosDir := IncludeTrailingPathDelimiter(ACustomCertDir)
   else
-    FCertificadosDir := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)) + 'certificados');
+    FCertificadosDir := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)
+      ) + 'certificados');
 
   if not DirectoryExists(FCertificadosDir) then
     ForceDirectories(FCertificadosDir);
 
-  FACBrDFeSSL := TDFeSSL.Create; // Pass nil for owner if no visual component owns it
-  // Configure FACBrDFeSSL as needed, these are common defaults
-  FACBrDFeSSL.SSLType    :=  LT_TLSv1_3; // Or the appropriate SSL/TLS version
+  FACBrDFeSSL := TDFeSSL.Create;
+  FACBrDFeSSL.SSLType    :=  LT_TLSv1_3;
   FACBrDFeSSL.SSLCryptLib   := cryOpenSSL;
   FACBrDFeSSL.SSLHttpLib    := httpOpenSSL;
   FACBrDFeSSL.SSLXmlSignLib := xsLibXml2;
@@ -75,9 +83,15 @@ begin
   inherited Destroy;
 end;
 
-function TACBRBridgeCertificados.DecodeBase64ToBytes(const Base64String: string; out ErrorMessage: string): TBytes;
+function TACBRBridgeCertificados.DecodeBase64ToBytes(const Base64String: String;
+  out ErrorMessage: String):
+
+
+TBytes
+;
 begin
-  Result := nil; // Initialize result
+  Result := Nil;
+  // Initialize result
   ErrorMessage := '';
   if Base64String.Trim.IsEmpty then
   begin
@@ -91,21 +105,35 @@ begin
     begin
 
       if Base64String <> '' then
-         ErrorMessage := 'O conteúdo do certificado Base64 resultou em zero bytes após a decodificação, mas a string original não era vazia.'
+        ErrorMessage := 
+
+
+          'O conteúdo do certificado Base64 resultou em zero bytes após a decodificação, mas a string original não era vazia.'
       else
-         ErrorMessage := 'O conteúdo do certificado Base64 resultou em zero bytes (string Base64 vazia).';
-      Result := nil;
+        ErrorMessage := 
+
+
+          'O conteúdo do certificado Base64 resultou em zero bytes (string Base64 vazia).'
+      ;
+      Result := Nil;
     end;
   except
     on E: Exception do
     begin
-      Result := nil;
-      ErrorMessage := 'Falha ao decodificar a string Base64: ' + E.Message;
+      Result := Nil;
+      ErrorMessage := 'Falha ao decodificar a string Base64: ' + E.Message
+      ;
     end;
   end;
 end;
 
-function TACBRBridgeCertificados.DoActualCertificateValidation(const TempPfxFile: string; const Senha: string): Boolean;
+function TACBRBridgeCertificados.DoActualCertificateValidation(const TempPfxFile
+  : String; const
+  Senha: String):
+
+
+Boolean
+;
 begin
   Result := False;
   if not FileExists(TempPfxFile) then Exit;
@@ -115,7 +143,7 @@ begin
   FACBrDFeSSL.ArquivoPFX := TempPfxFile;
   FACBrDFeSSL.Senha := Senha;
   try
-     FACBrDFeSSL.CarregarCertificado;
+    FACBrDFeSSL.CarregarCertificado;
 
     Result := FACBrDFeSSL.CertNumeroSerie <> '';
   except
@@ -126,8 +154,13 @@ begin
   end;
 end;
 
-function TACBRBridgeCertificados.InternalValidarCertificado(const CertificadoBase64: string; const Senha: string; out ErrorMsg: string): Boolean;
-var
+function TACBRBridgeCertificados.InternalValidarCertificado(const
+  CertificadoBase64:
+  String; const Senha:
+  String; out ErrorMsg
+  : String): Boolean;
+
+var 
   TempFileName: string;
   DecodedBytes: TBytes;
   DecodedStream: TBytesStream;
@@ -136,24 +169,33 @@ begin
   Result := False;
   ErrorMsg := '';
   TempFileName := '';
-  DecodedStream := nil;
+  DecodedStream := Nil;
 
   DecodedBytes := DecodeBase64ToBytes(CertificadoBase64, ErrorMsg);
   if Length(DecodedBytes) = 0 then
   begin
-    if ErrorMsg = '' then ErrorMsg := 'Certificado Base64 resultou em dados vazios.';
+    if ErrorMsg = '' then ErrorMsg := 
+
+
+        'Certificado Base64 resultou em dados vazios.'
+    ;
     Exit;
   end;
 
   try
     DecodedStream := TBytesStream.Create(DecodedBytes);
-    TempFileName := FCertificadosDir + 'temp_valida_' + FormatDateTime('yyyymmddhhnnsszzz', Now) + '.pfx';
+    TempFileName := FCertificadosDir + 'temp_valida_' + FormatDateTime(
+      'yyyymmddhhnnsszzz', Now) + '.pfx';
     DecodedStream.SaveToFile(TempFileName);
 
 
     Result := DoActualCertificateValidation(TempFileName, Senha);
     if not Result then
-      ErrorMsg := 'Falha na validação do certificado PFX com a senha fornecida (verifique senha ou integridade do arquivo).';
+      ErrorMsg := 
+
+
+        'Falha na validação do certificado PFX com a senha fornecida (verifique senha ou integridade do arquivo).'
+    ;
 
 
   finally
@@ -164,13 +206,23 @@ begin
   end;
 end;
 
-function TACBRBridgeCertificados.ExtractCertificateData(const TempPfxFile: string; const Senha: string;
-  out CNPJ, NumSerie, RazaoSocial, Tipo: string; out Validade: TDateTime): Boolean;
-var
+function TACBRBridgeCertificados.ExtractCertificateData(const TempPfxFile:
+  String; const Senha:
+  String;
+  out CNPJ, NumSerie,
+  RazaoSocial, Tipo:
+  String; out Validade:
+  TDateTime): Boolean;
+
+var 
   CertEhA1: Boolean;
 begin
   Result := False;
-  CNPJ := ''; NumSerie := ''; RazaoSocial := ''; Tipo := ''; Validade := 0;
+  CNPJ := '';
+  NumSerie := '';
+  RazaoSocial := '';
+  Tipo := '';
+  Validade := 0;
 
   FACBrDFeSSL.ArquivoPFX := TempPfxFile;
   FACBrDFeSSL.Senha := Senha;
@@ -180,14 +232,17 @@ begin
     CNPJ        := FACBrDFeSSL.CertCNPJ;
     RazaoSocial := FACBrDFeSSL.CertRazaoSocial;
     Validade    := FACBrDFeSSL.CertDataVenc;
-    CertEhA1    := FACBrDFeSSL.CertTipo = tpcA1; // Assuming tpcA1 is defined in ACBrDFeSSL or related units
+    CertEhA1    := FACBrDFeSSL.CertTipo = tpcA1;
+    // Assuming tpcA1 is defined in ACBrDFeSSL or related units
 
     if CertEhA1 then
       Tipo := 'A1'
     else
-      Tipo := 'A3'; // Or other types if distinguishable
+      Tipo := 'A3';
+    // Or other types if distinguishable
 
-    Result := True; // Data extraction successful
+    Result := True;
+    // Data extraction successful
   except
     on E: Exception do
     begin
@@ -197,8 +252,16 @@ begin
   end;
 end;
 
-function TACBRBridgeCertificados.InternalLerDadosCertificado(const CertificadoBase64: string; const Senha: string): TJSONObject;
-var
+function TACBRBridgeCertificados.InternalLerDadosCertificado(const
+  CertificadoBase64:
+  String; const Senha
+  : String):
+
+
+TJSONObject
+;
+
+var 
   TempFileName: string;
   DecodedBytes: TBytes;
   DecodedStream: TBytesStream;
@@ -207,7 +270,7 @@ var
   ErrorMsg: string;
 begin
   Result := TJSONObject.Create;
-  DecodedStream := nil;
+  DecodedStream := Nil;
   TempFileName := '';
   ErrorMsg := '';
 
@@ -217,18 +280,21 @@ begin
     Result.Add('sucesso', False);
 
     if ErrorMsg <> '' then
-        Result.Add('mensagem', ErrorMsg)
+      Result.Add('mensagem', ErrorMsg)
     else
-      Result.Add('mensagem',  'Falha ao decodificar certificado Base64 ou dados vazios.');
+      Result.Add('mensagem',
+        'Falha ao decodificar certificado Base64 ou dados vazios.');
     Exit;
   end;
 
   try
     DecodedStream := TBytesStream.Create(DecodedBytes);
-    TempFileName := FCertificadosDir + 'temp_lerdados_' + FormatDateTime('yyyymmddhhnnsszzz', Now) + '.pfx';
+    TempFileName := FCertificadosDir + 'temp_lerdados_' + FormatDateTime(
+      'yyyymmddhhnnsszzz', Now) + '.pfx';
     DecodedStream.SaveToFile(TempFileName);
 
-    if ExtractCertificateData(TempFileName, Senha, sCNPJ, sNumSerie, sRazaoSocial, sTipo, dtValidade) then
+    if ExtractCertificateData(TempFileName, Senha, sCNPJ, sNumSerie,
+      sRazaoSocial, sTipo, dtValidade) then
     begin
       Result.Add('sucesso', True);
       Result.Add('numero_serie', sNumSerie);
@@ -240,7 +306,11 @@ begin
     else
     begin
       Result.Add('sucesso', False);
-      Result.Add('mensagem', 'Não foi possível ler os dados do certificado (verifique senha ou formato do arquivo).');
+      Result.Add('mensagem',
+
+
+        'Não foi possível ler os dados do certificado (verifique senha ou formato do arquivo).'
+        );
     end;
 
   finally
@@ -252,9 +322,16 @@ begin
 end;
 
 
-function TACBRBridgeCertificados.InternalGerarNomeArquivoFinal(const CNPJParam: string; const NomeArquivoParam: string;
-                                                       const CNPJDoCert: string; const NumSerieDoCert: string): string;
-var
+function TACBRBridgeCertificados.InternalGerarNomeArquivoFinal(const CNPJParam:
+  String; const
+  NomeArquivoParam:
+  String;
+  const CNPJDoCert:
+  String; const
+  NumSerieDoCert:
+  String): string;
+
+var 
   NomeBaseSemExt: string;
   NomeFinalComExt: string;
   IdentificadorPrincipal: string;
@@ -274,16 +351,32 @@ begin
   if not NomeArquivoParam.Trim.IsEmpty then
   begin
     NomeBaseSemExt := ChangeFileExt(NomeArquivoParam.Trim, '');
+
+
     // Se o nome do arquivo fornecido já contiver o CNPJ e ele for diferente, pode gerar nomes longos.
+
+
     // Esta lógica assume que NomeArquivoParam é um nome desejado, ou o IdentificadorPrincipal é usado.
+
+
     // Se IdentificadorPrincipal não estiver vazio e NomeArquivoParam não o contiver, pode-se prefixar.
+
+
     // Por simplicidade, vamos usar NomeArquivoParam se fornecido, senão o Identificador.
-    if IdentificadorPrincipal = '' then IdentificadorPrincipal := 'certificado';
+    if IdentificadorPrincipal = '' then IdentificadorPrincipal := 
+
+
+        'certificado'
+    ;
   end
   else
   begin
-     if IdentificadorPrincipal = '' then IdentificadorPrincipal := 'certificado';
-     NomeBaseSemExt := IdentificadorPrincipal;
+    if IdentificadorPrincipal = '' then IdentificadorPrincipal := 
+
+
+        'certificado'
+    ;
+    NomeBaseSemExt := IdentificadorPrincipal;
   end;
 
 
@@ -291,26 +384,36 @@ begin
   NomeFinalComExt := NomeBaseSemExt;
   if not NumSerieDoCert.Trim.IsEmpty then
   begin
-    NumSerieSanitizado := StringReplace(NumSerieDoCert, ' ', '', [rfReplaceAll]);
-    NumSerieSanitizado := StringReplace(NumSerieSanitizado, ':', '', [rfReplaceAll]);
+    NumSerieSanitizado := StringReplace(NumSerieDoCert, ' ', '', [rfReplaceAll
+      ]);
+    NumSerieSanitizado := StringReplace(NumSerieSanitizado, ':', '', [
+      rfReplaceAll]);
+
+
     // Adiciona apenas se o número de série já não estiver no nome base (evita duplicar)
     if Pos(UpperCase(NumSerieSanitizado), UpperCase(NomeFinalComExt)) = 0 then
-       NomeFinalComExt := NomeFinalComExt + '_' + NumSerieSanitizado;
+      NomeFinalComExt := NomeFinalComExt + '_' + NumSerieSanitizado;
   end;
 
   // 4. Adicionar extensão
   NomeFinalComExt := NomeFinalComExt + '.pfx';
 
   // 5. Adicionar caminho do diretório
-  Result := FCertificadosDir + ExtractFileName(NomeFinalComExt); // ExtractFileName para sanitizar e pegar só o nome
+  Result := FCertificadosDir + ExtractFileName(NomeFinalComExt);
+  // ExtractFileName para sanitizar e pegar só o nome
 
   // 6. Garantir unicidade adicionando timestamp se necessário
 
-    Result := FCertificadosDir + ChangeFileExt(ExtractFileName(NomeFinalComExt), '') + '_' +
-              TGuid.NewGuid.ToString + '.pfx';
+  Result := FCertificadosDir + ChangeFileExt(ExtractFileName(NomeFinalComExt),
+    '') + '_' +
+    TGuid.NewGuid.ToString + '.pfx';
 
   if FileExists(Result) then // Se ainda existir após 100 tentativas
-     raise Exception.Create('Não foi possível gerar um nome de arquivo único para o certificado.');
+    raise Exception.Create(
+
+
+      'Não foi possível gerar um nome de arquivo único para o certificado.'
+      );
 
 end;
 
@@ -322,12 +425,24 @@ begin
   Result.Add('senha', 'senha_do_certificado_aqui');
   Result.Add('cnpj', '00000000000000');
   Result.Add('nome_arquivo', 'nome_sugerido_para_o_arquivo_pfx_sem_extensao');
-  Result.Add('observacao', 'O CNPJ e nome_arquivo são opcionais. Se o CNPJ não for fornecido, será usado o CNPJ lido do certificado para nomear o arquivo. Se nome_arquivo não for fornecido, o CNPJ (ou "certificado") será usado como base.');
+  Result.Add('observacao',
+
+
+    'O CNPJ e nome_arquivo são opcionais. Se o CNPJ não for fornecido, será usado o CNPJ lido do certificado para nomear o arquivo. Se nome_arquivo não for fornecido, o CNPJ (ou "certificado") será usado como base.'
+    );
 end;
 
-function TACBRBridgeCertificados.SalvarCertificado(const CertificadoBase64: string;
-  const Senha: string; const CNPJ_Param: string; const NomeArquivo_Param: string): TJSONObject;
-var
+function TACBRBridgeCertificados.SalvarCertificado(const CertificadoBase64:
+  String;
+  const Senha: String; const
+  CNPJ_Param: String; const
+  NomeArquivo_Param: String):
+
+
+TJSONObject
+;
+
+var 
   DecodedBytes: TBytes;
   CertificadoStream: TBytesStream;
   DadosCertLidos: TJSONObject;
@@ -339,20 +454,21 @@ var
   DecodeErrorMessage: string;
 begin
   Result := TJSONObject.Create;
-  DadosCertLidos := nil;
-  CertificadoStream := nil;
+  DadosCertLidos := Nil;
+  CertificadoStream := Nil;
 
   if not DirectoryExists(FCertificadosDir) then
     ForceDirectories(FCertificadosDir);
 
-  if not InternalValidarCertificado(CertificadoBase64, Senha, ValidationErrorMessage) then
+  if not InternalValidarCertificado(CertificadoBase64, Senha,
+    ValidationErrorMessage) then
   begin
     Result.Add('sucesso', False);
 
     if ValidationErrorMessage <> '' then
-       Result.Add('mensagem', ValidationErrorMessage)
+      Result.Add('mensagem', ValidationErrorMessage)
     else
-       Result.Add('mensagem', 'Certificado inválido ou senha incorreta.');
+      Result.Add('mensagem', 'Certificado inválido ou senha incorreta.');
 
     Exit;
   end;
@@ -360,26 +476,49 @@ begin
   try
     DadosCertLidos := InternalLerDadosCertificado(CertificadoBase64, Senha);
 
-    sCNPJdoCert := ''; sNumSerieDoCert := ''; sRazaoSocialDoCert := '';
-    sValidadeDoCert := ''; sTipoDoCert := '';
+    sCNPJdoCert := '';
+    sNumSerieDoCert := '';
+    sRazaoSocialDoCert := '';
+    sValidadeDoCert := '';
+    sTipoDoCert := '';
 
     if DadosCertLidos.Get('sucesso', False) then
     begin
-      if DadosCertLidos.Find('cnpj', tempJsonString) then sCNPJdoCert := tempJsonString.AsString;
-      if DadosCertLidos.Find('numero_serie', tempJsonString) then sNumSerieDoCert := tempJsonString.AsString;
-      if DadosCertLidos.Find('razao_social', tempJsonString) then sRazaoSocialDoCert := tempJsonString.AsString;
-      if DadosCertLidos.Find('validade', tempJsonString) then sValidadeDoCert := tempJsonString.AsString; // Já está formatado por InternalLerDadosCertificado
-      if DadosCertLidos.Find('tipo', tempJsonString) then sTipoDoCert := tempJsonString.AsString;
+      if DadosCertLidos.Find('cnpj', tempJsonString) then sCNPJdoCert := 
+
+
+          tempJsonString
+          .
+
+
+          AsString
+      ;
+      if DadosCertLidos.Find('numero_serie', tempJsonString) then
+        sNumSerieDoCert := tempJsonString.AsString;
+      if DadosCertLidos.Find('razao_social', tempJsonString) then
+        sRazaoSocialDoCert := tempJsonString.AsString;
+      if DadosCertLidos.Find('validade', tempJsonString) then sValidadeDoCert 
+        := tempJsonString.AsString;
+      // Já está formatado por InternalLerDadosCertificado
+      if DadosCertLidos.Find('tipo', tempJsonString) then sTipoDoCert := 
+
+
+          tempJsonString
+          .
+
+
+          AsString
+      ;
     end
     else
-    begin
       // Mesmo que a leitura detalhada falhe, a validação básica passou.
       // Podemos prosseguir com o salvamento, mas o nome do arquivo pode ser menos específico.
       // A mensagem de erro da leitura já estará em DadosCertLidos.Get('mensagem', '')
       // Não é crítico para o salvamento em si, mas para a informação retornada.
-    end;
+    ;
 
-    NomeArquivoFinal := InternalGerarNomeArquivoFinal(CNPJ_Param, NomeArquivo_Param, sCNPJdoCert, sNumSerieDoCert);
+    NomeArquivoFinal := InternalGerarNomeArquivoFinal(CNPJ_Param,
+      NomeArquivo_Param, sCNPJdoCert, sNumSerieDoCert);
 
     DecodedBytes := DecodeBase64ToBytes(CertificadoBase64, DecodeErrorMessage);
     if Length(DecodedBytes) = 0 then
@@ -387,9 +526,13 @@ begin
       Result.Add('sucesso', False);
 
       if (DecodeErrorMessage <> '') then
-          Result.Add('mensagem', DecodeErrorMessage)
+        Result.Add('mensagem', DecodeErrorMessage)
       else
-          Result.Add('mensagem', 'Falha ao decodificar certificado Base64 ou dados resultantes vazios.');
+        Result.Add('mensagem',
+
+
+          'Falha ao decodificar certificado Base64 ou dados resultantes vazios.'
+          );
 
       Exit;
     end;
@@ -403,23 +546,29 @@ begin
       Result.Add('caminho_completo', NomeArquivoFinal);
       Result.Add('nome_arquivo_salvo', ExtractFileName(NomeArquivoFinal));
 
+
       // Adiciona os dados lidos do certificado ao resultado JSON, se a leitura foi bem sucedida
       if DadosCertLidos.Get('sucesso', False) then
       begin
         if sCNPJdoCert <> '' then Result.Add('cnpj_certificado', sCNPJdoCert);
-        if sNumSerieDoCert <> '' then Result.Add('numero_serie_certificado', sNumSerieDoCert);
-        if sRazaoSocialDoCert <> '' then Result.Add('razao_social_certificado', sRazaoSocialDoCert);
-        if sValidadeDoCert <> '' then Result.Add('validade_certificado', sValidadeDoCert);
+        if sNumSerieDoCert <> '' then Result.Add('numero_serie_certificado',
+            sNumSerieDoCert);
+        if sRazaoSocialDoCert <> '' then Result.Add('razao_social_certificado'
+            , sRazaoSocialDoCert);
+        if sValidadeDoCert <> '' then Result.Add('validade_certificado',
+            sValidadeDoCert);
         if sTipoDoCert <> '' then Result.Add('tipo_certificado', sTipoDoCert);
       end
       else
-      begin
-         // Adiciona a mensagem de erro da leitura de dados se houver
-         if DadosCertLidos.Find('mensagem', tempJsonString) then
-            Result.Add('aviso_leitura_dados', tempJsonString.AsString)
-         else
-            Result.Add('aviso_leitura_dados', 'Não foi possível ler todos os metadados do certificado.');
-      end;
+      if DadosCertLidos.Find('mensagem', tempJsonString) then
+        Result.Add('aviso_leitura_dados', tempJsonString.AsString)
+      else
+        Result.Add('aviso_leitura_dados',
+
+
+          'Não foi possível ler todos os metadados do certificado.'
+          )// Adiciona a mensagem de erro da leitura de dados se houver
+      ;
 
     finally
       CertificadoStream.Free;
@@ -431,12 +580,16 @@ begin
   end;
 end;
 
-function TACBRBridgeCertificados.ObterDadosCertificado(const CertificadoBase64: string; const Senha: string): TJSONObject;
+function TACBRBridgeCertificados.ObterDadosCertificado(const CertificadoBase64:
+  String; const Senha:
+  String): TJSONObject;
 begin
+
   // A validação básica do Base64 (se é decodificável e não zero bytes)
+
+
   // já é feita dentro de InternalLerDadosCertificado através de DecodeBase64ToBytes.
   Result := InternalLerDadosCertificado(CertificadoBase64, Senha);
 end;
 
 end.
-
