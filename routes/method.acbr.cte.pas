@@ -1,3 +1,4 @@
+
 unit method.acbr.cte;
 
 {$mode Delphi}
@@ -5,24 +6,32 @@ unit method.acbr.cte;
 interface
 
 uses
-  Classes,
-  SysUtils,
-  fpjson,
-  jsonconvert,
-  jsonparser,
-  streamtools,
-  Base64,
-  ACBrCTe.Classes,
+  RTTI,
   ACBrCTe,
-  ACBrCTeDACTeRL,
+  ACBrCTe.EnvEvento,
+  ACBrCTe.EventoClass,
+  ACBrCTeConhecimentos,
   ACBrCTeDACTeRLClass,
   ACBrCTeWebServices,
-  ACBrCTeConfiguracoes,
+  ACBrDFeDANFeReport,
+  ACBrMail,
   ACBrDFeSSL,
-  pcteConversaoCTe,
+  ACBrDFeConfiguracoes,
+  ACBrCTeConfiguracoes,
+  ACBrCTe.Classes,
+  pcnConversaoNFe,
   pcnConversao,
-  ACBrCTeConhecimentos,
-  ACBrDFeConfiguracoes;
+  pcnProcNFe,
+  StrUtils,
+  LCLIntf, LCLType, Variants, Graphics,
+  Controls, Forms, Dialogs, ComCtrls, Buttons, ExtCtrls,
+  fpjson, jsonconvert,
+  Base64,
+  jsonparser,
+  Classes, SysUtils,
+  streamtools,
+  ACBrCTeDACTeRL,
+  pcteConversaoCTe;
 
 type
 
@@ -47,12 +56,17 @@ type
     function EnviarEvento(const jEventos: TJSONArray): string;
 
     function ConsultarCTe(const jConsulta: TJSONObject): TJSONObject;
-    function ConsultarSituacaoServico(const jConsulta: TJSONObject): TJSONObject;
+    function ConsultarSituacaoServico(
+      const jConsulta: TJSONObject):
+      TJSONObject;
     function GerarDACTE(const xmlData: TJSONObject): TJSONObject;
 
     // Testa a configura\u00E7\u00E3o passada em JSON
     function TesteConfig: boolean;
   end;
+
+
+
 
   { TACBRModelosJSONCTe - Salva os retornos de modelo de requisi\u00E7\u00F5es CTe }
 
@@ -89,14 +103,17 @@ begin
   begin
     Ambiente := TpcnTipoAmbiente.taHomologacao;
     UF := 'ES';
-    TimeOut := 15000; // CTe pode demorar mais
+    TimeOut := 15000;
+    // CTe pode demorar mais
     Visualizar := False;
   end;
 
   with facbr.Configuracoes.Certificados do
   begin
-    ArquivoPFX := 'C:\caminho\seu_certificado.pfx'; // Exemplo
-    Senha := 'sua_senha'; // Exemplo
+    ArquivoPFX := 'C:\caminho\seu_certificado.pfx';
+    // Exemplo
+    Senha := 'sua_senha';
+    // Exemplo
   end;
 
   with facbr.Configuracoes.Arquivos do
@@ -114,9 +131,14 @@ begin
   // Cria um evento CTe vazio para gerar o modelo JSON
   facbr.EventoCTe.Evento.New;
   // Preencher campos m\u00EDnimos de exemplo se desejado
+
+
+
+
   // Ex: facbr.EventoCTe.Evento.Items[0].infEvento.tpEvento := teCancelamentoCTe;
   Result := TJSONTools.ObjToJson(facbr.EventoCTe);
-  facbr.EventoCTe.Evento.Clear; // Limpa ap\u00F3s gerar o modelo
+  facbr.EventoCTe.Evento.Clear;
+  // Limpa ap\u00F3s gerar o modelo
 end;
 
 function TACBRModelosJSONCTe.ModelCTe: TJSONObject;
@@ -130,11 +152,16 @@ begin
     Ide.cUF := UFtoCUF('ES');
     Ide.CFOP := 5353;
     Ide.natOp := 'PRESTACAO SERVICO';
-    ide.forPag := fpAPagar; // fpAPagar ou fpPago
+    ide.forPag := fpAPagar;
+    // fpAPagar ou fpPago
     Ide.modelo := 57;
     Ide.serie := 1;
     Ide.nCT := 1;
-    // AtenÃ§Ã£o o valor de cCT tem que ser um numero aleatÃ³rio conforme recomendaÃ§Ã£o
+
+
+
+
+    // Atenção o valor de cCT tem que ser um numero aleatório conforme recomendação
     // da SEFAZ, mas neste exemplo vamos atribuir o mesmo numero do CT-e.
     Ide.cCT := 1;
     Ide.dhEmi := Now;
@@ -144,7 +171,8 @@ begin
 
     Ide.tpAmb := taHomologacao;
 
-    Ide.tpCTe := tcNormal; // tcNormal, tcComplemento, tcAnulacao, tcSubstituto
+    Ide.tpCTe := tcNormal;
+    // tcNormal, tcComplemento, tcAnulacao, tcSubstituto
     Ide.procEmi := peAplicativoContribuinte;
     Ide.verProc := '3.0';
     Ide.cMunEnv := StrToInt('3203205');
@@ -160,7 +188,8 @@ begin
     Ide.cMunFim := 2900207;
     Ide.xMunFim := 'ABARE';
     Ide.UFFim := 'BA';
-    Ide.retira := rtSim; // rtSim, rtNao
+    Ide.retira := rtSim;
+    // rtSim, rtNao
     Ide.xdetretira := '';
 
     ide.indGlobalizado := tiNao;
@@ -191,14 +220,19 @@ begin
     Ide.Toma4.email := '';
 
     compl.xCaracAd := 'Caracteristicas Adicionais do Transporte';
-    compl.xCaracSer := 'Caracteristicas Adicionais do ServiÃ§o';
+    compl.xCaracSer := 'Caracteristicas Adicionais do Serviço';
     compl.xEmi := 'Nome do Emitente';
 
     compl.fluxo.xOrig := '';
 
     with compl.fluxo.pass.Add do
     begin
-      xPass := 'Sigla ou cÃ³digo interno da Filial/Porto/EstaÃ§Ã£o/Aeroporto de Passagem ';
+      xPass :=
+
+
+
+
+        'Sigla ou código interno da Filial/Porto/Estação/Aeroporto de Passagem '  ;
     end;
 
     compl.fluxo.xDest := 'Destino';
@@ -220,9 +254,14 @@ begin
     compl.Entrega.noInter.hIni := Time;
     compl.Entrega.noInter.hFim := Time + 60;
 
-    compl.origCalc := 'MunicÃ­pio de origem para efeito de cÃ¡lculo do frete ';
-    compl.destCalc := 'MunicÃ­pio de destino para efeito de cÃ¡lculo do frete ';
-    compl.xObs := 'ObservaÃ§Ã£o livre';
+    compl.origCalc := 'Município de origem para efeito de cálculo do frete ';
+    compl.destCalc :=
+
+
+
+
+      'Município de destino para efeito de cálculo do frete ';
+    compl.xObs := 'Observação livre';
 
     with compl.ObsCont.New do
     begin
@@ -237,22 +276,33 @@ begin
     end;
 
 
-    Emit.CRT := crtRegimeNormal; {ObrigatÃ³rio na versÃ£o 4.00}
-    Emit.CNPJ := '11222333000144'; // CNPJ fictÃ­cio
-    Emit.IE := '001000000000'; // IE fictÃ­cia para MG
+    Emit.CRT := crtRegimeNormal; {Obrigatório na versão 4.00}
+    Emit.CNPJ := '11222333000144';
+    // CNPJ fictício
+    Emit.IE := '001000000000';
+    // IE fictícia para MG
     Emit.xNome := 'Empresa Ficticia de Transportes Ltda';
-    // RazÃ£o Social fictÃ­cia
-    Emit.xFant := 'Transportadora Ficticia'; // Nome Fantasia fictÃ­cio
-    Emit.enderEmit.xLgr := 'Avenida das Flores'; // Logradouro fictÃ­cio
-    Emit.enderEmit.nro := '1234'; // NÃºmero fictÃ­cio
-    Emit.enderEmit.xCpl := 'Sala 101'; // Complemento fictÃ­cio
-    Emit.enderEmit.xBairro := 'Centro'; // Bairro fictÃ­cio
+    // Razão Social fictícia
+    Emit.xFant := 'Transportadora Ficticia';
+    // Nome Fantasia fictício
+    Emit.enderEmit.xLgr := 'Avenida das Flores';
+    // Logradouro fictício
+    Emit.enderEmit.nro := '1234';
+    // Número fictício
+    Emit.enderEmit.xCpl := 'Sala 101';
+    // Complemento fictício
+    Emit.enderEmit.xBairro := 'Centro';
+    // Bairro fictício
     Emit.enderEmit.cMun := 3118601;
-    // CÃ³digo MunicÃ­pio fictÃ­cio (Ex: Governador Valadares/MG)
-    Emit.enderEmit.xMun := 'Governador Valadares'; // Nome MunicÃ­pio fictÃ­cio
-    Emit.enderEmit.CEP := 35010000; // CEP fictÃ­cio
-    Emit.enderEmit.UF := 'MG'; // UF fictÃ­cia
-    Emit.enderEmit.fone := '3332715555'; // Telefone fictÃ­cio
+    // Código Município fictício (Ex: Governador Valadares/MG)
+    Emit.enderEmit.xMun := 'Governador Valadares';
+    // Nome Município fictício
+    Emit.enderEmit.CEP := 35010000;
+    // CEP fictício
+    Emit.enderEmit.UF := 'MG';
+    // UF fictícia
+    Emit.enderEmit.fone := '3332715555';
+    // Telefone fictício
 
     Rem.CNPJCPF := '12345678000123';
     Rem.IE := '12345678';
@@ -305,7 +355,7 @@ begin
 
     Dest.CNPJCPF := '12345678000123';
     Dest.IE := '12345678';
-    Dest.xNome := 'Nome do DestinatÃ¡rio';
+    Dest.xNome := 'Nome do Destinatário';
     Dest.fone := '33445566';
 
     Dest.EnderDest.xLgr := 'Rua 1';
@@ -356,7 +406,8 @@ begin
     else
     begin
       Imp.ICMS.SituTrib := cstICMSOutraUF;
-      Imp.ICMS.ICMSOutraUF.CST := cstICMSOutraUF; // ICMS Outros
+      Imp.ICMS.ICMSOutraUF.CST := cstICMSOutraUF;
+      // ICMS Outros
       Imp.ICMS.ICMSOutraUF.pRedBCOutraUF := 0;
       Imp.ICMS.ICMSOutraUF.vBCOutraUF := 100.00;
       Imp.ICMS.ICMSOutraUF.pICMSOutraUF := 7.00;
@@ -367,7 +418,12 @@ begin
     Imp.ICMS.ICMSSN.indSN := 1;
 
     Imp.infAdFisco :=
-      'Lei da Transparencia: O valor aproximado de tributos incidentes sobre o preÃ§o deste servico Ã© de R$ 17,00 (17,00%) Fonte: IBPT';
+
+
+
+
+      'Lei da Transparencia: O valor aproximado de tributos incidentes sobre o preço deste servico é de R$ 17,00 (17,00%) Fonte: IBPT'
+    ;
     imp.vTotTrib := 17.00;
 
     with infCTeNorm do
@@ -457,23 +513,29 @@ begin
   Result.Delete('NomeArq');
   Result.Delete('Protocolo');
 
-  facbr.Conhecimentos.Clear; // Limpa ap\u00F3s gerar o modelo
+  facbr.Conhecimentos.Clear;
+  // Limpa ap\u00F3s gerar o modelo
 end;
 
 function TACBRModelosJSONCTe.ModelConsultaCTe: TJSONObject;
 begin
   Result := TJSONObject.Create;
-  Result.Add('tpAmb', Ord(TpcnTipoAmbiente.taHomologacao)); // Exemplo
-  Result.Add('chCTe', '35...'); // Exemplo de chave do CTe
+  Result.Add('tpAmb', Ord(TpcnTipoAmbiente.taHomologacao));
+  // Exemplo
+  Result.Add('chCTe', '35...');
+  // Exemplo de chave do CTe
   // Ou Result.Add('nRec', '12345...'); // Exemplo de n\u00FAmero do recibo
 end;
 
 function TACBRModelosJSONCTe.ModelConsultaSituacaoServico: TJSONObject;
 begin
   Result := TJSONObject.Create;
-  Result.Add('cUF', 35); // Exemplo: SP
-  Result.Add('tpAmb', Ord(TpcnTipoAmbiente.taHomologacao)); // Exemplo
-  Result.Add('verDados', '3.00'); // Vers\u00E3o do WebService
+  Result.Add('cUF', 35);
+  // Exemplo: SP
+  Result.Add('tpAmb', Ord(TpcnTipoAmbiente.taHomologacao));
+  // Exemplo
+  Result.Add('verDados', '3.00');
+  // Vers\u00E3o do WebService
 end;
 
 { TACBRBridgeCTe }
@@ -493,30 +555,34 @@ begin
     O.Free;
   end;
 
-  fcfg := ''; // Limpa a configura\u00E7\u00E3o ap\u00F3s o uso
+  fcfg := '';
+  // Limpa a configura\u00E7\u00E3o ap\u00F3s o uso
 end;
 
 function TACBRBridgeCTe.ReadXMLFromJSON(const jsonData: TJSONObject): string;
 var
   xmlBase64: string;
-  oXML: TJSONString; // Usar TJSONString para melhor tratamento
 begin
-  Result := '';
-  if not jsonData.Find('xml', oXML) then
-    raise Exception.Create(
-      'Par\u00E2metro "xml" (contendo o XML em Base64) n\u00E3o encontrado no JSON.');
-
-  xmlBase64 := oXML.AsString; // Obter a string do TJSONString
-
-  if xmlBase64.IsEmpty then
-    raise Exception.Create('Par\u00E2metro "xml" est\u00E1 vazio.');
+  try
+    xmlBase64 := jsonData.Extract('xml').AsString;
+  except
+    on E: Exception do
+    begin
+      raise Exception.Create(
+        'Erro na leitura do parâmetro "xml" do JSON: '
+        + E.Message);
+    end;
+  end;
 
   try
     Result := DecodeStringBase64(xmlBase64);
+    xmlBase64 := '';
   except
     on E: Exception do
-      raise Exception.Create('A string XML em base64 \u00E9 inv\u00E1lida: ' +
+    begin
+      raise Exception.Create('A string XML em base64 é inválida: ' +
         E.Message);
+    end;
   end;
 end;
 
@@ -526,7 +592,8 @@ begin
   fdacte := TACBrCTeDACTeRL.Create(nil);
   // Criar a inst\u00E2ncia do componente de relat\u00F3rio
   fcfg := Cfg;
-  facbr.DACTE := fdacte; // Associa o componente de impress\u00E3o ao principal
+  facbr.DACTE := fdacte;
+  // Associa o componente de impress\u00E3o ao principal
 end;
 
 destructor TACBRBridgeCTe.Destroy;
@@ -539,131 +606,67 @@ end;
 function TACBRBridgeCTe.EnviarCTe(const jCTe: TJSONObject): TJSONObject;
 var
   Conhecimento: TCTe;
-  Lote: string; // Envio de CTe geralmente usa lote string ou n\u00FAmero
-  RetWS: TCTeRetRecepcao; // Verificar o tipo correto do retorno no ACBrCTe
+  Lote: integer;
+  RetWS: TCTeRetRecepcao;
 begin
   CarregaConfig;
 
   Result := TJSONObject.Create;
-  // Cria um objeto TCTe na cole\u00E7\u00E3o Conhecimentos do componente
+  //Gera objeto TCTe da unit ACBrCTeConhecimentos
   Conhecimento := facbr.Conhecimentos.Add.CTE;
-  Lote := '1'; // Pode ser um identificador ou simplesmente '1' se enviar um por vez
-
+  // Inicia o número do lote do envio do CTe
+  Lote := 1;
+  // Alimenta o objeto Conhecimento com os valores passandos por JSON
   try
-    // Carrega os dados do JSON no objeto Conhecimento
     TJSONTools.JsonToObj(jCTe, Conhecimento);
   except
     on E: Exception do
     begin
       Result.Add('status', 'erro');
-      Result.Add('message', 'Erro na leitura do objeto JSON do CTe: ' + E.Message);
-      facbr.Conhecimentos.Clear; // Limpa o conhecimento adicionado
+      Result.Add('message', 'Erro na leitura do objeto JSON: ' + E.Message
+        );
       Exit;
     end;
   end;
 
   try
-    // Valida (opcional, mas recomendado)
-
-    try
-      facbr.Conhecimentos.Validar;
-    except
-      on E: Exception do
-      begin
-        Result.Add('status', 'erro_validacao');
-        Result.Add('message', facbr.Conhecimentos.Items[0].ErroValidacao);
-        // Adicionar mais detalhes se necess\u00E1rio: ErroValidacaoCompleto, etc.
-        facbr.Conhecimentos.Clear;
-        Exit;
-      end;
-    end;
-
-    // Assina
-    facbr.Conhecimentos.Assinar;
-
-    // Envia o conhecimento (ou lote)
-    if facbr.Enviar(StrToInt(Lote)) then
-      // Verificar se Enviar \u00E9 o m\u00E9todo correto e se espera int ou string
-    begin
-      // Sucesso no envio, pegar o retorno do processamento
-      RetWS := facbr.WebServices.Retorno;
-      // Ajustar conforme o nome da propriedade de retorno
-      Result := TJSONObject(TJSONTools.ObjToJson(RetWS));
-      // Serializa o retorno para JSON
-    end
-    else
-    begin
-      // Falha no envio (ex: problema de comunica\u00E7\u00E3o)
-      Result.Add('status', 'erro_envio');
-      Result.Add('message', 'Falha ao enviar o CTe para a SEFAZ.');
-      // Adicionar detalhes do log do ACBr se poss\u00EDvel/necess\u00E1rio
-    end;
-
-  except
-    on E: Exception do
-    begin
-      Result.Add('status', 'excecao');
-      Result.Add('message', 'Exce\u00E7\u00E3o durante o envio do CTe: ' +
-        E.Message);
-      // Considerar logar E.StackTrace se dispon\u00EDvel
-    end;
+    // Pede a ACBR para transmitir os dados
+    facbr.WebServices.Envia(Lote, True);
+  finally
+    Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.Retorno));
   end;
 
-  // Limpa a cole\u00E7\u00E3o de conhecimentos ap\u00F3s o envio
-  // Cuidado: Se precisar do objeto para imprimir DACTE depois, n\u00E3o limpar aqui.
-  // facbr.Conhecimentos.Clear; // Avaliar onde limpar
+  facbr.Conhecimentos.Clear;
+
 end;
 
 function TACBRBridgeCTe.EnviarEvento(const jEventos: TJSONArray): string;
 var
-  objEvento: TEventoCTe; // Tipo correto do item de evento CTe
+  objEvento: TInfEventoCollectionItem;
   oEvento: TJSONObject;
   I: integer;
+  InfEvento: TJSONObject;
   XmlBase64: TJSONString;
-  LoteId: string; // Evento CTe usa lote string
 begin
   CarregaConfig;
-  Result := '';
-  LoteId := '1'; // Ou gerar um ID \u00FAnico
 
-  try
-    for I := 0 to jEventos.Count - 1 do
-    begin
-      oEvento := jEventos.Items[i] as TJSONObject;
+  for I := 0 to jEventos.Count - 1 do
+  begin
+    oEvento := jEventos.Items[i] as TJSONObject;
+    InfEvento := oEvento.Extract('InfEvento') as TJSONObject;
+    if InfEvento.Find('LoadXML', XmlBase64) then
+      facbr.Conhecimentos.LoadFromString(Base64.DecodeStringBase64(
+        XmlBase64.AsString));
 
-      // Tratamento para LoadXML (similar \u00E0 NFe, se aplic\u00E1vel e necess\u00E1rio para CTe)
-      // if oEvento.Find('LoadXML', XmlBase64) then ...
-
-      // Cria um novo objeto de evento na cole\u00E7\u00E3o do componente
-      objEvento := facbr.EventoCTe.Evento.New;
-      // Carrega os dados do JSON para o objeto de evento
-      TJSONTools.JsonToObj(oEvento, objEvento);
-    end;
-
-    // Envia o(s) evento(s)
-    if facbr.EnviarEvento(LoteId) then
-      // Verificar o m\u00E9todo correto e par\u00E2metros
-    begin
-      // Sucesso, serializa o retorno do evento
-      // Ajustar o caminho exato do objeto de retorno no ACBrCTe
-      Result := TJSONTools.ObjToJsonString(facbr.WebServices.EnvEvento.retEvento);
-    end
-    else
-    begin
-      // Falha no envio do evento
-      raise Exception.Create('Falha ao enviar o evento CTe para a SEFAZ.');
-    end;
-
-  except
-    on E: Exception do
-    begin
-      // Retorna um JSON de erro em caso de exce\u00E7\u00E3o
-      Result := TJSONObject.Create.Add('status', 'erro').Add('message',
-        E.Message).ToJSON;
-    end;
+    objEvento := facbr.EventoCTe.Evento.New;
+    TJSONTools.JsonToObj(oEvento, objEvento);
   end;
 
-  // Limpar cole\u00E7\u00E3o de eventos ap\u00F3s o envio
+  facbr.EnviarEvento(1);
+  Result := TJSONTools.ObjToJsonString(
+    facbr.WebServices.EnvEvento.EventoRetorno.retEvento);
+
+  // Limpar coleção de eventos após o envio
   facbr.EventoCTe.Evento.Clear;
 end;
 
@@ -672,12 +675,14 @@ var
   ChaveOuRecibo: string;
   TipoAmbiente: TpcnTipoAmbiente;
   oChave, oRecibo, oTpAmb: TJSONValue;
-  RetWS: TRetConsSitCTe; // Tipo correto para o retorno da consulta
+  RetWS: TRetConsSitCTe;
+  // Tipo correto para o retorno da consulta
 begin
   CarregaConfig;
   Result := TJSONObject.Create;
   ChaveOuRecibo := '';
-  TipoAmbiente := TpcnTipoAmbiente.taHomologacao; // Padr\u00E3o
+  TipoAmbiente := TpcnTipoAmbiente.taHomologacao;
+  // Padrão
 
   if jConsulta.Find('tpAmb', oTpAmb) then
     TipoAmbiente := TpcnTipoAmbiente(oTpAmb.AsInteger);
@@ -690,9 +695,11 @@ begin
 
   if ChaveOuRecibo = '' then
   begin
-    Result.Add('status', 'erro');
-    Result.Add('message',
-      'Chave do CTe (chCTe) ou n\u00FAmero do recibo (nRec) n\u00E3o informado para consulta.');
+    Result.Add('error',
+
+
+      'Chave do CTe (chCTe) ou número do recibo (nRec) não informado para consulta.'
+      );
     Exit;
   end;
 
@@ -701,38 +708,37 @@ begin
     facbr.Configuracoes.WebServices.Ambiente := TipoAmbiente;
 
     // Executa a consulta
-    facbr.Consultar(ChaveOuRecibo); // Verificar o m\u00E9todo correto de consulta
+    facbr.Consultar(ChaveOuRecibo);
 
     // Pega o objeto de retorno da consulta
     RetWS := facbr.WebServices.RetConsSitCTe;
-    // Ajustar se o nome da propriedade for diferente
     // Serializa o retorno para JSON
     Result := TJSONObject(TJSONTools.ObjToJson(RetWS));
 
   except
     on E: Exception do
     begin
-      Result.Clear; // Limpa o JSON antes de adicionar erro
-      Result.Add('status', 'excecao');
-      Result.Add('message', 'Exce\u00E7\u00E3o durante a consulta do CTe: ' +
-        E.Message);
+      Result.Clear;
+      // Limpa o JSON antes de adicionar erro
+      Result.Add('error', E.Message);
     end;
   end;
 end;
 
 function TACBRBridgeCTe.ConsultarSituacaoServico(
-  const jConsulta: TJSONObject): TJSONObject;
+  const jConsulta: TJSONObject):
+TJSONObject;
 var
   cUF: integer;
   tpAmb: TpcnTipoAmbiente;
   verDados: string;
   oCUF, oTpAmb, oVerDados: TJSONValue;
-  RetWS: TRetConsStatServ; // Tipo correto para o retorno da consulta status servi\u00E7o
+  RetWS: TRetConsStatServ;
 begin
   CarregaConfig;
   Result := TJSONObject.Create;
 
-  // Valores padr\u00E3o
+  // Valores padrão
   cUF := 0;
   tpAmb := TpcnTipoAmbiente.taHomologacao;
   verDados := '';
@@ -746,164 +752,127 @@ begin
   if jConsulta.Find('verDados', oVerDados) then
     verDados := oVerDados.AsString;
 
-
   if cUF = 0 then
   begin
-    Result.Add('status', 'erro');
-    Result.Add('message',
-      'C\u00F3digo da UF (cUF) n\u00E3o informado ou inv\u00E1lido para consulta de status.');
+    Result.Add('error',
+
+      'Código da UF (cUF) não informado ou inválido para consulta de status.'
+      );
     Exit;
   end;
 
   if verDados = '' then
   begin
-    Result.Add('status', 'erro');
-    Result.Add('message',
-      'Vers\u00E3o dos dados (verDados) n\u00E3o informada para consulta de status.');
+    Result.Add('error',
+
+      'Versão dos dados (verDados) não informada para consulta de status.'
+      );
     Exit;
   end;
-
 
   try
     // Define o ambiente antes da consulta
     facbr.Configuracoes.WebServices.Ambiente := tpAmb;
-    // Define a UF para a consulta (pode ser necess\u00E1rio ajustar a propriedade no ACBrCTe)
-    // facbr.Configuracoes.WebServices.UF := IntToStr(cUF); // Exemplo, verificar propriedade correta
 
-    // Executa a consulta de status do servi\u00E7o
-    // Verificar o m\u00E9todo correto para consultar status do servi\u00E7o no ACBrCTe.WebServices
-    // Pode ser algo como facbr.WebServices.ConsultarStatusServico(cUF, verDados);
+    // Executa a consulta de status do serviço
     facbr.ConsultarStatusServico(IntToStr(cUF));
-    // Exemplo, verificar par\u00E2metros corretos
 
     // Pega o objeto de retorno
-    RetWS := facbr.WebServices.RetConsStatServ; // Ajustar se o caminho for diferente
+    RetWS := facbr.WebServices.RetConsStatServ;
     // Serializa o retorno para JSON
     Result := TJSONObject(TJSONTools.ObjToJson(RetWS));
-
   except
     on E: Exception do
     begin
-      Result.Clear; // Limpa o JSON antes de adicionar erro
-      Result.Add('status', 'excecao');
-      Result.Add('message',
-        'Exce\u00E7\u00E3o durante a consulta de status do servi\u00E7o CTe: ' +
-        E.Message);
+      Result.Clear;
+      // Limpa o JSON antes de adicionar erro
+      Result.Add('error', E.Message);
     end;
   end;
 end;
 
 function TACBRBridgeCTe.GerarDACTE(const xmlData: TJSONObject): TJSONObject;
 var
-  pdfBase64: string;
+  arquivofinal: string;
   stringXml: string;
   tamanho: integer;
-  oId: TJSONString;
+  id: TJSONString;
   fileName: string;
-  chaveCTe: string;
 begin
   CarregaConfig;
   Result := TJSONObject.Create;
-  chaveCTe := '';
 
   try
     stringXml := ReadXMLFromJSON(xmlData);
   except
     on E: Exception do
     begin
-      Result.Add('status', 'erro');
-      Result.Add('message', E.Message);
+      Result.Add('error', E.Message);
       Exit;
     end;
   end;
 
-  // Limpa conhecimentos anteriores e carrega o XML fornecido
-  facbr.Conhecimentos.Clear;
   try
     facbr.Conhecimentos.LoadFromString(stringXml);
-    if facbr.Conhecimentos.Count > 0 then
-      chaveCTe := facbr.Conhecimentos.Items[0].CTe.infCte.Id;
-    // Pega a chave do CTe carregado (verificar caminho correto)
   except
     on E: Exception do
     begin
-      Result.Add('status', 'erro');
-      Result.Add('message', 'Erro na leitura do XML do CTe: ' + E.Message);
+      Result.Add('error', 'Erro na leitura do XML: ' + E.Message);
       Exit;
     end;
   end;
 
-  // Esvazia a string para liberar mem\u00F3ria
+  // Esvazia a string para liberar da memória logo o xml
   stringXml := '';
 
-  // Configura o componente DACTE
-  // f_DACTE.TipoDACTE := ??? // Se houver tipos (retrato/paisagem), configurar aqui
+  // Configurações do DACTE
+  if facbr.Conhecimentos.Items[0].CTe.Ide.tpImp <> tiPaisagem then
+    fdacte.TipoDANFE := tiRetrato
+  else
+    fdacte.TipoDANFE := tiPaisagem;
+
+
+
+
+  // Como é um aplicativo console, jamais a propriedade MostraStatus deve ser true.
   fdacte.MostraPreview := False;
   fdacte.MostraStatus := False;
-  // f_DACTE.MostraSetup := False; // Verificar se existe essa propriedade
+  fdacte.MostraSetup := False;
 
-  // Gera o nome do arquivo tempor\u00E1rio
-  fileName := GetTempFileName('.pdf'); // Adicionar extens\u00E3o \u00E9 boa pr\u00E1tica
-
+  //Gerando arquivo temporário
+  fileName := GetTempFileName;
+  // Realiza o processo de transformar o XML em PDF (DACTE)
   try
-    // Define o caminho de sa\u00EDda e manda imprimir
-    fdacte.PathPDF := ExtractFilePath(fileName); // ACBrDACTE usa PathPDF ou PathSalvar
-    fdacte.NomeArquivo := ExtractFileName(fileName); // E NomeArquivo
-    // Certifique-se que o Conhecimento a ser impresso est\u00E1 carregado
-    if facbr.Conhecimentos.Count > 0 then
-    begin
-      facbr.Conhecimentos.Items[0].ImprimirDACTE;
-      // Ou facbr.ImprimirDACTE se for m\u00E9todo direto
-      fileName := fdacte.PathPDF + fdanfe.NomeArquivo;
-      // Recomp\u00F5e o nome completo (verificar propriedades)
-    end
-    else
-    begin
-      raise Exception.Create('Nenhum CTe carregado para gerar o DACTE.');
-    end;
+    fdacte.PathPDF := filename;
+    facbr.Conhecimentos.ImprimirPDF;
+    filename := fdacte.ArquivoPDF;
   except
-    on E: Exception do
     begin
-      Result.Add('status', 'erro');
-      Result.Add('message', 'Falha ao gerar o PDF do DACTE: ' + E.Message);
-      if FileExists(fileName) then DeleteFile(fileName); // Tenta limpar temp file
+      Result.Add('error', 'Falha ao gerar o PDF.');
       Exit;
     end;
   end;
-
-  // Verifica se o arquivo foi realmente criado
-  if not FileExists(fileName) then
-  begin
-    Result.Add('status', 'erro');
-    Result.Add('message',
-      'Arquivo PDF do DACTE n\u00E3o foi encontrado ap\u00F3s a gera\u00E7\u00E3o.');
-    Exit;
-  end;
-
 
   // Converte o arquivo para base64
   try
-    pdfBase64 := FileToStringBase64(fileName, True, tamanho);
-    // True para apagar o temp file
+    arquivofinal := FileToStringBase64(filename, True, tamanho);
   except
     on E: Exception do
     begin
-      Result.Add('status', 'erro');
-      Result.Add('message', 'Erro ao converter PDF para Base64: ' + E.Message);
-      // N\u00E3o tenta apagar de novo se j\u00E1 falhou
+      Result.Add('error', E.Message);
       Exit;
     end;
   end;
 
   // Monta o JSON de retorno
-  Result.Add('pdf', pdfBase64);
-  Result.Add('chave', chaveCTe);
-  Result.Add('tamanho', tamanho); // Tamanho em Bytes
-
-  // Adiciona o identificador \u00FAnico se ele existir no JSON de entrada
-  if xmlData.Find('id', oId) then
-    Result.Add('id', oId.AsString);
-
+  Result.Add('pdf', arquivofinal);
+  // Chave de Acesso do CT-e
+  Result.Add('chave', facbr.Conhecimentos.Items[0].CTe.infCTe.ID);
+  // Tamanho em Bytes
+  Result.Add('tamanho', tamanho.ToString);
+  // Adiciona o identificador único se ele existir
+  if xmlData.Find('id', id) then
+    Result.Add('id', id);
 end;
 
 
@@ -913,11 +882,7 @@ begin
     CarregaConfig;
     Result := True;
   except
-    on E: Exception do // Captura qualquer exce\u00E7\u00E3o durante o carregamento
-    begin
-      // Opcional: Logar E.Message para depura\u00E7\u00E3o
-      Result := False;
-    end;
+    Result := False;
   end;
 end;
 
