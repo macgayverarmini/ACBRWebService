@@ -49,10 +49,9 @@ type
     destructor Destroy; override;
 
     function Evento(const jEventos: TJSONArray): string;
+    function Distribuicao(const jDistribuicao: TJSONObject): TJSONObject;
     function CTe(const jCTe: TJSONObject): TJSONObject;
-    function ConsultarCTe(const jConsulta: TJSONObject): TJSONObject;
     function DACTE(const xmlData: TJSONObject): TJSONObject;
-    // function ConsultaSituacaoServico removida
 
     function TesteConfig: boolean;
   end;
@@ -64,9 +63,8 @@ type
   public
     function ModelConfig: TJSONObject;
     function ModelEvento: TJSONObject;
+    function ModelDistribuicao: string;
     function ModelCTe: TJSONObject;
-    function ModelConsultaCTe: TJSONObject;
-    // function ModelConsultaSituacaoServico removida
   end;
 
 implementation
@@ -194,12 +192,13 @@ begin
   facbr.Conhecimentos.Clear;
 end;
 
-function TACBRModelosJSONCTe.ModelConsultaCTe: TJSONObject;
+function TACBRModelosJSONCTe.ModelDistribuicao: string;
 begin
-  Result := TJSONObject.Create;
-  Result.Add('tpAmb', Ord(TpcnTipoAmbiente.taHomologacao));
-  Result.Add('chCTe', '35000000000000000000000000000000000000000000'); // Chave exemplo
+  //  Evento := facbr.WebServices.DistribuicaoDFe.new;
+  Result := TJSONTools.ObjToJsonString(facbr.WebServices.DistribuicaoDFe);
+  //  facbr.EventoNFe.Evento.Clear;
 end;
+
 
 // function TACBRModelosJSONCTe.ModelConsultaSituacaoServico removida
 
@@ -321,49 +320,62 @@ begin
     facbr.WebServices.EnvEvento.EventoRetorno.retEvento);
 end;
 
-function TACBRBridgeCTe.ConsultarCTe(const jConsulta: TJSONObject): TJSONObject;
+function TACBRBridgeCTe.Distribuicao(const jDistribuicao: TJSONObject): TJSONObject;
 var
-  ChaveCTe_JSON: TJSONString;
-  NumRecibo_JSON: TJSONString;
-  Ambiente_JSON: TJSONNumber;
-  ChaveOuRecibo: string;
-  TipoAmbiente: TpcnTipoAmbiente;
+  objDistribuicao: TDistribuicaoDFe;
+  UF: TJSONString;
+  CNPJCPF, ultNSU, NSU, chCTe: TJSONString;
+const
+  CodigosIBGE: array [0..26] of string = (
+    '11', '12', '13', '14', '15', '16', '17', '21', '22', '23', '24',
+    '25', '26', '27', '28', '29', '31',
+    '32', '33', '35', '41', '42', '43', '50', '51', '52', '53');
 begin
   CarregaConfig;
+
   Result := TJSONObject.Create;
-  ChaveOuRecibo := '';
 
-  try
-    if jConsulta.Find('tpAmb', Ambiente_JSON) then
+  objDistribuicao := facbr.WebServices.DistribuicaoDFe;
+
+  if jDistribuicao.Find('UF', UF) then
+  begin
+    if not MatchStr(UF.ToString, CodigosIBGE) then
     begin
-      TipoAmbiente := TpcnTipoAmbiente(Ambiente_JSON.AsInteger);
-      facbr.Configuracoes.WebServices.Ambiente := TipoAmbiente;
-    end;
-
-    if jConsulta.Find('chCTe', ChaveCTe_JSON) then
-      ChaveOuRecibo := ChaveCTe_JSON.AsString
-    else if jConsulta.Find('nRec', NumRecibo_JSON) then
-      ChaveOuRecibo := NumRecibo_JSON.AsString;
-
-    if ChaveOuRecibo = '' then
-    begin
-      Result.Add('error',
-        'Chave do CTe (chCTe) ou número do recibo (nRec) não informado para consulta.');
+      Result.Add('error', 'Código de UF inválido');
       Exit;
     end;
+    objDistribuicao.cUFAutor := StrToInt(UF.ToString);
+  end;
 
-    facbr.Consultar(ChaveOuRecibo);
-    Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.Retorno));
-    // Retorno é TCTeRetConsSit
+  if jDistribuicao.Find('CNPJCPF', CNPJCPF) then
+    objDistribuicao.CNPJCPF := CNPJCPF.ToString;
 
+  if jDistribuicao.Find('ultNSU', ultNSU) then
+    objDistribuicao.ultNSU := ultNSU.ToString;
+
+  if jDistribuicao.Find('NSU', NSU) then
+    objDistribuicao.NSU := NSU.ToString;
+
+  if jDistribuicao.Find('chCTe', chCTe) then
+    objDistribuicao.chCTe := chCTe.ToString;
+
+  try
+    objDistribuicao.Executar;
   except
     on E: Exception do
     begin
-      Result.Clear;
-      Result.Add('error', 'Erro ao consultar CTe: ' + E.Message);
+      if objDistribuicao.RetDistDFeInt.cStat <> 0 then
+        Result := TJSONObject(TJSONTools.ObjToJson(
+          objDistribuicao.RetDistDFeInt))
+      else
+        Result.Add('error', E.message);
+      Exit;
     end;
   end;
+
+  Result := TJSONObject(TJSONTools.ObjToJson(objDistribuicao.RetDistDFeInt));
 end;
+
 
 function TACBRBridgeCTe.DACTE(const xmlData: TJSONObject): TJSONObject;
 var

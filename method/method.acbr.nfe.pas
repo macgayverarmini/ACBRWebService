@@ -271,6 +271,9 @@ var
   XmlBase64: TJSONString;
 begin
   CarregaConfig;
+  Result := '';
+
+
 
   for I := 0 to jEventos.Count - 1 do
   begin
