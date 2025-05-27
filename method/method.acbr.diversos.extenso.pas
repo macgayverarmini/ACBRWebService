@@ -17,9 +17,8 @@ type
   private
     facbr: TACBrExtenso;
   public
-
     function Modelo: TJSONObject;
-    function TraduzValor(const jExtenso: TJSONObject): TJSONString;
+    function TraduzValor(const jExtenso: TJSONObject): TJSONObject;
 
     constructor Create;
     destructor Destroy; override;
@@ -34,10 +33,11 @@ begin
   Result := TJSONTools.ObjToJson(facbr);
 end;
 
-function TACBRBridgeExtenso.TraduzValor(const jExtenso: TJSONObject): TJSONString;
+function TACBRBridgeExtenso.TraduzValor(const jExtenso: TJSONObject): TJSONObject;
 begin
   TJSONTools.JsonToObj(jExtenso, facbr);
-  Result := TJSONString.Create(facbr.Texto);
+
+  Result := TJSONTools.ObjToJson(facbr);
 end;
 
 constructor TACBRBridgeExtenso.Create;

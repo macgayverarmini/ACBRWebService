@@ -36,7 +36,7 @@ begin
   O := GetJSON(Req.Body) as TJSONObject;
   Ac := TACBRBridgeExtenso.Create;
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONString>(AC.TraduzValor(O));
+    Res.Send<TJSONObject>(AC.TraduzValor(O));
   finally
     O.Free;
     Ac.Free;
