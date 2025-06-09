@@ -1,132 +1,136 @@
 {%RunFlags MESSAGES+}
-unit method.acbr.nfe;
+
+Unit method.acbr.nfe;
 
 {$mode Delphi}
 
-interface
+Interface
 
-uses streamtools,
-  RTTI,
-  ACBrNFe,
-  ACBrNFe.EnvEvento,
-  ACBrNFe.EventoClass,
-  ACBrNFeNotasFiscais,
-  ACBrNFeDANFeRLClass,
-  ACBrNFeWebServices,
-  ACBrDFeDANFeReport,
-  ACBrMail,
-  ACBrDFeSSL,
-  ACBrDFeConfiguracoes,
-  ACBrNFeConfiguracoes,
-  ACBrNFe.Classes,
-  pcnConversaoNFe,
-  pcnConversao,
-  pcnProcNFe,
-  StrUtils,
-  LCLIntf, LCLType, Variants, Graphics,
-  Controls, Forms, Dialogs, ComCtrls, Buttons, ExtCtrls,
-  fpjson, jsonconvert,
-  Base64,
-  jsonparser,
-  Classes, SysUtils;
+Uses streamtools,
+RTTI,
+ACBrNFe,
+ACBrNFe.EnvEvento,
+ACBrNFe.EventoClass,
+ACBrNFeNotasFiscais,
+ACBrNFeDANFeRLClass,
+ACBrNFeWebServices,
+ACBrDFeDANFeReport,
+ACBrMail,
+ACBrDFeSSL,
+ACBrDFeConfiguracoes,
+ACBrNFeConfiguracoes,
+ACBrNFe.Classes,
+pcnConversaoNFe,
+pcnConversao,
+pcnProcNFe,
+StrUtils,
+Variants,
+Controls,
+fpjson, jsonconvert,
+Base64,
+jsonparser,
+Classes, SysUtils;
 
-type
+Type 
 
 
   { TACBRBridgeNFe }
 
-  TACBRBridgeNFe = class
-  private
-    fcfg: string;
-    facbr: TACBrNFe;
-    fdanfe: TACBrNFeDANFeRL;
-    procedure CarregaConfig;
+  TACBRBridgeNFe = Class
+    Private 
+      fcfg: string;
+      facbr: TACBrNFe;
+      fdanfe: TACBrNFeDANFeRL;
+      Procedure CarregaConfig;
 
-    function ReadXMLFromJSON(const jsonData: TJSONObject): string;
-  public
-    constructor Create(const Cfg: string);
-    destructor Destroy; override;
+      Function ReadXMLFromJSON(Const jsonData: TJSONObject): string;
+    Public 
+      constructor Create(Const Cfg: String);
+      destructor Destroy;
+      override;
 
-    // Envia um evento
-    function Evento(const jEventos: TJSONArray): string;
-    // Distribuição
-    function Distribuicao(const jDistribuicao: TJSONObject): TJSONObject;
-    // DANFE
-    function Danfe(const xmlData: TJSONObject): TJSONObject;
-    // Envia uma NFE
-    function NFe(const jNFe: TJSONObject): TJSONObject;
+      // Envia um evento
+      Function Evento(Const jEventos: TJSONArray): string;
+      // Distribuição
+      Function Distribuicao(Const jDistribuicao: TJSONObject): TJSONObject;
+      // DANFE
+      Function Danfe(Const xmlData: TJSONObject): TJSONObject;
+      // Envia uma NFE
+      Function NFe(Const jNFe: TJSONObject): TJSONObject;
 
-    // Teste a configuração passada em JSON
-    function TesteConfig: boolean;
-  end;
+      // Teste a configuração passada em JSON
+      Function TesteConfig: boolean;
+  End;
 
-  { TACBRModelosJSON - Salva os retornos de modelo de requisições, para facilitar
+
+{ TACBRModelosJSON - Salva os retornos de modelo de requisições, para facilitar
   documentação ou consulta por parte do programador.}
 
-  TACBRModelosJSON = class(TACBRBridgeNFe)
-  private
-  public
-    // Retorna as configurações atuais do componente da ACBR.
-    function ModelConfig: TJSONObject;
-    function ModelEvento: TJSONObject;
-    function ModelDistribuicao: string;
-    function ModelNFe: TJSONObject;
-  end;
+  TACBRModelosJSON = Class(TACBRBridgeNFe)
+    Private 
+    Public 
+      // Retorna as configurações atuais do componente da ACBR.
+      Function ModelConfig: TJSONObject;
+      Function ModelEvento: TJSONObject;
+      Function ModelDistribuicao: string;
+      Function ModelNFe: TJSONObject;
+  End;
 
-implementation
+Implementation
 
 
 
 { TACBRModelosJSON }
 
-function TACBRModelosJSON.ModelConfig: TJSONObject;
-begin
+Function TACBRModelosJSON.ModelConfig: TJSONObject;
+Begin
 
-  with facbr.Configuracoes.Geral do
-  begin
-    FormaEmissao := TpcnTipoEmissao.teNormal;
-    ModeloDF := TpcnModeloDF.moNFe;
-    VersaoDF := TpcnVersaoDF.ve400;
-    RetirarAcentos := True;
-    IdCSC := '';
-    //cIdToken := '';
+  With facbr.Configuracoes.Geral Do
+    Begin
+      FormaEmissao := TpcnTipoEmissao.teNormal;
+      ModeloDF := TpcnModeloDF.moNFe;
+      VersaoDF := TpcnVersaoDF.ve400;
+      RetirarAcentos := True;
+      IdCSC := '';
+      //cIdToken := '';
 
-    SSLLib := TSSLLib.libOpenSSL;
-    SSLCryptLib := TSSLCryptLib.cryOpenSSL;
-    SSLHttpLib := TSSLHttpLib.httpOpenSSL;
-    SSLXmlSignLib := TSSLXmlSignLib.xsLibXml2;
-  end;
+      SSLLib := TSSLLib.libOpenSSL;
+      SSLCryptLib := TSSLCryptLib.cryOpenSSL;
+      SSLHttpLib := TSSLHttpLib.httpOpenSSL;
+      SSLXmlSignLib := TSSLXmlSignLib.xsLibXml2;
+    End;
 
-  with facbr.Configuracoes.WebServices do
-  begin
-    Ambiente := TpcnTipoAmbiente.taHomologacao;
-    UF := 'ES';
-    TimeOut := 5000;
-  end;
+  With facbr.Configuracoes.WebServices Do
+    Begin
+      Ambiente := TpcnTipoAmbiente.taHomologacao;
+      UF := 'ES';
+      TimeOut := 5000;
+    End;
 
-  with facbr.Configuracoes.Certificados do
-  begin
-    ArquivoPFX := 'C:\NFMonitor\src\exemplo.pfx';
-    Senha := '123';
-  end;
+  With facbr.Configuracoes.Certificados Do
+    Begin
+      ArquivoPFX := 'C:\NFMonitor\src\exemplo.pfx';
+      Senha := '123';
+    End;
 
 
   Result := TJSONTools.ObjToJson(facbr.Configuracoes);
-end;
+End;
 
-function TACBRModelosJSON.ModelEvento: TJSONObject;
-begin
+Function TACBRModelosJSON.ModelEvento: TJSONObject;
+Begin
   facbr.EventoNFe.Evento.New;
   Result := TJSONTools.ObjToJson(facbr.EventoNFe);
   facbr.EventoNFe.Evento.Clear;
-end;
+End;
 
 
-function TACBRModelosJSON.ModelNFe: TJSONObject;
-var
+Function TACBRModelosJSON.ModelNFe: TJSONObject;
+
+Var 
   NF: NotaFiscal;
   Det: TDetCollectionItem;
-begin
+Begin
   NF := facbr.NotasFiscais.Add;
   NF.NFe.Cobr.Dup.New;
   Det := NF.NFe.Det.New;
@@ -157,24 +161,25 @@ begin
   Result.Delete('Alertas');
 
   facbr.NotasFiscais.Clear;
-end;
+End;
 
-function TACBRModelosJSON.ModelDistribuicao: string;
-begin
+Function TACBRModelosJSON.ModelDistribuicao: string;
+Begin
   //  Evento := facbr.WebServices.DistribuicaoDFe.new;
   Result := TJSONTools.ObjToJsonString(facbr.WebServices.DistribuicaoDFe);
   //  facbr.EventoNFe.Evento.Clear;
-end;
+End;
 
 { TACBRBridgeNFe }
 
-function TACBRBridgeNFe.NFe(const jNFe: TJSONObject): TJSONObject;
-var
+Function TACBRBridgeNFe.NFe(Const jNFe: TJSONObject): TJSONObject;
+
+Var 
   Nota: NotaFiscal;
   Lote: integer;
   // Unit pcnProcNFe
   RetWS: TProcNFe;
-begin
+Begin
   CarregaConfig;
 
   Result := TJSONObject.Create;
@@ -183,260 +188,277 @@ begin
   // Inicia o número do lote do envio da NFe
   Lote := 1;
   // Alimenta o objeto Nota com os valores passandos por JSON
-  try
+  Try
     TJSONTools.JsonToObj(jNFe, Nota);
-  except
-    on E: Exception do
-    begin
-      Result.Add('status', 'erro');
-      Result.Add('message', 'Erro na leitura do objeto JSON: ' + E.Message);
-      Exit;
-    end;
-  end;
+  Except
+    on E: Exception Do
+          Begin
+            Result.Add('status', 'erro');
+            Result.Add('message', 'Erro na leitura do objeto JSON: ' + E.Message
+            );
+            Exit;
+          End;
+End;
 
-  try
-    // Pede a ACBR para transmitir os dados
-    facbr.WebServices.Envia(Lote, True, False);
-  finally
-    Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.Retorno));
-  end;
+Try
+  // Pede a ACBR para transmitir os dados
+  facbr.WebServices.Envia(Lote, True, False);
+Finally
+  Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.Retorno));
+End;
 
-  facbr.NotasFiscais.Clear;
-end;
+facbr.NotasFiscais.Clear;
+End;
 
 
-procedure TACBRBridgeNFe.CarregaConfig;
-var
+Procedure TACBRBridgeNFe.CarregaConfig;
+
+Var 
   O: TJSONObject;
-begin
-  if fcfg = '' then
+Begin
+  If fcfg = '' Then
     exit;
 
   O := GetJSON(fcfg) as TJSONObject;
-  try
+  Try
     TJSONTools.JsonToObj(O, facbr.Configuracoes);
-  finally
+  Finally
     O.Free;
-  end;
+End;
 
-  fcfg := '';
-end;
+fcfg := '';
+End;
 
-function TACBRBridgeNFe.ReadXMLFromJSON(const jsonData: TJSONObject): string;
-var
+Function TACBRBridgeNFe.ReadXMLFromJSON(Const jsonData: TJSONObject): string;
+
+Var 
   xmlBase64: string;
-begin
-  try
+Begin
+  Try
     xmlBase64 := jsonData.Extract('xml').AsString;
-  except
-    on E: Exception do
-    begin
-      raise Exception.Create('Erro na leitura do parâmetro "xml" do JSON: ' +
-        E.Message);
-    end;
-  end;
+  Except
+    on E: Exception Do
+          Begin
+            raise Exception.Create(
+                               'Erro na leitura do parâmetro "xml" do JSON: '
+                                   +
+                                   E.Message);
+          End;
+End;
 
-  try
-    Result := DecodeStringBase64(xmlBase64);
-    xmlBase64 := '';
-  except
-    on E: Exception do
-    begin
-      raise Exception.Create('A string XML em base64 é inválida: ' + E.Message);
-    end;
-  end;
-end;
+Try
+  Result := DecodeStringBase64(xmlBase64);
+  xmlBase64 := '';
+Except
+  on E: Exception Do
+        Begin
+          raise Exception.Create('A string XML em base64 é inválida: ' + E
+                                 .Message);
+        End;
+End;
+End;
 
-constructor TACBRBridgeNFe.Create(const Cfg: string);
-begin
-  facbr := TACBrNFe.Create(nil);
-  fdanfe := TACBrNFeDANFeRL.Create(nil);
+constructor TACBRBridgeNFe.Create(Const Cfg: String);
+Begin
+  facbr := TACBrNFe.Create(Nil);
+  fdanfe := TACBrNFeDANFeRL.Create(Nil);
   fcfg := Cfg;
   facbr.DANFE := fdanfe;
-end;
+End;
 
 destructor TACBRBridgeNFe.Destroy;
-begin
+Begin
   facbr.Free;
   FreeAndNil(fdanfe);
   inherited Destroy;
-end;
+End;
 
-function TACBRBridgeNFe.Evento(const jEventos: TJSONArray): string;
-var
+Function TACBRBridgeNFe.Evento(Const jEventos: TJSONArray): string;
+
+Var 
   objEvento: TInfEventoCollectionItem;
   oEvento: TJSONObject;
   I: integer;
   InfEvento: TJSONObject;
   XmlBase64: TJSONString;
-begin
+Begin
   CarregaConfig;
   Result := '';
 
 
 
-  for I := 0 to jEventos.Count - 1 do
-  begin
-    oEvento := jEventos.Items[i] as TJSONObject;
-    InfEvento := oEvento.Extract('InfEvento') as TJSONObject;
-    if InfEvento.Find('LoadXML', XmlBase64) then
-      facbr.NotasFiscais.LoadFromString(Base64.DecodeStringBase64(XmlBase64.AsString));
+  For I := 0 To jEventos.Count - 1 Do
+    Begin
+      oEvento := jEventos.Items[i] as TJSONObject;
+      InfEvento := oEvento.Extract('InfEvento') as TJSONObject;
+      If InfEvento.Find('LoadXML', XmlBase64) Then
+        facbr.NotasFiscais.LoadFromString(Base64.DecodeStringBase64(XmlBase64.
+                                          AsString));
 
-    objEvento := facbr.EventoNFe.Evento.New;
-    TJSONTools.JsonToObj(oEvento, objEvento);
-  end;
+      objEvento := facbr.EventoNFe.Evento.New;
+      TJSONTools.JsonToObj(oEvento, objEvento);
+    End;
 
   facbr.EnviarEvento(1);
   Result := TJSONTools.ObjToJsonString(
-    facbr.WebServices.EnvEvento.EventoRetorno.retEvento);
-end;
+            facbr.WebServices.EnvEvento.EventoRetorno.retEvento);
+End;
 
-function TACBRBridgeNFe.Distribuicao(const jDistribuicao: TJSONObject): TJSONObject;
-var
+Function TACBRBridgeNFe.Distribuicao(Const jDistribuicao: TJSONObject):
+                                                                     TJSONObject
+;
+
+Var 
   objDistribuicao: TDistribuicaoDFe;
   UF: TJSONString;
   CNPJCPF, ultNSU, NSU, chNFe: TJSONString;
-const
-  CodigosIBGE: array [0..26] of string = (
-    '11', '12', '13', '14', '15', '16', '17', '21', '22', '23', '24',
-    '25', '26', '27', '28', '29', '31',
-    '32', '33', '35', '41', '42', '43', '50', '51', '52', '53');
-begin
+
+Const 
+  CodigosIBGE: array [0..26] Of string = (
+                                          '11', '12', '13', '14', '15', '16',
+                                          '17', '21', '22', '23', '24',
+                                          '25', '26', '27', '28', '29', '31',
+                                          '32', '33', '35', '41', '42', '43',
+                                          '50', '51', '52', '53');
+Begin
   CarregaConfig;
 
   Result := TJSONObject.Create;
 
   objDistribuicao := facbr.WebServices.DistribuicaoDFe;
 
-  if jDistribuicao.Find('UF', UF) then
-  begin
-    if not MatchStr(UF.ToString, CodigosIBGE) then
-    begin
-      Result.Add('error', 'Código de UF inválido');
-      Exit;
-    end;
-    objDistribuicao.cUFAutor := StrToInt(UF.ToString);
-  end;
+  If jDistribuicao.Find('UF', UF) Then
+    Begin
+      If Not MatchStr(UF.ToString, CodigosIBGE) Then
+        Begin
+          Result.Add('error', 'Código de UF inválido');
+          Exit;
+        End;
+      objDistribuicao.cUFAutor := StrToInt(UF.ToString);
+    End;
 
-  if jDistribuicao.Find('CNPJCPF', CNPJCPF) then
+  If jDistribuicao.Find('CNPJCPF', CNPJCPF) Then
     objDistribuicao.CNPJCPF := CNPJCPF.ToString;
 
-  if jDistribuicao.Find('ultNSU', ultNSU) then
+  If jDistribuicao.Find('ultNSU', ultNSU) Then
     objDistribuicao.ultNSU := ultNSU.ToString;
 
-  if jDistribuicao.Find('NSU', NSU) then
+  If jDistribuicao.Find('NSU', NSU) Then
     objDistribuicao.NSU := NSU.ToString;
 
-  if jDistribuicao.Find('chNFe', chNFe) then
+  If jDistribuicao.Find('chNFe', chNFe) Then
     objDistribuicao.chNFe := chNFe.ToString;
 
-  try
+  Try
     objDistribuicao.Executar;
-  except
-    on E: Exception do
-    begin
-      if objDistribuicao.RetDistDFeInt.cStat <> 0 then
-        Result := TJSONObject(TJSONTools.ObjToJson(
-          objDistribuicao.RetDistDFeInt))
-      else
-        Result.Add('error', E.message);
-      Exit;
-    end;
-  end;
+  Except
+    on E: Exception Do
+          Begin
+            If objDistribuicao.RetDistDFeInt.cStat <> 0 Then
+              Result := TJSONObject(TJSONTools.ObjToJson(
+                        objDistribuicao.RetDistDFeInt))
+            Else
+              Result.Add('error', E.message);
+            Exit;
+          End;
+End;
 
-  Result := TJSONObject(TJSONTools.ObjToJson(objDistribuicao.RetDistDFeInt));
-end;
+Result := TJSONObject(TJSONTools.ObjToJson(objDistribuicao.RetDistDFeInt));
+End;
 
-function TACBRBridgeNFe.Danfe(const xmlData: TJSONObject): TJSONObject;
-var
+Function TACBRBridgeNFe.Danfe(Const xmlData: TJSONObject): TJSONObject;
+
+Var 
   arquivofinal: string;
   stringXml: string;
   tamanho: integer;
   id: TJSONString;
   fileName: string;
-begin
+Begin
   CarregaConfig;
   Result := TJSONObject.Create;
 
-  try
+  Try
     stringXml := ReadXMLFromJSON(xmlData);
-  except
-    on E: Exception do
-    begin
-      Result.Add('error', E.Message);
-      Exit;
-    end;
-  end;
+  Except
+    on E: Exception Do
+          Begin
+            Result.Add('error', E.Message);
+            Exit;
+          End;
+End;
 
-  try
-    facbr.NotasFiscais.LoadFromString(stringXml);
-  except
-    on E: Exception do
-    begin
-      Result.Add('error', 'Erro na leitura do XML: ' + E.Message);
-      Exit;
-    end;
-  end;
+Try
+  facbr.NotasFiscais.LoadFromString(stringXml);
+Except
+  on E: Exception Do
+        Begin
+          Result.Add('error', 'Erro na leitura do XML: ' + E.Message);
+          Exit;
+        End;
+End;
 
-  // Esvazia a string para liberar da memória logo o xml
-  stringXml := '';
-  // O acesso a propriedade TipoDanfe se faz somente diretamente pelo objeto.
-  if facbr.NotasFiscais.Items[0].NFe.Ide.tpImp <> TpcnTipoImpressao.tiPaisagem then
-    fdanfe.TipoDANFE := tiRetrato
-  else
-    fdanfe.TipoDANFE := tiPaisagem;
+// Esvazia a string para liberar da memória logo o xml
+stringXml := '';
+// O acesso a propriedade TipoDanfe se faz somente diretamente pelo objeto.
+If facbr.NotasFiscais.Items[0].NFe.Ide.tpImp <> TpcnTipoImpressao.tiPaisagem
+  Then
+  fdanfe.TipoDANFE := tiRetrato
+Else
+  fdanfe.TipoDANFE := tiPaisagem;
 
-  // Como é um aplicativo console, jamais a propriedade MostraStatus deve ser true.
-  fdanfe.MostraPreview := False;
-  fdanfe.MostraStatus := False;
-  fdanfe.MostraSetup := False;
 
-  //Gerando arquivo temporário
-  fileName := GetTempFileName;
-  // Realiza o processo de transformar o XML em PDF (Danfe)
-  try
-    fDAnFe.PathPDF := filename;
-    facbr.NotasFiscais.ImprimirPDF;
-    filename := fdanfe.ArquivoPDF;
-  except
-    begin
-      Result.Add('error', 'Falha ao gerar o PDF.');
-      Exit;
-    end;
-  end;
+// Como é um aplicativo console, jamais a propriedade MostraStatus deve ser true.
+fdanfe.MostraPreview := False;
+fdanfe.MostraStatus := False;
+fdanfe.MostraSetup := False;
 
-  // Converte o arquivo para base64
-  try
-    arquivofinal := FileToStringBase64(filename, True, tamanho);
-  except
-    on E: Exception do
-    begin
-      Result.Add('error', E.Message);
-      Exit;
-    end;
-  end;
+//Gerando arquivo temporário
+fileName := GetTempFileName;
+// Realiza o processo de transformar o XML em PDF (Danfe)
+Try
+  fDAnFe.PathPDF := filename;
+  facbr.NotasFiscais.ImprimirPDF;
+  filename := fdanfe.ArquivoPDF;
+Except
+  Begin
+    Result.Add('error', 'Falha ao gerar o PDF.');
+    Exit;
+  End;
+End;
 
-  // Converte a stream do relatório para base64
-  Result.Add('pdf', arquivofinal);
-  // Chave de Acesso da NF-e
-  Result.Add('chave', facbr.NotasFiscais.Items[0].NFe.infNFe.ID);
-  // Tamanho em Bytes
-  Result.Add('tamanho', tamanho.ToString);
-  // Adiciona o identificador único se ele existir
-  if xmlData.Find('id', id) then
-    Result.Add('id', id);
+// Converte o arquivo para base64
+Try
+  arquivofinal := FileToStringBase64(filename, True, tamanho);
+Except
+  on E: Exception Do
+        Begin
+          Result.Add('error', E.Message);
+          Exit;
+        End;
+End;
 
-end;
+// Converte a stream do relatório para base64
+Result.Add('pdf', arquivofinal);
+// Chave de Acesso da NF-e
+Result.Add('chave', facbr.NotasFiscais.Items[0].NFe.infNFe.ID);
+// Tamanho em Bytes
+Result.Add('tamanho', tamanho.ToString);
+// Adiciona o identificador único se ele existir
+If xmlData.Find('id', id) Then
+  Result.Add('id', id);
 
-function TACBRBridgeNFe.TesteConfig: boolean;
-begin
-  try
+End;
+
+Function TACBRBridgeNFe.TesteConfig: boolean;
+Begin
+  Try
     CarregaConfig;
     Result := True;
-  except
+  Except
     Result := False;
-  end;
-end;
+End;
+End;
 
 
-end.
+End.

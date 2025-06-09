@@ -1,4 +1,5 @@
 {%RunFlags MESSAGES+}
+
 unit method.acbr.mdfe;
 
 {$mode Delphi}
@@ -8,25 +9,24 @@ interface
 uses
   streamtools,
   RTTI,
-  // Units específicas do MDF-e (ajuste os nomes se necessário na sua versão do ACBr)
   ACBrMDFe,
-  ACBrMDFeDAMDFERLClass, // Assumindo componente de relatório RL para DAMDFe
+  ACBrMDFeManifestos,
+  ACBrMDFe.Classes,
+  ACBrMDFeDAMDFeRL,
+  ACBrMDFeDAMDFeRLClass,
+  ACBrMDFe.EnvEvento,
+  ACBrDFeSSL,
   ACBrMDFeWebServices,
-  pcnMDFe,
-  pcnConversaoMDFe,
-  pcnProcMDFe,
-  pcnEnvEventoMDFe,
-  pcnConsMDFeNaoEnc,
-  // Units comuns e do projeto
+  pmdfeConversaoMDFe,
+  pmdfeProcMDFe,
+  pcnConversao,
   StrUtils,
-  LCLIntf, LCLType, Variants, Graphics,
-  Controls, Forms, Dialogs, ComCtrls, Buttons, ExtCtrls,
+  Variants,
+  Controls,
   fpjson, jsonconvert,
-  ACBrDFeDANFeReport, // Pode ser necessário ajustar ou usar unit base comum
-  ACBrMail, // Se for usar envio de email
-  Base64, jsonparser, ACBrDFeSSL,
+  Base64, jsonparser,
   ACBrDFeConfiguracoes,
-  ACBrMDFeConfiguracoes, // Configurações específicas do MDFe
+  ACBrMDFeConfiguracoes,
   Classes, SysUtils;
 
 type
@@ -37,44 +37,30 @@ type
   private
     fcfg: string;
     facbr: TACBrMDFe;
-    fdamdfe: TACBrMDFeDAMDFERL; // Componente para gerar o DAMDFe
+    fdamdfe: TACBrMDFeDAMDFERL;
     procedure CarregaConfig;
-
     function ReadXMLFromJSON(const jsonData: TJSONObject): string;
   public
     constructor Create(const Cfg: string);
     destructor Destroy; override;
 
-    // Envia um Manifesto MDF-e
-    function EnviarMDFe(const jMDFe: TJSONObject): TJSONObject;
-    // Envia um evento para um MDF-e
-    function EnviarEvento(const jEventos: TJSONArray): string; // Retorna string JSON do RetEvento
-    // Consulta um MDF-e específico
-    function ConsultarMDFe(const jConsulta: TJSONObject): TJSONObject; // Retorna JSON do RetConsSitMDFe
-    // Consulta MDF-es não encerrados para um CNPJ
-    function ConsultarNaoEncerrados(const jConsulta: TJSONObject): TJSONObject; // Retorna JSON do RetConsMDFeNaoEnc
-    // Gera o DAMDFE em PDF
-    function GerarDamdfe(const xmlData: TJSONObject): TJSONObject; // Retorna JSON com PDF Base64
+    function Evento(const jEventos: TJSONArray): string;
+    function Distribuicao(const jDistribuicao: TJSONObject): TJSONObject;
+    function Damdfe(const xmlData: TJSONObject): TJSONObject;
+    function MDFe(const jMDFe: TJSONObject): TJSONObject;
 
-    // Testa a configuração passada em JSON
     function TesteConfig: boolean;
   end;
 
-  { TACBRModelosJSONMDFe - Salva os retornos de modelo de requisições MDF-e }
+  { TACBRModelosJSONMDFe }
 
   TACBRModelosJSONMDFe = class(TACBRBridgeMDFe)
   private
   public
-    // Retorna as configurações atuais do componente MDF-e da ACBr.
     function ModelConfig: TJSONObject;
-    // Retorna um modelo JSON para envio de evento MDF-e.
     function ModelEvento: TJSONObject;
-    // Retorna um modelo JSON para envio de MDF-e.
+    function ModelDistribuicao: string;
     function ModelMDFe: TJSONObject;
-    // Retorna um modelo JSON para consulta de situação de MDF-e.
-    function ModelConsultaMDFe: TJSONObject;
-    // Retorna um modelo JSON para consulta de MDF-es não encerrados.
-    function ModelConsultaNaoEncerrados: TJSONObject;
   end;
 
 implementation
@@ -83,13 +69,10 @@ implementation
 
 function TACBRModelosJSONMDFe.ModelConfig: TJSONObject;
 begin
-  // Preenche configurações de exemplo para MDF-e
   with facbr.Configuracoes.Geral do
   begin
-    // Ajustar conforme necessário para MDF-e (pode ter menos ou diferentes opções que NFe)
-    VersaoDF := TpcnVersaoDFMDFe.ve300; // Exemplo: Versão 3.00
+    VersaoDF := TVersaoMDFe.ve300;
     RetirarAcentos := True;
-
     SSLLib := TSSLLib.libOpenSSL;
     SSLCryptLib := TSSLCryptLib.cryOpenSSL;
     SSLHttpLib := TSSLHttpLib.httpOpenSSL;
@@ -100,78 +83,165 @@ begin
   begin
     Ambiente := TpcnTipoAmbiente.taHomologacao;
     UF := 'ES';
-    TimeOut := 10000; // MDF-e pode demorar mais
+    TimeOut := 10000;
     Visualizar := False;
   end;
 
   with facbr.Configuracoes.Certificados do
   begin
-    ArquivoPFX := 'C:\caminho\seu_certificado.pfx'; // Exemplo
-    Senha := 'sua_senha'; // Exemplo
+    ArquivoPFX := 'C:\caminho\seu_certificado.pfx';
+    Senha := 'sua_senha';
   end;
 
   with facbr.Configuracoes.Arquivos do
   begin
-     // Configurar paths se necessário
-     // PathSalvar := 'C:\ACBr\MDFe\';
-     // ...
+    // PathSalvar := 'C:\ACBr\MDFe\';
   end;
-
 
   Result := TJSONTools.ObjToJson(facbr.Configuracoes);
 end;
 
 function TACBRModelosJSONMDFe.ModelEvento: TJSONObject;
 begin
-  // Cria um evento MDF-e vazio para gerar o modelo JSON
   facbr.EventoMDFe.Evento.New;
-  // Preencher campos mínimos de exemplo se desejado
-  // Ex: facbr.EventoMDFe.Evento.Items[0].infEvento.tpEvento := teCancelamento;
   Result := TJSONTools.ObjToJson(facbr.EventoMDFe);
-  facbr.EventoMDFe.Evento.Clear; // Limpa após gerar o modelo
+  facbr.EventoMDFe.Evento.Clear;
 end;
 
 function TACBRModelosJSONMDFe.ModelMDFe: TJSONObject;
 var
-  MDFe: TMDFe;
+  MDFe: TManifesto;
+  MunDescarga: TinfMunDescargaCollectionItem;
+  infCTe: TinfCTeCollectionItem;
+  infUnidTranspCTe: TinfUnidTranspCollectionItem;
+  infUnidCargaCTe: TinfUnidCargaCollectionItem;
 begin
   // Cria um manifesto MDF-e vazio para gerar o modelo JSON
   MDFe := facbr.Manifestos.Add;
-  // Adiciona sub-estruturas para aparecerem no JSON
-  MDFe.infMDFe.ide.infMunCarrega.New;
-  MDFe.infMDFe.infDoc.infMunDescarga.New.infNF.New; // Exemplo de aninhamento
-  MDFe.infMDFe.seg.New;
-  MDFe.infMDFe.tot.qNFe := 1; // Exemplo
-  MDFe.infMDFe.infModal.rodo.veicTracao; // Acessar para criar se for objeto
-  MDFe.infMDFe.infModal.rodo.veicReboque.New;
-  MDFe.infMDFe.infModal.rodo.infANTT.infCIOT.New;
-  MDFe.infMDFe.infModal.rodo.infANTT.infContratante.New;
-  MDFe.infMDFe.infModal.rodo.infANTT.infPag.New.infComp.New;
-  MDFe.infMDFe.infModal.rodo.infANTT.infPag.infBanc; // Acessar para criar se for objeto
 
+  // Bloco de Identificação do MDF-e (ide)
+  with MDFe.MDFe.Ide do
+  begin
+    cUF := 35;
+    tpAmb := taHomologacao;
+    // Padrão para modelo
+    tpEmit := teTransportadora;
+    modelo := '58';
+    serie := 1;
+    nMDF := 1;
+    cMDF := 1;
+    modal := moRodoviario;
+    dhEmi := Now;
+    tpEmis := teNormal;
+    procEmi := peAplicativoContribuinte;
+    verProc := '1.0';
+    UFIni := 'SP';
+    UFFim := 'SP';
+  end;
+
+  MDFe.MDFe.Ide.infMunCarrega.Add;
+
+  // Bloco do Emitente (emit)
+  with MDFe.MDFe.Emit do
+  begin
+    CNPJCPF := '00000000000191';
+    IE := '123456789012';
+    xNome := 'RAZAO SOCIAL DO EMITENTE';
+    xFant := 'NOME FANTASIA DO EMITENTE';
+    with EnderEmit do
+    begin
+      xLgr := 'AVENIDA PRINCIPAL';
+      nro := '1234';
+      xBairro := 'CENTRO';
+      cMun := 3550308;
+      xMun := 'SAO PAULO';
+      CEP := 12345000;
+      UF := 'SP';
+    end;
+  end;
+
+  // Bloco Rodo (Modal Rodoviário)
+  with MDFe.MDFe.rodo do
+  begin
+    RNTRC := '12345678';
+
+    // Veículo de Tração
+    with veicTracao do
+    begin
+      placa := 'ABC1234';
+      RENAVAM := '123456789';
+      tara := 5000;
+      capKG := 4500;
+      tpRod := trTruck;
+      tpCar := tcFechada;
+      UF := 'SP';
+    end;
+
+    // Condutor
+    veicTracao.condutor.New;
+    // Veículo Reboque
+    veicReboque.New;
+    // Vale Pedágio
+    valePed.disp.New;
+    // CIOT
+    infANTT.infCIOT.New;
+  end;
+
+  // Bloco de Documentos (infDoc)
+  MunDescarga := MDFe.MDFe.infDoc.infMunDescarga.New;
+
+  // Informações do CT-e
+  infCTe := MunDescarga.infCTe.Add;
+  infCTe.chCTe := '35110803911545000148570010000001011000001018';
+
+  // Unidade de Transporte
+  infUnidTranspCTe := infCTe.infUnidTransp.Add;
+
+  infUnidTranspCTe.tpUnidTransp := utRodoTracao;
+  infUnidTranspCTe.idUnidTransp := 'ABC1234';
+  infUnidTranspCTe.lacUnidTransp.New;
+
+  // Unidade de Carga
+  infUnidCargaCte := infUnidTranspCTe.infUnidCarga.New;
+  infUnidCargaCte.tpUnidCarga := ucOutros;
+  infUnidCargaCte.idUnidCarga := 'AB45';
+  infUnidCargaCte.lacUnidCarga.New;
+
+  // Bloco de Totais (tot)
+  with MDFe.MDFe.Tot do
+  begin
+    qCTe := 1;
+    vCarga := 3500.00;
+    cUnid := uTon;
+    qCarga := 2.8000;
+  end;
+
+  // Lacres
+  MDFe.MDFe.lacres.New;
+
+  // Informações Adicionais
+  with MDFe.MDFe.infAdic do
+  begin
+    infCpl := 'INFORMACOES COMPLEMENTARES';
+    infAdFisco := 'INFORMACOES PARA O FISCO';
+  end;
+
+  // Converte o objeto populado para JSON
   Result := TJSONTools.ObjToJson(MDFe);
-  // Remover campos internos ou grandes desnecessários para o modelo
+
+  // Remove campos internos desnecessários para o modelo
   Result.Delete('XML');
   Result.Delete('XMLOriginal');
   Result.Delete('NomeArq');
   Result.Delete('Protocolo');
 
-  facbr.Manifestos.Clear; // Limpa após gerar o modelo
+  // Limpa o manifesto da memória do componente ACBr
+  facbr.Manifestos.Clear;
 end;
 
-function TACBRModelosJSONMDFe.ModelConsultaMDFe: TJSONObject;
+function TACBRModelosJSONMDFe.ModelDistribuicao: string;
 begin
-  Result := TJSONObject.Create;
-  Result.Add('tpAmb', Ord(TpcnTipoAmbiente.taHomologacao)); // Exemplo
-  Result.Add('chMDFe', '32...'); // Exemplo de chave
-  // Ou Result.Add('nRec', '12345...'); // Exemplo de recibo
-end;
-
-function TACBRModelosJSONMDFe.ModelConsultaNaoEncerrados: TJSONObject;
-begin
-  Result := TJSONObject.Create;
-  Result.Add('tpAmb', Ord(TpcnTipoAmbiente.taHomologacao)); // Exemplo
-  Result.Add('CNPJ', '00000000000191'); // Exemplo
+  Result := TJSONTools.ObjToJsonString(facbr.WebServices.DistribuicaoDFe);
 end;
 
 { TACBRBridgeMDFe }
@@ -185,28 +255,27 @@ begin
 
   O := GetJSON(fcfg) as TJSONObject;
   try
-    // Tentar carregar a configuração no componente MDF-e
     TJSONTools.JsonToObj(O, facbr.Configuracoes);
   finally
     O.Free;
   end;
-
-  fcfg := ''; // Limpa a configuração após o uso
+  fcfg := '';
 end;
 
 function TACBRBridgeMDFe.ReadXMLFromJSON(const jsonData: TJSONObject): string;
 var
   xmlBase64: string;
-  oXML: TJSONString; // Usar TJSONString para melhor tratamento
+  oXML: TJSONString;
 begin
   Result := '';
   if not jsonData.Find('xml', oXML) then
-     raise Exception.Create('Parâmetro "xml" (contendo o XML em Base64) não encontrado no JSON.');
+    raise Exception.Create(
+      'Parâmetro "xml" (contendo o XML em Base64) não encontrado no JSON.');
 
-  xmlBase64 := oXML.AsString; // Obter a string do TJSONString
+  xmlBase64 := oXML.AsString;
 
   if xmlBase64.IsEmpty then
-     raise Exception.Create('Parâmetro "xml" está vazio.');
+    raise Exception.Create('Parâmetro "xml" está vazio.');
 
   try
     Result := DecodeStringBase64(xmlBase64);
@@ -221,7 +290,7 @@ begin
   facbr := TACBrMDFe.Create(nil);
   fdamdfe := TACBrMDFeDAMDFERL.Create(nil);
   fcfg := Cfg;
-  facbr.DAMDFE := fdamdfe; // Associa o componente de impressão ao principal
+  facbr.DAMDFE := fdamdfe;
 end;
 
 destructor TACBRBridgeMDFe.Destroy;
@@ -231,237 +300,123 @@ begin
   inherited Destroy;
 end;
 
-function TACBRBridgeMDFe.EnviarMDFe(const jMDFe: TJSONObject): TJSONObject;
+function TACBRBridgeMDFe.MDFe(const jMDFe: TJSONObject): TJSONObject;
 var
-  Manifesto: TMDFe;
-  Lote: string; // Envio de MDFe geralmente não usa lote numérico como NFe
-  RetWS: TProcMDFe; // Verificar o tipo correto do retorno
+  Manifesto: TManifesto;
+  Lote: string;
 begin
   CarregaConfig;
 
   Result := TJSONObject.Create;
-  // Cria um objeto TMDFe na coleção Manifestos do componente
   Manifesto := facbr.Manifestos.Add;
-  Lote := '1'; // Pode ser um identificador ou simplesmente '1' se enviar um por vez
+  Lote := '1';
 
   try
-    // Carrega os dados do JSON no objeto Manifesto
     TJSONTools.JsonToObj(jMDFe, Manifesto);
   except
     on E: Exception do
     begin
       Result.Add('status', 'erro');
-      Result.Add('message', 'Erro na leitura do objeto JSON do MDF-e: ' + E.Message);
-      facbr.Manifestos.Clear; // Limpa o manifesto adicionado
+      Result.Add('message', 'Erro na leitura do objeto JSON do MDF-e: ' +
+        E.Message);
+      facbr.Manifestos.Clear;
       Exit;
     end;
   end;
 
   try
-    // Valida (opcional, mas recomendado)
-    facbr.Manifestos.Validar;
-    if not facbr.Manifestos.Items[0].Valido then
-    begin
-       Result.Add('status', 'erro_validacao');
-       Result.Add('message', facbr.Manifestos.Items[0].ErroValidacao);
-       // Adicionar mais detalhes se necessário: ErroValidacaoCompleto, etc.
-       facbr.Manifestos.Clear;
-       Exit;
-    end;
-
-    // Assina
+    // Agrupa as chamadas de preparação e envio dentro do bloco try
     facbr.Manifestos.Assinar;
-
-    // Envia o manifesto (ou lote)
-    if facbr.EnviarManifesto(Lote) then // Verificar se EnviarManifesto é o método correto
-    begin
-       // Sucesso no envio, pegar o retorno do processamento
-       RetWS := facbr.WebServices.Retorno; // Ajustar conforme o nome da propriedade de retorno
-       Result := TJSONObject(TJSONTools.ObjToJson(RetWS)); // Serializa o retorno para JSON
-    end
-    else
-    begin
-       // Falha no envio (ex: problema de comunicação)
-       Result.Add('status', 'erro_envio');
-       Result.Add('message', 'Falha ao enviar o MDF-e para a SEFAZ.');
-       // Adicionar detalhes do log do ACBr se possível/necessário
-    end;
-
-  except
-      on E: Exception do
-      begin
-          Result.Add('status', 'excecao');
-          Result.Add('message', 'Exceção durante o envio do MDF-e: ' + E.Message);
-          // Considerar logar E.StackTrace se disponível
-      end;
+    facbr.Manifestos.Validar;
+    facbr.Enviar(Lote);
+  finally
+    // Garante que o retorno do webservice seja sempre capturado e retornado
+    Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.Retorno));
   end;
 
-  // Limpa a coleção de manifestos após o envio
-  // Cuidado: Se precisar do objeto para imprimir DAMDFE depois, não limpar aqui.
-  // facbr.Manifestos.Clear; // Avaliar onde limpar
+  facbr.Manifestos.Clear;
 end;
 
-function TACBRBridgeMDFe.EnviarEvento(const jEventos: TJSONArray): string;
+function TACBRBridgeMDFe.Evento(const jEventos: TJSONArray): string;
 var
-  objEvento: TEventoMDFe; // Tipo correto do item de evento MDFe
+  objEvento: TInfEventoCollectionItem;
   oEvento: TJSONObject;
   I: integer;
-  // InfEvento: TJSONObject; // Desnecessário se o JSON já tem a estrutura correta
+  InfEvento: TJSONObject;
   XmlBase64: TJSONString;
-  LoteId: string; // Evento MDFe usa lote string
 begin
   CarregaConfig;
   Result := '';
-  LoteId := '1'; // Ou gerar um ID único
 
-  try
-    for I := 0 to jEventos.Count - 1 do
-    begin
-      oEvento := jEventos.Items[i] as TJSONObject;
 
-      // Tratamento para LoadXML (similar à NFe, se aplicável e necessário para MDFe)
-      // if oEvento.Find('LoadXML', XmlBase64) then ...
 
-      // Cria um novo objeto de evento na coleção do componente
-      objEvento := facbr.EventoMDFe.Evento.New;
-      // Carrega os dados do JSON para o objeto de evento
-      TJSONTools.JsonToObj(oEvento, objEvento);
-    end;
+  for I := 0 to jEventos.Count - 1 do
+  begin
+    oEvento := jEventos.Items[i] as TJSONObject;
+    InfEvento := oEvento.Extract('InfEvento') as TJSONObject;
+    if InfEvento.Find('LoadXML', XmlBase64) then
+      facbr.Manifestos.LoadFromString(Base64.DecodeStringBase64(
+        XmlBase64.AsString));
 
-    // Envia o(s) evento(s)
-    if facbr.EnviarEvento(LoteId) then
-    begin
-      // Sucesso, serializa o retorno do evento
-      // Ajustar o caminho exato do objeto de retorno no ACBrMDFe
-      Result := TJSONTools.ObjToJsonString(facbr.WebServices.EnvEvento.retEvento);
-    end
-    else
-    begin
-       // Falha no envio do evento
-       raise Exception.Create('Falha ao enviar o evento MDF-e para a SEFAZ.');
-    end;
-
-  except
-      on E: Exception do
-      begin
-          // Retorna um JSON de erro em caso de exceção
-          Result := TJSONObject.Create.Add('status','erro').Add('message', E.Message).ToJSON;
-      end;
+    objEvento := facbr.EventoMDFe.Evento.New;
+    TJSONTools.JsonToObj(oEvento, objEvento);
   end;
 
-  // Limpar coleção de eventos após o envio
-  facbr.EventoMDFe.Evento.Clear;
+  facbr.EnviarEvento(1);
+  Result := TJSONTools.ObjToJsonString(
+    facbr.WebServices.EnvEvento.EventoRetorno.retEvento);
 end;
 
-function TACBRBridgeMDFe.ConsultarMDFe(const jConsulta: TJSONObject): TJSONObject;
+function TACBRBridgeMDFe.Distribuicao(const jDistribuicao: TJSONObject): TJSONObject;
 var
-  ChaveOuRecibo: string;
-  TipoAmbiente : TpcnTipoAmbiente;
-  oChave, oRecibo, oTpAmb : TJSONValue;
-  RetWS : TRetConsSitMDFe; // Tipo correto para o retorno da consulta
+  objDistribuicao: TDistribuicaoDFe;
+  UF: TJSONString;
+  CNPJCPF, ultNSU, NSU, chMDFe: TJSONString;
 begin
   CarregaConfig;
+
   Result := TJSONObject.Create;
-  ChaveOuRecibo := '';
-  TipoAmbiente := TpcnTipoAmbiente.taHomologacao; // Padrão
+  objDistribuicao := facbr.WebServices.DistribuicaoDFe;
 
-  if jConsulta.Find('tpAmb', oTpAmb) then
-     TipoAmbiente := TpcnTipoAmbiente(oTpAmb.AsInteger);
+  if jDistribuicao.Find('CNPJCPF', CNPJCPF) then
+    objDistribuicao.CNPJCPF := CNPJCPF.ToString;
 
-  // Prioriza consulta por Chave se ambos forem informados
-  if jConsulta.Find('chMDFe', oChave) then
-     ChaveOuRecibo := oChave.AsString
-  else if jConsulta.Find('nRec', oRecibo) then
-     ChaveOuRecibo := oRecibo.AsString;
+  if jDistribuicao.Find('ultNSU', ultNSU) then
+    objDistribuicao.ultNSU := ultNSU.ToString;
 
-  if ChaveOuRecibo = '' then
-  begin
-     Result.Add('status', 'erro');
-     Result.Add('message', 'Chave do MDF-e (chMDFe) ou número do recibo (nRec) não informado para consulta.');
-     Exit;
-  end;
+  if jDistribuicao.Find('NSU', NSU) then
+    objDistribuicao.NSU := NSU.ToString;
+
+  if jDistribuicao.Find('chMDFe', chMDFe) then
+    objDistribuicao.chMDFe := chMDFe.ToString;
 
   try
-    // Define o ambiente antes da consulta
-    facbr.Configuracoes.WebServices.Ambiente := TipoAmbiente;
-
-    // Executa a consulta
-    facbr.ConsultarManifesto(ChaveOuRecibo);
-
-    // Pega o objeto de retorno da consulta
-    RetWS := facbr.WebServices.RetConsSitMDFe; // Ajustar se o nome da propriedade for diferente
-    // Serializa o retorno para JSON
-    Result := TJSONObject(TJSONTools.ObjToJson(RetWS));
-
+    objDistribuicao.Executar;
   except
     on E: Exception do
     begin
-       Result.Clear; // Limpa o JSON antes de adicionar erro
-       Result.Add('status', 'excecao');
-       Result.Add('message', 'Exceção durante a consulta do MDF-e: ' + E.Message);
+      if objDistribuicao.RetDistDFeInt.cStat <> 0 then
+        Result := TJSONObject(TJSONTools.ObjToJson(
+          objDistribuicao.RetDistDFeInt))
+      else
+        Result.Add('error', E.message);
+      Exit;
     end;
   end;
+
+  Result := TJSONObject(TJSONTools.ObjToJson(objDistribuicao.RetDistDFeInt));
 end;
 
-function TACBRBridgeMDFe.ConsultarNaoEncerrados(const jConsulta: TJSONObject): TJSONObject;
+function TACBRBridgeMDFe.Damdfe(const xmlData: TJSONObject): TJSONObject;
 var
-  CNPJ : string;
-  TipoAmbiente : TpcnTipoAmbiente;
-  oCNPJ, oTpAmb : TJSONValue;
-  RetWS : TRetConsMDFeNaoEnc; // Tipo correto do retorno
-begin
-  CarregaConfig;
-  Result := TJSONObject.Create;
-  CNPJ := '';
-  TipoAmbiente := TpcnTipoAmbiente.taHomologacao; // Padrão
-
-  if jConsulta.Find('tpAmb', oTpAmb) then
-     TipoAmbiente := TpcnTipoAmbiente(oTpAmb.AsInteger);
-
-  if jConsulta.Find('CNPJ', oCNPJ) then
-     CNPJ := oCNPJ.AsString;
-
-  if CNPJ = '' then
-  begin
-     Result.Add('status', 'erro');
-     Result.Add('message', 'CNPJ do emitente não informado para consulta de não encerrados.');
-     Exit;
-  end;
-
-   try
-    // Define o ambiente antes da consulta
-    facbr.Configuracoes.WebServices.Ambiente := TipoAmbiente;
-
-    // Executa a consulta de não encerrados
-    facbr.ConsultarNaoEncerrados(CNPJ);
-
-    // Pega o objeto de retorno da consulta
-    RetWS := facbr.WebServices.ConsNaoEnc.RetConsMDFeNaoEnc; // Ajustar se o caminho for diferente
-    // Serializa o retorno para JSON
-    Result := TJSONObject(TJSONTools.ObjToJson(RetWS));
-
-  except
-    on E: Exception do
-    begin
-       Result.Clear; // Limpa o JSON antes de adicionar erro
-       Result.Add('status', 'excecao');
-       Result.Add('message', 'Exceção durante a consulta de MDF-es não encerrados: ' + E.Message);
-    end;
-  end;
-end;
-
-function TACBRBridgeMDFe.GerarDamdfe(const xmlData: TJSONObject): TJSONObject;
-var
-  pdfBase64: string;
+  arquivofinal: string;
   stringXml: string;
   tamanho: integer;
-  oId: TJSONString;
+  id: TJSONString;
   fileName: string;
-  chaveMDFe: string;
 begin
   CarregaConfig;
   Result := TJSONObject.Create;
-  chaveMDFe := '';
 
   try
     stringXml := ReadXMLFromJSON(xmlData);
@@ -474,12 +429,8 @@ begin
     end;
   end;
 
-  // Limpa manifestos anteriores e carrega o XML fornecido
-  facbr.Manifestos.Clear;
   try
     facbr.Manifestos.LoadFromString(stringXml);
-    if facbr.Manifestos.Count > 0 then
-       chaveMDFe := facbr.Manifestos.Items[0].MDFe.infMDFe.ID; // Pega a chave do MDFe carregado
   except
     on E: Exception do
     begin
@@ -489,72 +440,45 @@ begin
     end;
   end;
 
-  // Esvazia a string para liberar memória
   stringXml := '';
 
-  // Configura o componente DAMDFE
-  // fdamdfe.TipoDAMDFE := ??? // Se houver tipos (retrato/paisagem), configurar aqui
   fdamdfe.MostraPreview := False;
   fdamdfe.MostraStatus := False;
-  // fdamdfe.MostraSetup := False; // Verificar se existe essa propriedade
+  fdamdfe.MostraSetup := False;
 
-  // Gera o nome do arquivo temporário
-  fileName := GetTempFileName('.pdf'); // Adicionar extensão é boa prática
+  fileName := GetTempFileName;
 
   try
-    // Define o caminho de saída e manda imprimir
-    fdamdfe.PathSalvar := ExtractFilePath(fileName); // ACBrRL usa PathSalvar
-    fdamdfe.NomeArquivo := ExtractFileName(fileName); // E NomeArquivo
-    // Certifique-se que o Manifesto a ser impresso está carregado
-    if facbr.Manifestos.Count > 0 then
-    begin
-      facbr.Manifestos.Items[0].ImprimirDAMDFePDF; // Ou facbr.ImprimirDAMDFePDF se for método direto
-      fileName := fdamdfe.PathSalvar + fdamdfe.NomeArquivo; // Recompõe o nome completo
-    end
-    else
-    begin
-       raise Exception.Create('Nenhum MDF-e carregado para gerar o DAMDFE.');
-    end;
+    fdamdfe.PathPDF := filename;
+    facbr.Manifestos.ImprimirPDF;
+    filename := fdamdfe.ArquivoPDF;
   except
-     on E: Exception do
-     begin
-        Result.Add('status', 'erro');
-        Result.Add('message', 'Falha ao gerar o PDF do DAMDFE: ' + E.Message);
-        if FileExists(fileName) then DeleteFile(fileName); // Tenta limpar temp file
-        Exit;
-     end;
-  end;
-
-  // Verifica se o arquivo foi realmente criado
-  if not FileExists(fileName) then
-  begin
-     Result.Add('status', 'erro');
-     Result.Add('message', 'Arquivo PDF do DAMDFE não foi encontrado após a geração.');
-     Exit;
-  end;
-
-
-  // Converte o arquivo para base64
-  try
-    pdfBase64 := FileToStringBase64(fileName, True, tamanho); // True para apagar o temp file
-  except
-    on E: Exception do
     begin
-      Result.Add('status', 'erro');
-      Result.Add('message', 'Erro ao converter PDF para Base64: ' + E.Message);
-      // Não tenta apagar de novo se já falhou
+      Result.Add('error', 'Falha ao gerar o PDF.');
       Exit;
     end;
   end;
 
-  // Monta o JSON de retorno
-  Result.Add('pdf', pdfBase64);
-  Result.Add('chave', chaveMDFe);
-  Result.Add('tamanho', tamanho); // Tamanho em Bytes
+  // Converte o arquivo para base64
+  try
+    arquivofinal := FileToStringBase64(filename, True, tamanho);
+  except
+    on E: Exception do
+    begin
+      Result.Add('error', E.Message);
+      Exit;
+    end;
+  end;
 
-  // Adiciona o identificador único se ele existir no JSON de entrada
-  if xmlData.Find('id', oId) then
-    Result.Add('id', oId.AsString);
+  // Converte a stream do relatório para base64
+  Result.Add('pdf', arquivofinal);
+  // Chave de Acesso da NF-e
+  Result.Add('chave', facbr.Manifestos.Items[0].MDFe.infMDFe.ID);
+  // Tamanho em Bytes
+  Result.Add('tamanho', tamanho.ToString);
+  // Adiciona o identificador único se ele existir
+  if xmlData.Find('id', id) then
+    Result.Add('id', id);
 
 end;
 
@@ -564,9 +488,8 @@ begin
     CarregaConfig;
     Result := True;
   except
-    on E: Exception do // Captura qualquer exceção durante o carregamento
+    on E: Exception do
     begin
-      // Opcional: Logar E.Message para depuração
       Result := False;
     end;
   end;

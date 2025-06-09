@@ -1,6 +1,6 @@
 @echo off
 
-SET LAZBUILD="C:\fpcupdeluxe\lazarus\lazbuild.exe"
+SET LAZBUILD="C:\fpcupdeluxe\lazarus"
 SET PROJECT="C:\NFMonitor\src\ACBRWebService.lpi"
 
 REM Modify .lpr file in order to avoid nothing-to-do-bug (http://lists.lazarus.freepascal.org/pipermail/lazarus/2016-February/097554.html)

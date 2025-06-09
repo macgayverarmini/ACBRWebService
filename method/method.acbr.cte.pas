@@ -393,6 +393,7 @@ begin
   except
     on E: Exception do
     begin
+      Result.Add('status', 'erro');
       Result.Add('error', E.Message);
       Exit;
     end;

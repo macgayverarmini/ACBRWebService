@@ -26,6 +26,12 @@
     </RunParams>
     <RequiredPackages>
       <Item>
+        <PackageName Value="ACBr_MDFe_DAMDFeRL"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBr_MDFe"/>
+      </Item>
+      <Item>
         <PackageName Value="ACBr_CTe_DACTeRL"/>
       </Item>
       <Item>
@@ -96,11 +102,19 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="routes\method.acbr.cte.pas"/>
+        <Filename Value="method\method.acbr.cte.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="routes\router.acbr.cte.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method\method.acbr.mdfe.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes\route.acbr.mdfe.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
     </Units>
@@ -113,7 +127,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="..\horse-master\src;routes;method;..\handle-exception\src;tools;..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\LazReport;..\acbr\Fontes\ACBrDFe\ACBrCTe\DACTE\Fortes;..\jhonson\src;..\acbr\Fontes\Terceiros\synalist;..\acbr\Fontes\ACBrDFe\ACBrCTe"/>
+      <OtherUnitFiles Value="..\horse-master\src;routes;method;..\handle-exception\src;tools;..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\LazReport;..\acbr\Fontes\ACBrDFe\ACBrCTe\DACTE\Fortes;..\jhonson\src;..\acbr\Fontes\Terceiros\synalist;..\acbr\Fontes\ACBrDFe\ACBrCTe;..\acbr\Fontes\ACBrDFe\ACBrMDFe;..\acbr\Fontes\ACBrDFe\ACBrMDFe\DAMDFE\Fortes;..\acbr\Fontes\ACBrDFe\ACBrMDFe\PCNMDFe;..\acbr\Fontes\ACBrDFe\ACBrMDFe\Base"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Parsing>
