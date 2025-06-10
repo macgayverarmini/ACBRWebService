@@ -7,7 +7,8 @@ interface
 uses
   method.acbr.cte,
   fpjson, Horse, Horse.Commons, Classes, SysUtils,
-  acbr.resourcestrings;
+  resource.strings.global,
+  resource.strings.routes;
 
 procedure GetModeloConfigCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure GetModeloEventoCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);

@@ -6,7 +6,8 @@ interface
 
 uses
   method.acbr.nfe, fpjson, Horse, Horse.Commons, Classes, SysUtils,
-  acbr.resourcestrings;
+  resource.strings.global,
+  resource.strings.routes;
 
 //Get
 procedure GetModeloConfig(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);

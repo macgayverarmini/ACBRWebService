@@ -12,7 +12,8 @@ uses
   System.NetEncoding,
   Classes, SysUtils,
   ACBrDFeSSL, ACBrDFe,
-  acbr.resourcestrings;
+  resource.strings.global,
+  resource.strings.msg;
 
 type 
 

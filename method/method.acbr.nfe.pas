@@ -30,7 +30,8 @@ fpjson, jsonconvert,
 Base64,
 jsonparser,
 Classes, SysUtils,
-acbr.resourcestrings;
+resource.strings.global,
+resource.strings.msg;
 
 Type 
 

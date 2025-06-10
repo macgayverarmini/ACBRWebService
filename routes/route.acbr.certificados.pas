@@ -7,7 +7,9 @@ interface
 uses
   method.acbr.certificados,
   fpjson, Horse, Horse.Commons, Classes, SysUtils,
-  acbr.resourcestrings;
+  resource.strings.global,
+  resource.strings.msg,
+  resource.strings.routes;
 
 
 procedure GetModeloUploadCertificado(Req: THorseRequest; Res: THorseResponse;
