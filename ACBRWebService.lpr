@@ -15,7 +15,7 @@ uses
   route.acbr.mdfe,
   method.acbr.mdfe,
   resource.strings.global,
-  resource.strings.msg;
+  resource.strings.msg, resource.strings.routes;
 
   procedure LogInfo(const AMessage: string);
   begin

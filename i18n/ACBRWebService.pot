@@ -1,0 +1,678 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8"
+
+#: resource.strings.global.rsalertasfield
+msgid "Alertas"
+msgstr ""
+
+#: resource.strings.global.rsavisoleituradadosfield
+msgid "aviso_leitura_dados"
+msgstr ""
+
+#: resource.strings.global.rscaminhocompletofield
+msgid "caminho_completo"
+msgstr ""
+
+#: resource.strings.global.rscertificadoa1
+msgid "A1"
+msgstr ""
+
+#: resource.strings.global.rscertificadoa3
+msgid "A3"
+msgstr ""
+
+#: resource.strings.global.rscertificadobase64field
+msgid "certificado_base64"
+msgstr ""
+
+#: resource.strings.global.rscertificadodefault
+msgid "certificado"
+msgstr ""
+
+#: resource.strings.global.rscertificadosdir
+msgid "certificados"
+msgstr ""
+
+#: resource.strings.global.rschavefield
+msgid "chave"
+msgstr ""
+
+#: resource.strings.global.rschctefield
+msgid "chCTe"
+msgstr ""
+
+#: resource.strings.global.rschmdfefield
+msgid "chMDFe"
+msgstr ""
+
+#: resource.strings.global.rschnfefield
+msgid "chNFe"
+msgstr ""
+
+#: resource.strings.global.rscnpjcertificadofield
+msgid "cnpj_certificado"
+msgstr ""
+
+#: resource.strings.global.rscnpjcpffield
+msgid "CNPJCPF"
+msgstr ""
+
+#: resource.strings.global.rscnpjfield
+msgid "cnpj"
+msgstr ""
+
+#: resource.strings.global.rscodigoibge_ac
+msgid "12"
+msgstr ""
+
+#: resource.strings.global.rscodigoibge_al
+msgid "17"
+msgstr ""
+
+#: resource.strings.global.rscodigoibge_am
+msgid "13"
+msgstr ""
+
+#: resource.strings.global.rscodigoibge_ap
+msgid "16"
+msgstr ""
+
+#: resource.strings.global.rscodigoibge_ba
+msgid "29"
+msgstr ""
+
+#: resource.strings.global.rscodigoibge_ce
+msgid "23"
+msgstr ""
+
+#: resource.strings.global.rscodigoibge_df
+msgid "53"
+msgstr ""
+
+#: resource.strings.global.rscodigoibge_es
+msgid "32"
+msgstr ""
+
+#: resource.strings.global.rscodigoibge_go
+msgid "52"
+msgstr ""
+
+#: resource.strings.global.rscodigoibge_ma
+msgid "21"
+msgstr ""
+
+#: resource.strings.global.rscodigoibge_mg
+msgid "31"
+msgstr ""
+
+#: resource.strings.global.rscodigoibge_ms
+msgid "50"
+msgstr ""
+
+#: resource.strings.global.rscodigoibge_mt
+msgid "51"
+msgstr ""
+
+#: resource.strings.global.rscodigoibge_pa
+msgid "15"
+msgstr ""
+
+#: resource.strings.global.rscodigoibge_pb
+msgid "25"
+msgstr ""
+
+#: resource.strings.global.rscodigoibge_pe
+msgid "26"
+msgstr ""
+
+#: resource.strings.global.rscodigoibge_pi
+msgid "22"
+msgstr ""
+
+#: resource.strings.global.rscodigoibge_pr
+msgid "41"
+msgstr ""
+
+#: resource.strings.global.rscodigoibge_rj
+msgid "33"
+msgstr ""
+
+#: resource.strings.global.rscodigoibge_rn
+msgid "24"
+msgstr ""
+
+#: resource.strings.global.rscodigoibge_ro
+msgid "11"
+msgstr ""
+
+#: resource.strings.global.rscodigoibge_rr
+msgid "14"
+msgstr ""
+
+#: resource.strings.global.rscodigoibge_rs
+msgid "43"
+msgstr ""
+
+#: resource.strings.global.rscodigoibge_sc
+msgid "42"
+msgstr ""
+
+#: resource.strings.global.rscodigoibge_se
+msgid "28"
+msgstr ""
+
+#: resource.strings.global.rscodigoibge_sp
+msgid "35"
+msgstr ""
+
+#: resource.strings.global.rscodigoibge_to
+msgid "27"
+msgstr ""
+
+#: resource.strings.global.rsconfigfield
+msgid "config"
+msgstr ""
+
+#: resource.strings.global.rsdateformat
+msgid "yyyy-mm-dd"
+msgstr ""
+
+#: resource.strings.global.rsdatetimeformat
+msgid "yyyymmddhhnnsszzz"
+msgstr ""
+
+#: resource.strings.global.rsdefaultcertpassword
+msgid "123"
+msgstr ""
+
+#: resource.strings.global.rsdefaultcertpath
+msgid "C:\\NFMonitor\\src\\exemplo.pfx"
+msgstr ""
+
+#: resource.strings.global.rsdefaultuf
+msgid "ES"
+msgstr ""
+
+#: resource.strings.global.rserroregrasdenegociosfield
+msgid "ErroRegrasdeNegocios"
+msgstr ""
+
+#: resource.strings.global.rserrorfield
+msgid "error"
+msgstr ""
+
+#: resource.strings.global.rserrovalidacaocompletofield
+msgid "ErroValidacaoCompleto"
+msgstr ""
+
+#: resource.strings.global.rserrovalidacaofield
+msgid "ErroValidacao"
+msgstr ""
+
+#: resource.strings.global.rseventosfield
+msgid "eventos"
+msgstr ""
+
+#: resource.strings.global.rsidfield
+msgid "id"
+msgstr ""
+
+#: resource.strings.global.rsinfeventofield
+msgid "InfEvento"
+msgstr ""
+
+#: resource.strings.global.rsloadxmlfield
+msgid "LoadXML"
+msgstr ""
+
+#: resource.strings.global.rsmensagemfield
+msgid "mensagem"
+msgstr ""
+
+#: resource.strings.global.rsmessagefield
+msgid "message"
+msgstr ""
+
+#: resource.strings.global.rsnomearqfield
+msgid "NomeArq"
+msgstr ""
+
+#: resource.strings.global.rsnomearquivofield
+msgid "nome_arquivo"
+msgstr ""
+
+#: resource.strings.global.rsnomearquivosalvofield
+msgid "nome_arquivo_salvo"
+msgstr ""
+
+#: resource.strings.global.rsnsufield
+msgid "NSU"
+msgstr ""
+
+#: resource.strings.global.rsnumeroseriecertificadofield
+msgid "numero_serie_certificado"
+msgstr ""
+
+#: resource.strings.global.rsnumeroseriefield
+msgid "numero_serie"
+msgstr ""
+
+#: resource.strings.global.rsobservacaofield
+msgid "observacao"
+msgstr ""
+
+#: resource.strings.global.rspdffield
+msgid "pdf"
+msgstr ""
+
+#: resource.strings.global.rspfxextension
+msgid ".pfx"
+msgstr ""
+
+#: resource.strings.global.rsrazaosocialcertificadofield
+msgid "razao_social_certificado"
+msgstr ""
+
+#: resource.strings.global.rsrazaosocialfield
+msgid "razao_social"
+msgstr ""
+
+#: resource.strings.global.rssenhafield
+msgid "senha"
+msgstr ""
+
+#: resource.strings.global.rsseparatorline
+msgid "-------------------------------------------------------"
+msgstr ""
+
+#: resource.strings.global.rsstatuserro
+msgid "erro"
+msgstr ""
+
+#: resource.strings.global.rsstatusfield
+msgid "status"
+msgstr ""
+
+#: resource.strings.global.rssucessofield
+msgid "sucesso"
+msgstr ""
+
+#: resource.strings.global.rstamanhofield
+msgid "tamanho"
+msgstr ""
+
+#: resource.strings.global.rstemplerdadosprefix
+msgid "temp_lerdados_"
+msgstr ""
+
+#: resource.strings.global.rstempvalidaprefix
+msgid "temp_valida_"
+msgstr ""
+
+#: resource.strings.global.rstipocertificadofield
+msgid "tipo_certificado"
+msgstr ""
+
+#: resource.strings.global.rstipofield
+msgid "tipo"
+msgstr ""
+
+#: resource.strings.global.rsuffield
+msgid "UF"
+msgstr ""
+
+#: resource.strings.global.rsultnsufield
+msgid "ultNSU"
+msgstr ""
+
+#: resource.strings.global.rsvalidadecertificadofield
+msgid "validade_certificado"
+msgstr ""
+
+#: resource.strings.global.rsvalidadefield
+msgid "validade"
+msgstr ""
+
+#: resource.strings.global.rsxmlfield
+msgid "XML"
+msgstr ""
+
+#: resource.strings.global.rsxmloriginalfield
+msgid "XMLOriginal"
+msgstr ""
+
+#: resource.strings.msg.rsacbrcertificadosroutesmapped
+msgid "  ACBR Certificados routes mapped."
+msgstr ""
+
+#: resource.strings.msg.rsacbrcteroutesmapped
+msgid "  ACBR CTe routes mapped."
+msgstr ""
+
+#: resource.strings.msg.rsacbrdiversosextensoroutesmapped
+msgid "  ACBR Diversos Extenso routes mapped."
+msgstr ""
+
+#: resource.strings.msg.rsacbrdiversosvalidadorroutesmapped
+msgid "  ACBR Diversos Validador routes mapped."
+msgstr ""
+
+#: resource.strings.msg.rsacbrmdferoutesmapped
+msgid "  ACBR MDFe routes mapped."
+msgstr ""
+
+#: resource.strings.msg.rsacbrnferoutesmapped
+msgid "  ACBR NFe routes mapped."
+msgstr ""
+
+#: resource.strings.msg.rsapplicationstopped
+msgid "ACBRWebService application stopped."
+msgstr ""
+
+#: resource.strings.msg.rsbase64decodeerror
+msgid "Falha ao decodificar a string Base64: "
+msgstr ""
+
+#: resource.strings.msg.rscertificadobase64emptyerror
+msgid "Campo \"certificado_base64\" não pode ser vazio."
+msgstr ""
+
+#: resource.strings.msg.rscertificadobase64notfounderror
+msgid "Campo \"certificado_base64\" não encontrado ou não é do tipo string no corpo da requisição JSON."
+msgstr ""
+
+#: resource.strings.msg.rscertificatedecodeerror
+msgid "Falha ao decodificar certificado Base64 ou dados vazios."
+msgstr ""
+
+#: resource.strings.msg.rscertificatedecodeerrorempty
+msgid "Falha ao decodificar certificado Base64 ou dados resultantes vazios."
+msgstr ""
+
+#: resource.strings.msg.rscertificateinvaliderror
+msgid "Certificado inválido ou senha incorreta."
+msgstr ""
+
+#: resource.strings.msg.rscertificatemetadatareaderror
+msgid "Não foi possível ler todos os metadados do certificado."
+msgstr ""
+
+#: resource.strings.msg.rscertificatereaderror
+msgid "Não foi possível ler os dados do certificado (verifique senha ou formato do arquivo)."
+msgstr ""
+
+#: resource.strings.msg.rscertificatesavedsuccess
+msgid "Certificado salvo com sucesso."
+msgstr ""
+
+#: resource.strings.msg.rsemptybase64error
+msgid "A string Base64 fornecida está vazia."
+msgstr ""
+
+#: resource.strings.msg.rsemptydataerror
+msgid "Certificado Base64 resultou em dados vazios."
+msgstr ""
+
+#: resource.strings.msg.rserrorreadingjson
+msgid "Erro na leitura do objeto JSON: "
+msgstr ""
+
+#: resource.strings.msg.rserrorreadingjsoncte
+msgid "Erro na leitura do objeto JSON para CTe: "
+msgstr ""
+
+#: resource.strings.msg.rserrorreadingjsonmdfe
+msgid "Erro na leitura do objeto JSON do MDF-e: "
+msgstr ""
+
+#: resource.strings.msg.rserrorreadingxmlparam
+msgid "Erro na leitura do parâmetro \"xml\" do JSON: "
+msgstr ""
+
+#: resource.strings.msg.rsexamplebase64string
+msgid "string_base64_do_arquivo_pfx_aqui"
+msgstr ""
+
+#: resource.strings.msg.rsexamplecnpj
+msgid "00000000000000"
+msgstr ""
+
+#: resource.strings.msg.rsexamplefilename
+msgid "nome_sugerido_para_o_arquivo_pfx_sem_extensao"
+msgstr ""
+
+#: resource.strings.msg.rsexampleobservation
+msgid "O CNPJ e nome_arquivo são opcionais. Se o CNPJ não for fornecido, será usado o CNPJ lido do certificado para nomear o arquivo. Se nome_arquivo não for fornecido, o CNPJ (ou \"certificado\") será usado como base."
+msgstr ""
+
+#: resource.strings.msg.rsexamplepassword
+msgid "senha_do_certificado_aqui"
+msgstr ""
+
+#: resource.strings.msg.rshandleexceptionmiddlewareinitialized
+msgid " HandleException middleware initialized."
+msgstr ""
+
+#: resource.strings.msg.rshorseapplicationstarted
+msgid "Horse application successfully started."
+msgstr ""
+
+#: resource.strings.msg.rsinitializingmiddleware
+msgid "Initializing middleware..."
+msgstr ""
+
+#: resource.strings.msg.rsinitializingroutes
+msgid "Initializing routes..."
+msgstr ""
+
+#: resource.strings.msg.rsinvalidbase64xml
+msgid "A string XML em base64 é inválida: "
+msgstr ""
+
+#: resource.strings.msg.rsinvalidjsonbodyerror
+msgid "Corpo da requisição JSON inválido ou vazio."
+msgstr ""
+
+#: resource.strings.msg.rsinvalidjsonbodymdfe
+msgid "Corpo da requisição JSON inválido: "
+msgstr ""
+
+#: resource.strings.msg.rsinvalidufcode
+msgid "Código de UF inválido"
+msgstr ""
+
+#: resource.strings.msg.rsjsonmiddlewareinitialized
+msgid " Json middleware initialized."
+msgstr ""
+
+#: resource.strings.msg.rsjsonparseerror
+msgid "Erro ao parsear o corpo da requisição JSON: "
+msgstr ""
+
+#: resource.strings.msg.rslisteningonport
+#, object-pascal-format
+msgid "Listening on port %d"
+msgstr ""
+
+#: resource.strings.msg.rsnotjsonobjecterror
+msgid "O corpo da requisição não é um objeto JSON."
+msgstr ""
+
+#: resource.strings.msg.rsoperationsuccess
+msgid "Operação realizada com sucesso."
+msgstr ""
+
+#: resource.strings.msg.rspdfgenerationerror
+msgid "Falha ao gerar o PDF."
+msgstr ""
+
+#: resource.strings.msg.rssenhaemptyerror
+msgid "Campo \"senha\" não pode ser vazio."
+msgstr ""
+
+#: resource.strings.msg.rssenhanotfounderror
+msgid "Campo \"senha\" não encontrado ou não é do tipo string no corpo da requisição JSON."
+msgstr ""
+
+#: resource.strings.msg.rsstartingapplication
+msgid "Starting ACBRWebService application..."
+msgstr ""
+
+#: resource.strings.msg.rsuniquefileerror
+msgid "Não foi possível gerar um nome de arquivo único para o certificado."
+msgstr ""
+
+#: resource.strings.msg.rsvalidationfailederror
+msgid "Falha na validação do certificado PFX com a senha fornecida (verifique senha ou integridade do arquivo)."
+msgstr ""
+
+#: resource.strings.msg.rsxmlparamempty
+msgid "Parâmetro \"xml\" está vazio."
+msgstr ""
+
+#: resource.strings.msg.rsxmlparamnotfound
+msgid "Parâmetro \"xml\" (contendo o XML em Base64) não encontrado no JSON."
+msgstr ""
+
+#: resource.strings.msg.rsxmlreaderror
+msgctxt "resource.strings.msg.rsxmlreaderror"
+msgid "Erro na leitura do XML: "
+msgstr ""
+
+#: resource.strings.msg.rsxmlreaderrorcte
+msgctxt "resource.strings.msg.rsxmlreaderrorcte"
+msgid "Erro na leitura do XML: "
+msgstr ""
+
+#: resource.strings.msg.rsxmlreaderrormdfe
+msgid "Erro na leitura do XML do MDF-e: "
+msgstr ""
+
+#: resource.strings.msg.rszerobytesafterdecodeerror
+msgid "O conteúdo do certificado Base64 resultou em zero bytes após a decodificação, mas a string original não era vazia."
+msgstr ""
+
+#: resource.strings.msg.rszerobytesemptystringerror
+msgid "O conteúdo do certificado Base64 resultou em zero bytes (string Base64 vazia)."
+msgstr ""
+
+#: resource.strings.routes.rscertificadoslerdadosroute
+msgid "/certificados/ler-dados"
+msgstr ""
+
+#: resource.strings.routes.rscertificadosuploadroute
+msgid "/certificados/upload"
+msgstr ""
+
+#: resource.strings.routes.rsctedanferoute
+msgid "/cte/danfe"
+msgstr ""
+
+#: resource.strings.routes.rsctedistribuicaoroute
+msgid "/cte/distribuicao"
+msgstr ""
+
+#: resource.strings.routes.rscteeventosroute
+msgid "/cte/eventos"
+msgstr ""
+
+#: resource.strings.routes.rsctenferoute
+msgid "/cte/nfe"
+msgstr ""
+
+#: resource.strings.routes.rsdiversosextensoroute
+msgid "/diversos/extenso"
+msgstr ""
+
+#: resource.strings.routes.rsdiversosvalidadorroute
+msgid "/diversos/validador"
+msgstr ""
+
+#: resource.strings.routes.rsmdfedamdferoute
+msgid "/mdfe/damdfe"
+msgstr ""
+
+#: resource.strings.routes.rsmdfedistribuicaoroute
+msgid "/mdfe/distribuicao"
+msgstr ""
+
+#: resource.strings.routes.rsmdfeenviarroute
+msgid "/mdfe/enviar"
+msgstr ""
+
+#: resource.strings.routes.rsmdfeeventosroute
+msgid "/mdfe/eventos"
+msgstr ""
+
+#: resource.strings.routes.rsmodelocteconfigroute
+msgid "/modelo/cte/config"
+msgstr ""
+
+#: resource.strings.routes.rsmodeloctecteroute
+msgid "/modelo/cte/cte"
+msgstr ""
+
+#: resource.strings.routes.rsmodeloctedistribuicaoroute
+msgid "/modelo/cte/distribuicao"
+msgstr ""
+
+#: resource.strings.routes.rsmodelocteeventoroute
+msgid "/modelo/cte/evento"
+msgstr ""
+
+#: resource.strings.routes.rsmodelodiversosextensoroute
+msgid "/modelo/diversos/extenso"
+msgstr ""
+
+#: resource.strings.routes.rsmodelodiversosvalidadorroute
+msgid "/modelo/diversos/validador"
+msgstr ""
+
+#: resource.strings.routes.rsmodelomdfeconfigroute
+msgid "/modelo/mdfe/config"
+msgstr ""
+
+#: resource.strings.routes.rsmodelomdfedistribuicaoroute
+msgid "/modelo/mdfe/distribuicao"
+msgstr ""
+
+#: resource.strings.routes.rsmodelomdfeeventoroute
+msgid "/modelo/mdfe/evento"
+msgstr ""
+
+#: resource.strings.routes.rsmodelomdfemdferoute
+msgid "/modelo/mdfe/mdfe"
+msgstr ""
+
+#: resource.strings.routes.rsmodelonfeconfigroute
+msgid "/modelo/nfe/config"
+msgstr ""
+
+#: resource.strings.routes.rsmodelonfedistribuicaoroute
+msgid "/modelo/nfe/distribuicao"
+msgstr ""
+
+#: resource.strings.routes.rsmodelonfeeventoroute
+msgid "/modelo/nfe/evento"
+msgstr ""
+
+#: resource.strings.routes.rsmodelonfenferoute
+msgid "/modelo/nfe/nfe"
+msgstr ""
+
+#: resource.strings.routes.rsnfedanferoute
+msgid "/nfe/danfe"
+msgstr ""
+
+#: resource.strings.routes.rsnfedistribuicaoroute
+msgid "/nfe/distribuicao"
+msgstr ""
+
+#: resource.strings.routes.rsnfeeventosroute
+msgid "/nfe/eventos"
+msgstr ""
+
+#: resource.strings.routes.rsnfenferoute
+msgid "/nfe/nfe"
+msgstr ""
+
