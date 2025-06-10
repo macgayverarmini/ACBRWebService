@@ -13,7 +13,8 @@ uses
   route.acbr.certificados,
   route.acbr.cte,
   route.acbr.mdfe,
-  method.acbr.mdfe;
+  method.acbr.mdfe,
+  acbr.resourcestrings;
 
   procedure LogInfo(const AMessage: string);
   begin
@@ -25,53 +26,55 @@ uses
   end;
 
 const
-  cAppPort = 9000; // Define a porta como constante para fÃ¡cil referÃªncia
-  // Define a porta como constante para fácil referência
+  cAppPort = 9000;
+
+{$R *.res}
+
 begin
 
-  WriteLn('-------------------------------------------------------');
-  LogInfo('Starting ACBRWebService application...');
-  WriteLn('-------------------------------------------------------');
+  WriteLn(RSSeparatorLine);
+  LogInfo(RSStartingApplication);
+  WriteLn(RSSeparatorLine);
 
-  LogInfo('Initializing middleware...');
+  LogInfo(RSInitializingMiddleware);
   THorse.Use(Jhonson);
-  LogInfo(' Json middleware initialized.');
+  LogInfo(RSJsonMiddlewareInitialized);
   THorse.Use(HandleException);
-  LogInfo(' HandleException middleware initialized.');
-  WriteLn('-------------------------------------------------------');
+  LogInfo(RSHandleExceptionMiddlewareInitialized);
+  WriteLn(RSSeparatorLine);
 
-  LogInfo('Initializing routes...');
+  LogInfo(RSInitializingRoutes);
 
   LogRouteMapping('route.acbr.nfe');
   route.acbr.nfe.regRouter;
-  LogInfo('  ACBR NFe routes mapped.');
+  LogInfo(RSACBRNFeRoutesMapped);
 
   LogRouteMapping('route.acbr.cte');
   route.acbr.cte.regrouter;
-  LogInfo('  ACBR CTe routes mapped.');
+  LogInfo(RSACBRCTeRoutesMapped);
 
   LogRouteMapping('route.acbr.mdfe');
   route.acbr.mdfe.regrouter;
-  LogInfo('  ACBR MDFe routes mapped.');
+  LogInfo(RSACBRMDFeRoutesMapped);
 
   LogRouteMapping('route.acbr.diversos.extenso');
   route.acbr.diversos.extenso.regRouter;
-  LogInfo('  ACBR Diversos Extenso routes mapped.');
+  LogInfo(RSACBRDiversosExtensoRoutesMapped);
 
   LogRouteMapping('route.acbr.diversos.validador');
   route.acbr.diversos.validador.regRouter;
-  LogInfo('  ACBR Diversos Validador routes mapped.');
+  LogInfo(RSACBRDiversosValidadorRoutesMapped);
 
   LogRouteMapping('route.acbr.certificados');
   route.acbr.certificados.regRouter;
-  LogInfo('  ACBR Certificados routes mapped.');
+  LogInfo(RSACBRCertificadosRoutesMapped);
 
-  WriteLn('-------------------------------------------------------');
-  LogInfo('Horse application successfully started.');
-  LogInfo(Format('Listening on port %d', [cAppPort]));
-  WriteLn('-------------------------------------------------------');
+  WriteLn(RSSeparatorLine);
+  LogInfo(RSHorseApplicationStarted);
+  LogInfo(Format(RSListeningOnPort, [cAppPort]));
+  WriteLn(RSSeparatorLine);
 
   THorse.Listen(cAppPort);
-  LogInfo('ACBRWebService application stopped.');
+  LogInfo(RSApplicationStopped);
 
 end.

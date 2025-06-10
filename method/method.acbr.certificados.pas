@@ -11,7 +11,8 @@ uses
   jsonparser,
   System.NetEncoding,
   Classes, SysUtils,
-  ACBrDFeSSL, ACBrDFe;
+  ACBrDFeSSL, ACBrDFe,
+  acbr.resourcestrings;
 
 type 
 
@@ -61,11 +62,11 @@ constructor TACBRBridgeCertificados.Create(ACustomCertDir: String = '');
 begin
   inherited Create;
 
-  if ACustomCertDir.Trim <> '' then
+  if ACustomCertDir.Trim <> RSEmptyString then
     FCertificadosDir := IncludeTrailingPathDelimiter(ACustomCertDir)
   else
     FCertificadosDir := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)
-      ) + 'certificados');
+      ) + RSCertificadosDir);
 
   if not DirectoryExists(FCertificadosDir) then
     ForceDirectories(FCertificadosDir);
@@ -92,10 +93,10 @@ TBytes
 begin
   Result := Nil;
   // Initialize result
-  ErrorMessage := '';
+  ErrorMessage := RSEmptyString;
   if Base64String.Trim.IsEmpty then
   begin
-    ErrorMessage := 'A string Base64 fornecida está vazia.';
+    ErrorMessage := RSEmptyBase64Error;
     Exit;
   end;
 
@@ -104,25 +105,17 @@ begin
     if Length(Result) = 0 then
     begin
 
-      if Base64String <> '' then
-        ErrorMessage := 
-
-
-          'O conteúdo do certificado Base64 resultou em zero bytes após a decodificação, mas a string original não era vazia.'
+      if Base64String <> RSEmptyString then
+        ErrorMessage := RSZeroBytesAfterDecodeError
       else
-        ErrorMessage := 
-
-
-          'O conteúdo do certificado Base64 resultou em zero bytes (string Base64 vazia).'
-      ;
+        ErrorMessage := RSZeroBytesEmptyStringError;
       Result := Nil;
     end;
   except
     on E: Exception do
     begin
       Result := Nil;
-      ErrorMessage := 'Falha ao decodificar a string Base64: ' + E.Message
-      ;
+      ErrorMessage := RSBase64DecodeError + E.Message;
     end;
   end;
 end;
@@ -145,7 +138,7 @@ begin
   try
     FACBrDFeSSL.CarregarCertificado;
 
-    Result := FACBrDFeSSL.CertNumeroSerie <> '';
+    Result := FACBrDFeSSL.CertNumeroSerie <> RSEmptyString;
   except
     on E: Exception do
     begin
@@ -167,41 +160,33 @@ var
   fs: TFileStream;
 begin
   Result := False;
-  ErrorMsg := '';
-  TempFileName := '';
+  ErrorMsg := RSEmptyString;
+  TempFileName := RSEmptyString;
   DecodedStream := Nil;
 
   DecodedBytes := DecodeBase64ToBytes(CertificadoBase64, ErrorMsg);
   if Length(DecodedBytes) = 0 then
   begin
-    if ErrorMsg = '' then ErrorMsg := 
-
-
-        'Certificado Base64 resultou em dados vazios.'
-    ;
+    if ErrorMsg = RSEmptyString then ErrorMsg := RSEmptyDataError;
     Exit;
   end;
 
   try
     DecodedStream := TBytesStream.Create(DecodedBytes);
-    TempFileName := FCertificadosDir + 'temp_valida_' + FormatDateTime(
-      'yyyymmddhhnnsszzz', Now) + '.pfx';
+    TempFileName := FCertificadosDir + RSTempValidaPrefix + FormatDateTime(
+      RSDateTimeFormat, Now) + RSPfxExtension;
     DecodedStream.SaveToFile(TempFileName);
 
 
     Result := DoActualCertificateValidation(TempFileName, Senha);
     if not Result then
-      ErrorMsg := 
-
-
-        'Falha na validação do certificado PFX com a senha fornecida (verifique senha ou integridade do arquivo).'
-    ;
+      ErrorMsg := RSValidationFailedError;
 
 
   finally
     if Assigned(DecodedStream) then
       DecodedStream.Free;
-    if (TempFileName <> '') and FileExists(TempFileName) then
+    if (TempFileName <> RSEmptyString) and FileExists(TempFileName) then
       DeleteFile(TempFileName);
   end;
 end;
@@ -218,10 +203,10 @@ var
   CertEhA1: Boolean;
 begin
   Result := False;
-  CNPJ := '';
-  NumSerie := '';
-  RazaoSocial := '';
-  Tipo := '';
+  CNPJ := RSEmptyString;
+  NumSerie := RSEmptyString;
+  RazaoSocial := RSEmptyString;
+  Tipo := RSEmptyString;
   Validade := 0;
 
   FACBrDFeSSL.ArquivoPFX := TempPfxFile;
@@ -236,9 +221,9 @@ begin
     // Assuming tpcA1 is defined in ACBrDFeSSL or related units
 
     if CertEhA1 then
-      Tipo := 'A1'
+      Tipo := RSCertificadoA1
     else
-      Tipo := 'A3';
+      Tipo := RSCertificadoA3;
     // Or other types if distinguishable
 
     Result := True;
@@ -277,40 +262,35 @@ begin
   DecodedBytes := DecodeBase64ToBytes(CertificadoBase64, ErrorMsg);
   if Length(DecodedBytes) = 0 then
   begin
-    Result.Add('sucesso', False);
+    Result.Add(RSSucessoField, False);
 
-    if ErrorMsg <> '' then
-      Result.Add('mensagem', ErrorMsg)
+    if ErrorMsg <> RSEmptyString then
+      Result.Add(RSMensagemField, ErrorMsg)
     else
-      Result.Add('mensagem',
-        'Falha ao decodificar certificado Base64 ou dados vazios.');
+      Result.Add(RSMensagemField, RSCertificateDecodeError);
     Exit;
   end;
 
   try
     DecodedStream := TBytesStream.Create(DecodedBytes);
-    TempFileName := FCertificadosDir + 'temp_lerdados_' + FormatDateTime(
-      'yyyymmddhhnnsszzz', Now) + '.pfx';
+    TempFileName := FCertificadosDir + RSTempLerDadosPrefix + FormatDateTime(
+      RSDateTimeFormat, Now) + RSPfxExtension;
     DecodedStream.SaveToFile(TempFileName);
 
     if ExtractCertificateData(TempFileName, Senha, sCNPJ, sNumSerie,
       sRazaoSocial, sTipo, dtValidade) then
     begin
-      Result.Add('sucesso', True);
-      Result.Add('numero_serie', sNumSerie);
-      Result.Add('cnpj', sCNPJ);
-      Result.Add('razao_social', sRazaoSocial);
-      Result.Add('validade', FormatDateTime('yyyy-mm-dd', dtValidade));
-      Result.Add('tipo', sTipo);
+      Result.Add(RSSucessoField, True);
+      Result.Add(RSNumeroSerieField, sNumSerie);
+      Result.Add(RSCNPJField, sCNPJ);
+      Result.Add(RSRazaoSocialField, sRazaoSocial);
+      Result.Add(RSValidadeField, FormatDateTime(RSDateFormat, dtValidade));
+      Result.Add(RSTipoField, sTipo);
     end
     else
     begin
-      Result.Add('sucesso', False);
-      Result.Add('mensagem',
-
-
-        'Não foi possível ler os dados do certificado (verifique senha ou formato do arquivo).'
-        );
+      Result.Add(RSSucessoField, False);
+      Result.Add(RSMensagemField, RSCertificateReadError);
     end;
 
   finally
@@ -421,15 +401,11 @@ end;
 function TACBRBridgeCertificados.ModeloUpload: TJSONObject;
 begin
   Result := TJSONObject.Create;
-  Result.Add('certificado_base64', 'string_base64_do_arquivo_pfx_aqui');
-  Result.Add('senha', 'senha_do_certificado_aqui');
-  Result.Add('cnpj', '00000000000000');
-  Result.Add('nome_arquivo', 'nome_sugerido_para_o_arquivo_pfx_sem_extensao');
-  Result.Add('observacao',
-
-
-    'O CNPJ e nome_arquivo são opcionais. Se o CNPJ não for fornecido, será usado o CNPJ lido do certificado para nomear o arquivo. Se nome_arquivo não for fornecido, o CNPJ (ou "certificado") será usado como base.'
-    );
+  Result.Add(RSCertificadoBase64Field, RSExampleBase64String);
+  Result.Add(RSSenhaField, RSExamplePassword);
+  Result.Add(RSCNPJField, RSExampleCNPJ);
+  Result.Add(RSNomeArquivoField, RSExampleFileName);
+  Result.Add(RSObservacaoField, RSExampleObservation);
 end;
 
 function TACBRBridgeCertificados.SalvarCertificado(const CertificadoBase64:

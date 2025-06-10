@@ -9,20 +9,18 @@
         <Filename Value="ACBRWebService.lpr"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
-        <EditorIndex Value="1"/>
-        <TopLine Value="28"/>
-        <CursorPos X="21" Y="36"/>
+        <TopLine Value="36"/>
+        <CursorPos X="37" Y="49"/>
         <UsageCount Value="217"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="routes\route.acbr.nfe.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="105"/>
         <CursorPos X="11" Y="17"/>
         <UsageCount Value="217"/>
-        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
       <Unit>
@@ -37,10 +35,10 @@
         <Filename Value="method\method.acbr.nfe.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="280"/>
-        <CursorPos X="15" Y="302"/>
+        <TopLine Value="10"/>
+        <CursorPos X="52" Y="26"/>
         <UsageCount Value="216"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
       <Unit>
         <Filename Value="tools\jsonconvert.pas"/>
@@ -48,14 +46,15 @@
         <EditorIndex Value="-1"/>
         <CursorPos X="21" Y="23"/>
         <UsageCount Value="209"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
       <Unit>
         <Filename Value="method\method.acbr.diversos.extenso.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="-1"/>
         <CursorPos X="15" Y="4"/>
         <UsageCount Value="209"/>
-        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
       <Unit>
         <Filename Value="routes\route.acbr.diversos.extenso.pas"/>
@@ -107,7 +106,7 @@
         <WindowIndex Value="1"/>
         <TopLine Value="418"/>
         <CursorPos X="31" Y="429"/>
-        <UsageCount Value="23"/>
+        <UsageCount Value="24"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
       <Unit>
@@ -116,18 +115,27 @@
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="1"/>
-        <CursorPos X="16" Y="15"/>
-        <UsageCount Value="59"/>
+        <CursorPos Y="6"/>
+        <UsageCount Value="60"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="method\method.acbr.mdfe.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="447"/>
         <CursorPos X="51" Y="477"/>
-        <UsageCount Value="50"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="51"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes\route.acbr.mdfe.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="153"/>
+        <CursorPos X="44" Y="183"/>
+        <UsageCount Value="22"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
       <Unit>
         <Filename Value="routes\method.acbr.cte.pas"/>
@@ -135,6 +143,7 @@
         <TopLine Value="298"/>
         <CursorPos X="17" Y="334"/>
         <UsageCount Value="57"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
       <Unit>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\rtl-objpas\src\inc\rtti.pp"/>
@@ -163,7 +172,7 @@
         <WindowIndex Value="1"/>
         <TopLine Value="16"/>
         <CursorPos X="12" Y="18"/>
-        <UsageCount Value="11"/>
+        <UsageCount Value="12"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -348,10 +357,10 @@
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrCTe\Base\Servicos\ACBrCTe.EnvEvento.pas"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="65"/>
         <CursorPos X="43" Y="82"/>
-        <UsageCount Value="27"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="28"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDiversos\ACBrExtenso.pas"/>
@@ -365,6 +374,7 @@
         <TopLine Value="41"/>
         <CursorPos X="14" Y="59"/>
         <UsageCount Value="24"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrMDFe\ACBrMDFe.pas"/>
@@ -372,6 +382,7 @@
         <TopLine Value="28"/>
         <CursorPos X="66" Y="45"/>
         <UsageCount Value="8"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrMDFe\PCNMDFe\pmdfeConversaoMDFe.pas"/>
@@ -379,6 +390,7 @@
         <TopLine Value="12"/>
         <CursorPos X="24" Y="35"/>
         <UsageCount Value="22"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrMDFe\Base\ACBrMDFe.Classes.pas"/>
@@ -386,6 +398,7 @@
         <TopLine Value="1345"/>
         <CursorPos X="4" Y="1374"/>
         <UsageCount Value="22"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrMDFe\ACBrMDFeManifestos.pas"/>
@@ -393,6 +406,7 @@
         <TopLine Value="3"/>
         <CursorPos X="24" Y="35"/>
         <UsageCount Value="22"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrMDFe\Base\Servicos\ACBrMDFe.EnvEvento.pas"/>
@@ -402,74 +416,36 @@
         <UsageCount Value="11"/>
       </Unit>
       <Unit>
-        <Filename Value="routes\route.acbr.mdfe.pas"/>
-        <IsPartOfProject Value="True"/>
-        <EditorIndex Value="5"/>
-        <TopLine Value="153"/>
-        <CursorPos X="44" Y="183"/>
-        <UsageCount Value="21"/>
-        <Loaded Value="True"/>
+        <Filename Value="routes\route.acbr.cte.pas"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="42" Y="6"/>
+        <UsageCount Value="10"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
       <Unit>
-        <Filename Value="routes\route.acbr.cte.pas"/>
-        <EditorIndex Value="2"/>
-        <CursorPos X="42" Y="6"/>
+        <Filename Value="i18n\i18n.pas"/>
+        <EditorIndex Value="-1"/>
         <UsageCount Value="10"/>
-        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit>
+      <Unit>
+        <Filename Value="i18n\i18n.utils.pas"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="31" Y="12"/>
+        <UsageCount Value="10"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
     </Units>
     <Debugger>
       <Backend Value="{514D45D2-1BEC-49C6-B1C1-7EF5FBE5597E}"/>
     </Debugger>
-    <JumpHistory HistoryIndex="19">
+    <JumpHistory HistoryIndex="8">
       <Position>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFeWebServices.pas"/>
         <Caret Line="506" Column="13" TopLine="503"/>
       </Position>
       <Position>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFeWebServices.pas"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.mdfe.pas"/>
-        <Caret Line="381" Column="51" TopLine="364"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.mdfe.pas"/>
-        <Caret Line="18" Column="17"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.mdfe.pas"/>
-        <Caret Line="376" Column="11" TopLine="366"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.mdfe.pas"/>
-        <Caret Line="424" Column="29" TopLine="412"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.mdfe.pas"/>
-        <Caret Line="451" Column="39" TopLine="426"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.mdfe.pas"/>
-        <Caret Line="489" TopLine="467"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.mdfe.pas"/>
-        <Caret Line="471" Column="10" TopLine="448"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.mdfe.pas"/>
-        <Caret Line="420" TopLine="402"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.mdfe.pas"/>
-        <Caret Line="442" Column="70" TopLine="428"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.mdfe.pas"/>
-        <Caret Line="446" Column="40" TopLine="429"/>
       </Position>
       <Position>
         <Filename Value="ACBRWebService.lpr"/>
@@ -480,18 +456,6 @@
         <Caret Line="55" TopLine="37"/>
       </Position>
       <Position>
-        <Filename Value="routes\route.acbr.mdfe.pas"/>
-        <Caret Line="60" Column="47" TopLine="46"/>
-      </Position>
-      <Position>
-        <Filename Value="routes\route.acbr.mdfe.pas"/>
-        <Caret Line="10" Column="40"/>
-      </Position>
-      <Position>
-        <Filename Value="routes\route.acbr.mdfe.pas"/>
-        <Caret Line="154" Column="22" TopLine="153"/>
-      </Position>
-      <Position>
         <Filename Value="ACBRWebService.lpr"/>
         <Caret Line="52" Column="23" TopLine="33"/>
       </Position>
@@ -500,8 +464,16 @@
         <Caret Line="14" Column="27"/>
       </Position>
       <Position>
-        <Filename Value="routes\route.acbr.cte.pas"/>
-        <Caret Line="6" Column="42"/>
+        <Filename Value="ACBRWebService.lpr"/>
+        <Caret Line="36" Column="21" TopLine="28"/>
+      </Position>
+      <Position>
+        <Filename Value="ACBRWebService.lpr"/>
+        <Caret Line="41" Column="22" TopLine="34"/>
+      </Position>
+      <Position>
+        <Filename Value="ACBRWebService.lpr"/>
+        <Caret Line="61" Column="32"/>
       </Position>
     </JumpHistory>
     <RunParams>
@@ -629,13 +601,6 @@
         <WatchKind Value="wpkWrite"/>
         <Source Value="routes\route.acbr.diversos.extenso.pas"/>
         <Line Value="39"/>
-      </Item>
-      <Item>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="ACBRWebService.lpr"/>
-        <Line Value="74"/>
       </Item>
     </BreakPoints>
     <Watches>

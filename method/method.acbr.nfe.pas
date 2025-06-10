@@ -29,7 +29,8 @@ Controls,
 fpjson, jsonconvert,
 Base64,
 jsonparser,
-Classes, SysUtils;
+Classes, SysUtils,
+acbr.resourcestrings;
 
 Type 
 
@@ -103,14 +104,14 @@ Begin
   With facbr.Configuracoes.WebServices Do
     Begin
       Ambiente := TpcnTipoAmbiente.taHomologacao;
-      UF := 'ES';
+      UF := RSDefaultUF;
       TimeOut := 5000;
     End;
 
   With facbr.Configuracoes.Certificados Do
     Begin
-      ArquivoPFX := 'C:\NFMonitor\src\exemplo.pfx';
-      Senha := '123';
+      ArquivoPFX := RSDefaultCertPath;
+      Senha := RSDefaultCertPassword;
     End;
 
 
@@ -152,13 +153,13 @@ Begin
   NF.NFe.pag.New.tBand := TpcnBandeiraCartao.bcAlelo;
 
   Result := TJSONTools.ObjToJson(NF);
-  Result.Delete('XML');
-  Result.Delete('XMLOriginal');
-  Result.Delete('NomeArq');
-  Result.Delete('ErroValidacaoCompleto');
-  Result.Delete('ErroValidacao');
-  Result.Delete('ErroRegrasdeNegocios');
-  Result.Delete('Alertas');
+  Result.Delete(RSXMLField);
+  Result.Delete(RSXMLOriginalField);
+  Result.Delete(RSNomeArqField);
+  Result.Delete(RSErroValidacaoCompletoField);
+  Result.Delete(RSErroValidacaoField);
+  Result.Delete(RSErroRegrasdeNegociosField);
+  Result.Delete(RSAlertasField);
 
   facbr.NotasFiscais.Clear;
 End;
@@ -193,8 +194,8 @@ Begin
   Except
     on E: Exception Do
           Begin
-            Result.Add('status', 'erro');
-            Result.Add('message', 'Erro na leitura do objeto JSON: ' + E.Message
+            Result.Add(RSStatusField, RSStatusErro);
+            Result.Add(RSMessageField, RSErrorReadingJSON + E.Message
             );
             Exit;
           End;
@@ -216,7 +217,7 @@ Procedure TACBRBridgeNFe.CarregaConfig;
 Var 
   O: TJSONObject;
 Begin
-  If fcfg = '' Then
+  If fcfg = RSEmptyString Then
     exit;
 
   O := GetJSON(fcfg) as TJSONObject;
@@ -226,7 +227,7 @@ Begin
     O.Free;
 End;
 
-fcfg := '';
+fcfg := RSEmptyString;
 End;
 
 Function TACBRBridgeNFe.ReadXMLFromJSON(Const jsonData: TJSONObject): string;
@@ -240,7 +241,7 @@ Begin
     on E: Exception Do
           Begin
             raise Exception.Create(
-                               'Erro na leitura do parâmetro "xml" do JSON: '
+                               RSErrorReadingXMLParam
                                    +
                                    E.Message);
           End;
@@ -248,11 +249,11 @@ End;
 
 Try
   Result := DecodeStringBase64(xmlBase64);
-  xmlBase64 := '';
+  xmlBase64 := RSEmptyString;
 Except
   on E: Exception Do
         Begin
-          raise Exception.Create('A string XML em base64 é inválida: ' + E
+          raise Exception.Create(RSInvalidBase64XML + E
                                  .Message);
         End;
 End;
@@ -283,15 +284,15 @@ Var
   XmlBase64: TJSONString;
 Begin
   CarregaConfig;
-  Result := '';
+  Result := RSEmptyString;
 
 
 
   For I := 0 To jEventos.Count - 1 Do
     Begin
       oEvento := jEventos.Items[i] as TJSONObject;
-      InfEvento := oEvento.Extract('InfEvento') as TJSONObject;
-      If InfEvento.Find('LoadXML', XmlBase64) Then
+      InfEvento := oEvento.Extract(RSInfEventoField) as TJSONObject;
+      If InfEvento.Find(RSLoadXMLField, XmlBase64) Then
         facbr.NotasFiscais.LoadFromString(Base64.DecodeStringBase64(XmlBase64.
                                           AsString));
 
@@ -327,26 +328,26 @@ Begin
 
   objDistribuicao := facbr.WebServices.DistribuicaoDFe;
 
-  If jDistribuicao.Find('UF', UF) Then
+  If jDistribuicao.Find(RSUFField, UF) Then
     Begin
       If Not MatchStr(UF.ToString, CodigosIBGE) Then
         Begin
-          Result.Add('error', 'Código de UF inválido');
+          Result.Add(RSErrorField, RSInvalidUFCode);
           Exit;
         End;
       objDistribuicao.cUFAutor := StrToInt(UF.ToString);
     End;
 
-  If jDistribuicao.Find('CNPJCPF', CNPJCPF) Then
+  If jDistribuicao.Find(RSCNPJCPFField, CNPJCPF) Then
     objDistribuicao.CNPJCPF := CNPJCPF.ToString;
 
-  If jDistribuicao.Find('ultNSU', ultNSU) Then
+  If jDistribuicao.Find(RSUltNSUField, ultNSU) Then
     objDistribuicao.ultNSU := ultNSU.ToString;
 
-  If jDistribuicao.Find('NSU', NSU) Then
+  If jDistribuicao.Find(RSNSUField, NSU) Then
     objDistribuicao.NSU := NSU.ToString;
 
-  If jDistribuicao.Find('chNFe', chNFe) Then
+  If jDistribuicao.Find(RSChNFeField, chNFe) Then
     objDistribuicao.chNFe := chNFe.ToString;
 
   Try
@@ -358,7 +359,7 @@ Begin
               Result := TJSONObject(TJSONTools.ObjToJson(
                         objDistribuicao.RetDistDFeInt))
             Else
-              Result.Add('error', E.message);
+              Result.Add(RSErrorField, E.message);
             Exit;
           End;
 End;
@@ -383,7 +384,7 @@ Begin
   Except
     on E: Exception Do
           Begin
-            Result.Add('error', E.Message);
+            Result.Add(RSErrorField, E.Message);
             Exit;
           End;
 End;
@@ -393,13 +394,13 @@ Try
 Except
   on E: Exception Do
         Begin
-          Result.Add('error', 'Erro na leitura do XML: ' + E.Message);
+          Result.Add(RSErrorField, RSXMLReadError + E.Message);
           Exit;
         End;
 End;
 
 // Esvazia a string para liberar da memória logo o xml
-stringXml := '';
+stringXml := RSEmptyString;
 // O acesso a propriedade TipoDanfe se faz somente diretamente pelo objeto.
 If facbr.NotasFiscais.Items[0].NFe.Ide.tpImp <> TpcnTipoImpressao.tiPaisagem
   Then
@@ -422,7 +423,7 @@ Try
   filename := fdanfe.ArquivoPDF;
 Except
   Begin
-    Result.Add('error', 'Falha ao gerar o PDF.');
+    Result.Add(RSErrorField, RSPDFGenerationError);
     Exit;
   End;
 End;
@@ -433,20 +434,20 @@ Try
 Except
   on E: Exception Do
         Begin
-          Result.Add('error', E.Message);
+          Result.Add(RSErrorField, E.Message);
           Exit;
         End;
 End;
 
 // Converte a stream do relatório para base64
-Result.Add('pdf', arquivofinal);
+Result.Add(RSPDFField, arquivofinal);
 // Chave de Acesso da NF-e
-Result.Add('chave', facbr.NotasFiscais.Items[0].NFe.infNFe.ID);
+Result.Add(RSChaveField, facbr.NotasFiscais.Items[0].NFe.infNFe.ID);
 // Tamanho em Bytes
-Result.Add('tamanho', tamanho.ToString);
+Result.Add(RSTamanhoField, tamanho.ToString);
 // Adiciona o identificador único se ele existir
-If xmlData.Find('id', id) Then
-  Result.Add('id', id);
+If xmlData.Find(RSIDField, id) Then
+  Result.Add(RSIDField, id);
 
 End;
 

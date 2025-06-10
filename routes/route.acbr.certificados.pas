@@ -6,7 +6,8 @@ interface
 
 uses
   method.acbr.certificados,
-  fpjson, Horse, Horse.Commons, Classes, SysUtils;
+  fpjson, Horse, Horse.Commons, Classes, SysUtils,
+  acbr.resourcestrings;
 
 
 procedure GetModeloUploadCertificado(Req: THorseRequest; Res: THorseResponse;
@@ -53,7 +54,7 @@ begin
     on E: Exception do
     begin
       Res.Status(400).Send(TJSONObject.Create(
-        ['message', 'Erro ao parsear o corpo da requisição JSON: ' + E.Message]).AsJSON);
+        [RSMessageField, RSJSONParseError + E.Message]).AsJSON);
       Exit;
     end;
   end;
@@ -61,7 +62,7 @@ begin
   if not Assigned(LJsonBody) then
   begin
     Res.Status(400).Send(TJSONObject.Create(
-      ['message', 'Corpo da requisição JSON inválido ou vazio.']).AsJSON);
+      [RSMessageField, RSInvalidJSONBodyError]).AsJSON);
     Exit;
   end;
 
@@ -69,48 +70,46 @@ begin
   begin
     LJsonBody.Free;
     Res.Status(400).Send(TJSONObject.Create(
-      ['message', 'O corpo da requisição não é um objeto JSON.']).AsJSON);
+      [RSMessageField, RSNotJSONObjectError]).AsJSON);
     Exit;
   end;
   O := LJsonBody as TJSONObject;
   try
     try
-      if O.Find('certificado_base64', JsonStr) then
+      if O.Find(RSCertificadoBase64Field, JsonStr) then
       begin
         CertificadoBase64 := JsonStr.Value;
-        if CertificadoBase64 = '' then
-          raise Exception.Create('Campo "certificado_base64" não pode ser vazio.');
+        if CertificadoBase64 = RSEmptyString then
+          raise Exception.Create(RSCertificadoBase64EmptyError);
       end
       else
       begin
-        raise Exception.Create(
-          'Campo "certificado_base64" não encontrado ou não é do tipo string no corpo da requisição JSON.');
+        raise Exception.Create(RSCertificadoBase64NotFoundError);
       end;
 
       // Campo: senha (obrigatório)
-      if O.Find('senha', JsonStr) then
+      if O.Find(RSSenhaField, JsonStr) then
       begin
         Senha := JsonStr.Value;
-        if Senha = '' then
-          raise Exception.Create('Campo "senha" não pode ser vazio.');
+        if Senha = RSEmptyString then
+          raise Exception.Create(RSSenhaEmptyError);
       end
       else
       begin
-        raise Exception.Create(
-          'Campo "senha" não encontrado ou não é do tipo string no corpo da requisição JSON.');
+        raise Exception.Create(RSSenhaNotFoundError);
       end;
 
       // Campo: cnpj (opcional)
-      if O.Find('cnpj', JsonStr) then
+      if O.Find(RSCNPJField, JsonStr) then
         CNPJ := JsonStr.Value
       else
-        CNPJ := ''; // Valor padrão se não encontrado ou tipo incorreto
+        CNPJ := RSEmptyString; // Valor padrão se não encontrado ou tipo incorreto
 
       // Campo: nome_arquivo (opcional)
-      if O.Find('nome_arquivo', JsonStr) then
+      if O.Find(RSNomeArquivoField, JsonStr) then
         NomeArquivo := JsonStr.Value
       else
-        NomeArquivo := ''; // Valor padrão
+        NomeArquivo := RSEmptyString; // Valor padrão
 
       // Cria a instância da Bridge
       Ac := TACBRBridgeCertificados.Create;
@@ -125,7 +124,7 @@ begin
     except
       on E: Exception do
       begin
-        Res.Status(400).Send(TJSONObject.Create(['message', E.Message]).AsJSON);
+        Res.Status(400).Send(TJSONObject.Create([RSMessageField, E.Message]).AsJSON);
       end;
     end;
   finally
@@ -151,7 +150,7 @@ begin
     on E: Exception do
     begin
       Res.Status(400).Send(TJSONObject.Create(
-        ['message', 'Erro ao parsear o corpo da requisição JSON: ' + E.Message]).AsJSON);
+        [RSMessageField, RSJSONParseError + E.Message]).AsJSON);
       Exit;
     end;
   end;
@@ -176,29 +175,27 @@ begin
 
     try
       // Campo: certificado_base64 (obrigatório)
-      if O.Find('certificado_base64', JsonStr) then
+      if O.Find(RSCertificadoBase64Field, JsonStr) then
       begin
         CertificadoBase64 := JsonStr.Value;
-        if CertificadoBase64 = '' then
-          raise Exception.Create('Campo "certificado_base64" não pode ser vazio.');
+        if CertificadoBase64 = RSEmptyString then
+          raise Exception.Create(RSCertificadoBase64EmptyError);
       end
       else
       begin
-        raise Exception.Create(
-          'Campo "certificado_base64" não encontrado ou não é do tipo string no corpo da requisição JSON.');
+        raise Exception.Create(RSCertificadoBase64NotFoundError);
       end;
 
       // Campo: senha (obrigatório)
-      if O.Find('senha', JsonStr) then
+      if O.Find(RSSenhaField, JsonStr) then
       begin
         Senha := JsonStr.Value;
-        if Senha = '' then
-          raise Exception.Create('Campo "senha" não pode ser vazio.');
+        if Senha = RSEmptyString then
+          raise Exception.Create(RSSenhaEmptyError);
       end
       else
       begin
-        raise Exception.Create(
-          'Campo "senha" não encontrado ou não é do tipo string no corpo da requisição JSON.');
+        raise Exception.Create(RSSenhaNotFoundError);
       end;
 
       // Cria a instância da Bridge
@@ -213,7 +210,7 @@ begin
     except
       on E: Exception do
       begin
-        Res.Status(400).Send(TJSONObject.Create(['message', E.Message]).AsJSON);
+        Res.Status(400).Send(TJSONObject.Create([RSMessageField, E.Message]).AsJSON);
       end;
     end;
 
@@ -227,11 +224,11 @@ end;
 procedure regRouter;
 begin
   // Endpoints de Modelos (GET)
-  THorse.Get('/certificados/upload', GetModeloUploadCertificado);
+  THorse.Get(RSCertificadosUploadRoute, GetModeloUploadCertificado);
 
   // Endpoints de Operações (POST)
-  THorse.Post('/certificados/upload', PostUploadCertificado);
-  THorse.Post('/certificados/ler-dados', PostLerDadosCertificado);
+  THorse.Post(RSCertificadosUploadRoute, PostUploadCertificado);
+  THorse.Post(RSCertificadosLerDadosRoute, PostLerDadosCertificado);
 end;
 
 end.

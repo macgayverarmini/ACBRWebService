@@ -5,7 +5,8 @@ unit route.acbr.nfe;
 interface
 
 uses
-  method.acbr.nfe, fpjson, Horse, Horse.Commons, Classes, SysUtils;
+  method.acbr.nfe, fpjson, Horse, Horse.Commons, Classes, SysUtils,
+  acbr.resourcestrings;
 
 //Get
 procedure GetModeloConfig(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
@@ -26,7 +27,7 @@ procedure GetModeloConfig(Req: THorseRequest; Res: THorseResponse; Next: TNextPr
 var
   Ac: TACBRModelosJSON;
 begin
-  Ac := TACBRModelosJSON.Create('');
+  Ac := TACBRModelosJSON.Create(RSEmptyString);
   try
     Res.Send<TJSONObject>(AC.ModelConfig);
   finally
@@ -38,7 +39,7 @@ procedure GetModeloNFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc)
 var
   Ac: TACBRModelosJSON;
 begin
-  Ac := TACBRModelosJSON.Create('');
+  Ac := TACBRModelosJSON.Create(RSEmptyString);
   try
     Res.Send<TJSONObject>(Ac.ModelNFe);
   finally
@@ -50,7 +51,7 @@ procedure GetModeloEvento(Req: THorseRequest; Res: THorseResponse; Next: TNextPr
 var
   Ac: TACBRModelosJSON;
 begin
-  Ac := TACBRModelosJSON.Create('');
+  Ac := TACBRModelosJSON.Create(RSEmptyString);
   try
     Res.Send<TJSONObject>(AC.ModelEvento);
   finally
@@ -62,7 +63,7 @@ procedure GetModeloDist(Req: THorseRequest; Res: THorseResponse; Next: TNextProc
 var
   Ac: TACBRModelosJSON;
 begin
-  Ac := TACBRModelosJSON.Create('');
+  Ac := TACBRModelosJSON.Create(RSEmptyString);
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(AC.ModelDistribuicao);
   finally
@@ -76,10 +77,10 @@ var
   Ac: TACBRBridgeNFe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFe.Create(O.Extract('config').AsJSON);
+  Ac := TACBRBridgeNFe.Create(O.Extract(RSConfigField).AsJSON);
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
-      .Send(Ac.Evento(O.Extract('eventos') as TJSONArray));
+      .Send(Ac.Evento(O.Extract(RSEventosField) as TJSONArray));
   finally
     O.Free;
     Ac.Free;
@@ -92,7 +93,7 @@ var
   Ac: TACBRBridgeNFe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFe.Create(O.Extract('config').AsJSON);
+  Ac := TACBRBridgeNFe.Create(O.Extract(RSConfigField).AsJSON);
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
       .Send<TJSONObject>(Ac.Distribuicao(O));
@@ -108,7 +109,7 @@ var
   Ac: TACBRBridgeNFe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFe.Create(O.Extract('config').AsJSON);
+  Ac := TACBRBridgeNFe.Create(O.Extract(RSConfigField).AsJSON);
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(Ac.NFe(O));
   finally
@@ -123,7 +124,7 @@ var
   Ac: TACBRBridgeNFe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFe.Create(O.Extract('config').AsJSON);
+  Ac := TACBRBridgeNFe.Create(O.Extract(RSConfigField).AsJSON);
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
       .Send<TJSONObject>(Ac.Danfe(O));
@@ -135,14 +136,14 @@ end;
 
 procedure regRouter;
 begin
-  THorse.Get('/modelo/nfe/config', GetModeloConfig);
-  THorse.Get('/modelo/nfe/evento', GetModeloEvento);
-  THorse.Get('/modelo/nfe/distribuicao', GetModeloDist);
-  THorse.Get('/modelo/nfe/nfe', GetModeloNFe);
-  THorse.Post('/nfe/eventos', PostEventos);
-  THorse.Post('/nfe/distribuicao', PostDistribuicao);
-  THorse.Post('/nfe/danfe', PostDANFe);
-  THorse.Post('/nfe/nfe', PostNFe);
+  THorse.Get(RSModeloNFeConfigRoute, GetModeloConfig);
+  THorse.Get(RSModeloNFeEventoRoute, GetModeloEvento);
+  THorse.Get(RSModeloNFeDistribuicaoRoute, GetModeloDist);
+  THorse.Get(RSModeloNFeNFeRoute, GetModeloNFe);
+  THorse.Post(RSNFeEventosRoute, PostEventos);
+  THorse.Post(RSNFeDistribuicaoRoute, PostDistribuicao);
+  THorse.Post(RSNFeDANFeRoute, PostDANFe);
+  THorse.Post(RSNFeNFeRoute, PostNFe);
 end;
 
 end.
