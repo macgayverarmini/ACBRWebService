@@ -18,6 +18,7 @@ jobs:
         path: 'project'
 
     - name: 2. Configurar Lazarus e FPC
+      id: setup-lazarus
       uses: gcarreno/setup-lazarus@v1
       with:
         lazarus-version: '2.2.0'
@@ -45,19 +46,22 @@ jobs:
       
     - name: 7. Executar script de alteração do ACBr
       run: |
+        # O script pede o caminho do ACBr. Fornecemos o caminho relativo criado no passo 3.
+        # O 'yes' responde 's' para a pergunta de procurar em subdiretórios.
         cd project
-        yes | python script_altera_acbr.py
+        yes s | python script_altera_acbr.py ../acbr/Fontes/ACBrDFe/
       
     - name: 8. Compilar o projeto para Linux
       run: |
         cd project
-        lazbuild ACBRWebService.lpi
+        # CORREÇÃO: Usando o caminho completo para o lazbuild
+        ${{ steps.setup-lazarus.outputs.lazarus-path }}/lazbuild ACBRWebService.lpi
 
     - name: 9. Upload do executável de Linux (Artefato)
       uses: actions/upload-artifact@v4
       with:
         name: ACBRWebService-Linux
-        path: bin/ACBRWebService
+        path: project/bin/ACBRWebService
 
   # Job para compilar a versão de Windows (EXE)
   build-windows:
@@ -68,7 +72,8 @@ jobs:
       with:
         path: 'project'
 
-    - name: 2. Configurar Lazarus, FPC e o Cross-Compiler para Windows
+    - name: 2. Configurar Lazarus, FPC e o Cross-Compiler
+      id: setup-lazarus
       uses: gcarreno/setup-lazarus@v1
       with:
         lazarus-version: '2.2.0'
@@ -99,15 +104,17 @@ jobs:
     - name: 7. Executar script de alteração do ACBr
       run: |
         cd project
-        yes | python script_altera_acbr.py
+        # O 'yes' responde 's' para a pergunta de procurar em subdiretórios.
+        yes s | python script_altera_acbr.py ../acbr/Fontes/ACBrDFe/
       
     - name: 8. Compilar o projeto para Windows 64-bit
       run: |
         cd project
-        lazbuild --os=win64 --cpu=x86_64 ACBRWebService.lpi
+        # CORREÇÃO: Usando o caminho completo para o lazbuild
+        ${{ steps.setup-lazarus.outputs.lazarus-path }}/lazbuild --os=win64 --cpu=x86_64 ACBRWebService.lpi
 
     - name: 9. Upload do executável de Windows (Artefato)
       uses: actions/upload-artifact@v4
       with:
         name: ACBRWebService-Win64
-        path: bin/ACBRWebService.exe
+        path: project/bin/ACBRWebService.exe
