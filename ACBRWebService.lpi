@@ -21,7 +21,7 @@
     <VersionInfo>
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
-      <BuildNr Value="2"/>
+      <BuildNr Value="4"/>
       <Language Value="0416"/>
       <Attributes pvaDebug="True"/>
     </VersionInfo>
@@ -140,6 +140,11 @@
         <Filename Value="resources\resource.strings.routes.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
+      <Unit>
+        <Filename Value="..\gbswagger\Source\Core\gbswagger.lazarus.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="GBSwagger.Lazarus"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -153,12 +158,6 @@
       <OtherUnitFiles Value="..\horse-master\src;routes;method;..\handle-exception\src;tools;..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\LazReport;..\acbr\Fontes\ACBrDFe\ACBrCTe\DACTE\Fortes;..\jhonson\src;..\acbr\Fontes\Terceiros\synalist;..\acbr\Fontes\ACBrDFe\ACBrCTe;..\acbr\Fontes\ACBrDFe\ACBrMDFe;..\acbr\Fontes\ACBrDFe\ACBrMDFe\DAMDFE\Fortes;..\acbr\Fontes\ACBrDFe\ACBrMDFe\PCNMDFe;..\acbr\Fontes\ACBrDFe\ACBrMDFe\Base;resources"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
-    <Parsing>
-      <SyntaxOptions>
-        <SyntaxMode Value="Delphi"/>
-        <UseAnsiStrings Value="False"/>
-      </SyntaxOptions>
-    </Parsing>
     <CodeGeneration>
       <Optimizations>
         <OptimizationLevel Value="0"/>

@@ -2,7 +2,8 @@
 
 Unit method.acbr.nfe;
 
-{$mode Delphi}
+{$MODESWITCH ExtendedRTTI ON}
+{$RTTI EXPLICIT PROPERTIES([vcPublic])}
 
 Interface
 

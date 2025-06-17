@@ -1,6 +1,8 @@
 program ACBRWebService;
 
-{$MODE DELPHI}{$H+}
+{$MODESWITCH ATTRIBUTES ON}
+{$modeswitch PrefixedAttributes}
+{$MODESWITCH ExtendedRTTI ON}
 uses
   Interfaces,
   SysUtils, // Adicionado para usar FormatDateTime e Now
@@ -15,7 +17,8 @@ uses
   route.acbr.mdfe,
   method.acbr.mdfe,
   resource.strings.global,
-  resource.strings.msg, resource.strings.routes;
+  resource.strings.msg,
+  resource.strings.routes;
 
   procedure LogInfo(const AMessage: string);
   begin
@@ -29,7 +32,7 @@ uses
 const
   cAppPort = 9000;
 
-{$R *.res}
+  {$R *.res}
 
 begin
 
@@ -74,6 +77,7 @@ begin
   LogInfo(RSHorseApplicationStarted);
   LogInfo(Format(RSListeningOnPort, [cAppPort]));
   WriteLn(RSSeparatorLine);
+
 
   THorse.Listen(cAppPort);
   LogInfo(RSApplicationStopped);

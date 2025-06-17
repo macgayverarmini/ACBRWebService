@@ -342,31 +342,31 @@ msgid "XMLOriginal"
 msgstr ""
 
 #: resource.strings.msg.rsacbrcertificadosroutesmapped
-msgid "  ACBR Certificados routes mapped."
+msgid "  Rotas ACBR Certificados mapeadas."
 msgstr ""
 
 #: resource.strings.msg.rsacbrcteroutesmapped
-msgid "  ACBR CTe routes mapped."
+msgid "  Rotas ACBR CTe mapeadas."
 msgstr ""
 
 #: resource.strings.msg.rsacbrdiversosextensoroutesmapped
-msgid "  ACBR Diversos Extenso routes mapped."
+msgid "  Rotas ACBR Diversos Extenso mapeadas."
 msgstr ""
 
 #: resource.strings.msg.rsacbrdiversosvalidadorroutesmapped
-msgid "  ACBR Diversos Validador routes mapped."
+msgid "  Rotas ACBR Diversos Validador mapeadas."
 msgstr ""
 
 #: resource.strings.msg.rsacbrmdferoutesmapped
-msgid "  ACBR MDFe routes mapped."
+msgid "  Rotas ACBR MDFe mapeadas."
 msgstr ""
 
 #: resource.strings.msg.rsacbrnferoutesmapped
-msgid "  ACBR NFe routes mapped."
+msgid "  Rotas ACBR NFe mapeadas."
 msgstr ""
 
 #: resource.strings.msg.rsapplicationstopped
-msgid "ACBRWebService application stopped."
+msgid "Aplicação ACBRWebService finalizada."
 msgstr ""
 
 #: resource.strings.msg.rsbase64decodeerror
@@ -374,7 +374,7 @@ msgid "Falha ao decodificar a string Base64: "
 msgstr ""
 
 #: resource.strings.msg.rscertificadobase64emptyerror
-msgid "Campo \"certificado_base64\" não pode ser vazio."
+msgid "O campo \"certificado_base64\" não pode ser vazio."
 msgstr ""
 
 #: resource.strings.msg.rscertificadobase64notfounderror
@@ -382,11 +382,11 @@ msgid "Campo \"certificado_base64\" não encontrado ou não é do tipo string no
 msgstr ""
 
 #: resource.strings.msg.rscertificatedecodeerror
-msgid "Falha ao decodificar certificado Base64 ou dados vazios."
+msgid "Falha ao decodificar o certificado Base64 ou dados vazios."
 msgstr ""
 
 #: resource.strings.msg.rscertificatedecodeerrorempty
-msgid "Falha ao decodificar certificado Base64 ou dados resultantes vazios."
+msgid "Falha ao decodificar o certificado Base64 ou os dados resultantes estão vazios."
 msgstr ""
 
 #: resource.strings.msg.rscertificateinvaliderror
@@ -398,7 +398,7 @@ msgid "Não foi possível ler todos os metadados do certificado."
 msgstr ""
 
 #: resource.strings.msg.rscertificatereaderror
-msgid "Não foi possível ler os dados do certificado (verifique senha ou formato do arquivo)."
+msgid "Não foi possível ler os dados do certificado (verifique a senha ou o formato do arquivo)."
 msgstr ""
 
 #: resource.strings.msg.rscertificatesavedsuccess
@@ -410,7 +410,7 @@ msgid "A string Base64 fornecida está vazia."
 msgstr ""
 
 #: resource.strings.msg.rsemptydataerror
-msgid "Certificado Base64 resultou em dados vazios."
+msgid "O certificado Base64 resultou em dados vazios."
 msgstr ""
 
 #: resource.strings.msg.rserrorreadingjson
@@ -418,7 +418,7 @@ msgid "Erro na leitura do objeto JSON: "
 msgstr ""
 
 #: resource.strings.msg.rserrorreadingjsoncte
-msgid "Erro na leitura do objeto JSON para CTe: "
+msgid "Erro na leitura do objeto JSON para CT-e: "
 msgstr ""
 
 #: resource.strings.msg.rserrorreadingjsonmdfe
@@ -442,7 +442,7 @@ msgid "nome_sugerido_para_o_arquivo_pfx_sem_extensao"
 msgstr ""
 
 #: resource.strings.msg.rsexampleobservation
-msgid "O CNPJ e nome_arquivo são opcionais. Se o CNPJ não for fornecido, será usado o CNPJ lido do certificado para nomear o arquivo. Se nome_arquivo não for fornecido, o CNPJ (ou \"certificado\") será usado como base."
+msgid "O CNPJ e o nome_arquivo são opcionais. Se o CNPJ não for fornecido, será usado o CNPJ lido do certificado para nomear o arquivo. Se o nome_arquivo não for fornecido, o CNPJ (ou \"certificado\") será usado como base."
 msgstr ""
 
 #: resource.strings.msg.rsexamplepassword
@@ -450,19 +450,19 @@ msgid "senha_do_certificado_aqui"
 msgstr ""
 
 #: resource.strings.msg.rshandleexceptionmiddlewareinitialized
-msgid " HandleException middleware initialized."
+msgid " Middleware de tratamento de exceções (HandleException) inicializado."
 msgstr ""
 
 #: resource.strings.msg.rshorseapplicationstarted
-msgid "Horse application successfully started."
+msgid "Aplicação Horse iniciada com sucesso."
 msgstr ""
 
 #: resource.strings.msg.rsinitializingmiddleware
-msgid "Initializing middleware..."
+msgid "Inicializando o middleware..."
 msgstr ""
 
 #: resource.strings.msg.rsinitializingroutes
-msgid "Initializing routes..."
+msgid "Inicializando as rotas..."
 msgstr ""
 
 #: resource.strings.msg.rsinvalidbase64xml
@@ -478,20 +478,20 @@ msgid "Corpo da requisição JSON inválido: "
 msgstr ""
 
 #: resource.strings.msg.rsinvalidufcode
-msgid "Código de UF inválido"
+msgid "Código de UF inválido."
 msgstr ""
 
 #: resource.strings.msg.rsjsonmiddlewareinitialized
-msgid " Json middleware initialized."
+msgid " Middleware Json inicializado."
 msgstr ""
 
 #: resource.strings.msg.rsjsonparseerror
-msgid "Erro ao parsear o corpo da requisição JSON: "
+msgid "Erro ao analisar o corpo da requisição JSON: "
 msgstr ""
 
 #: resource.strings.msg.rslisteningonport
 #, object-pascal-format
-msgid "Listening on port %d"
+msgid "Escutando na porta %d"
 msgstr ""
 
 #: resource.strings.msg.rsnotjsonobjecterror
@@ -507,15 +507,15 @@ msgid "Falha ao gerar o PDF."
 msgstr ""
 
 #: resource.strings.msg.rssenhaemptyerror
-msgid "Campo \"senha\" não pode ser vazio."
+msgid "O campo \"senha\" não pode ser vazio."
 msgstr ""
 
 #: resource.strings.msg.rssenhanotfounderror
-msgid "Campo \"senha\" não encontrado ou não é do tipo string no corpo da requisição JSON."
+msgid "O campo \"senha\" não encontrado ou não é do tipo string no corpo da requisição JSON."
 msgstr ""
 
 #: resource.strings.msg.rsstartingapplication
-msgid "Starting ACBRWebService application..."
+msgid "Iniciando a aplicação ACBRWebService..."
 msgstr ""
 
 #: resource.strings.msg.rsuniquefileerror
@@ -523,11 +523,11 @@ msgid "Não foi possível gerar um nome de arquivo único para o certificado."
 msgstr ""
 
 #: resource.strings.msg.rsvalidationfailederror
-msgid "Falha na validação do certificado PFX com a senha fornecida (verifique senha ou integridade do arquivo)."
+msgid "Falha na validação do certificado PFX com a senha fornecida (verifique a senha ou a integridade do arquivo)."
 msgstr ""
 
 #: resource.strings.msg.rsxmlparamempty
-msgid "Parâmetro \"xml\" está vazio."
+msgid "O parâmetro \"xml\" está vazio."
 msgstr ""
 
 #: resource.strings.msg.rsxmlparamnotfound
@@ -541,7 +541,7 @@ msgstr ""
 
 #: resource.strings.msg.rsxmlreaderrorcte
 msgctxt "resource.strings.msg.rsxmlreaderrorcte"
-msgid "Erro na leitura do XML: "
+msgid "Erro na leitura do XML do CT-e: "
 msgstr ""
 
 #: resource.strings.msg.rsxmlreaderrormdfe
@@ -549,7 +549,7 @@ msgid "Erro na leitura do XML do MDF-e: "
 msgstr ""
 
 #: resource.strings.msg.rszerobytesafterdecodeerror
-msgid "O conteúdo do certificado Base64 resultou em zero bytes após a decodificação, mas a string original não era vazia."
+msgid "O conteúdo do certificado Base64 resultou em zero bytes após a decodificação, mas a string original não estava vazia."
 msgstr ""
 
 #: resource.strings.msg.rszerobytesemptystringerror

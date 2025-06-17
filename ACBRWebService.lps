@@ -8,66 +8,63 @@
       <Unit>
         <Filename Value="ACBRWebService.lpr"/>
         <IsPartOfProject Value="True"/>
-        <TopLine Value="36"/>
-        <CursorPos X="37" Y="49"/>
+        <CursorPos Y="40"/>
         <UsageCount Value="217"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="routes\route.acbr.nfe.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="105"/>
-        <CursorPos X="11" Y="17"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="22"/>
+        <CursorPos Y="4"/>
         <UsageCount Value="217"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+        <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="routes\route.pas"/>
         <IsPartOfProject Value="True"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="70"/>
       </Unit>
       <Unit>
         <Filename Value="method\method.acbr.nfe.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="10"/>
-        <CursorPos X="52" Y="26"/>
+        <EditorIndex Value="3"/>
+        <CursorPos X="53" Y="12"/>
         <UsageCount Value="216"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+        <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="tools\jsonconvert.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="21" Y="23"/>
+        <EditorIndex Value="9"/>
+        <TopLine Value="25"/>
+        <CursorPos X="27" Y="49"/>
         <UsageCount Value="209"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+        <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="method\method.acbr.diversos.extenso.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <CursorPos X="15" Y="4"/>
+        <TopLine Value="11"/>
+        <CursorPos X="23" Y="16"/>
         <UsageCount Value="209"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
       <Unit>
         <Filename Value="routes\route.acbr.diversos.extenso.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="5"/>
-        <CursorPos X="36" Y="28"/>
+        <TopLine Value="12"/>
+        <CursorPos X="40" Y="39"/>
         <UsageCount Value="209"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
       <Unit>
         <Filename Value="routes\route.acbr.diversos.validador.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <CursorPos X="48" Y="10"/>
+        <CursorPos X="12" Y="13"/>
         <UsageCount Value="209"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
       <Unit>
         <Filename Value="method\method.acbr.diversos.validador.pas"/>
@@ -76,7 +73,6 @@
         <TopLine Value="9"/>
         <CursorPos X="25" Y="40"/>
         <UsageCount Value="209"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\LazReport\ACBrNFeDANFeLazReport.pas"/>
@@ -84,7 +80,6 @@
         <EditorIndex Value="-1"/>
         <CursorPos X="50" Y="1827"/>
         <UsageCount Value="203"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
       <Unit>
         <Filename Value="tools\streamtools.pas"/>
@@ -93,7 +88,6 @@
         <TopLine Value="15"/>
         <CursorPos X="151" Y="35"/>
         <UsageCount Value="203"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
       <Unit>
         <Filename Value="method\method.acbr.cte.pas"/>
@@ -102,18 +96,15 @@
         <WindowIndex Value="1"/>
         <TopLine Value="418"/>
         <CursorPos X="31" Y="429"/>
-        <UsageCount Value="24"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+        <UsageCount Value="74"/>
       </Unit>
       <Unit>
         <Filename Value="routes\router.acbr.cte.pas"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="1"/>
+        <EditorIndex Value="-1"/>
         <WindowIndex Value="1"/>
-        <CursorPos Y="6"/>
-        <UsageCount Value="60"/>
-        <Loaded Value="True"/>
+        <CursorPos X="14" Y="26"/>
+        <UsageCount Value="110"/>
       </Unit>
       <Unit>
         <Filename Value="method\method.acbr.mdfe.pas"/>
@@ -121,8 +112,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="447"/>
         <CursorPos X="51" Y="477"/>
-        <UsageCount Value="51"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+        <UsageCount Value="101"/>
       </Unit>
       <Unit>
         <Filename Value="routes\route.acbr.mdfe.pas"/>
@@ -130,378 +120,685 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="153"/>
         <CursorPos X="44" Y="183"/>
-        <UsageCount Value="22"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+        <UsageCount Value="72"/>
+      </Unit>
+      <Unit>
+        <Filename Value="resources\resource.strings.global.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="70"/>
+      </Unit>
+      <Unit>
+        <Filename Value="resources\resource.strings.msg.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="14"/>
+        <CursorPos X="3" Y="13"/>
+        <UsageCount Value="70"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="resources\resource.strings.routes.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="2"/>
+        <CursorPos X="4" Y="29"/>
+        <UsageCount Value="70"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\gbswagger\Source\Core\gbswagger.lazarus.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="GBSwagger.Lazarus"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="10" Y="4"/>
+        <UsageCount Value="47"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\gbswagger\Source\Core\gbswagger.rtti.fpc.pas"/>
+        <UnitName Value="GBSwagger.RTTI.fpc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="27"/>
+        <CursorPos X="81" Y="41"/>
+        <UsageCount Value="43"/>
       </Unit>
       <Unit>
         <Filename Value="route.pas"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="27" Y="16"/>
-        <UsageCount Value="217"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+        <UsageCount Value="213"/>
       </Unit>
       <Unit>
         <Filename Value="routes\method.acbr.cte.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="298"/>
         <CursorPos X="17" Y="334"/>
-        <UsageCount Value="57"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+        <UsageCount Value="53"/>
       </Unit>
       <Unit>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\rtl-objpas\src\inc\rtti.pp"/>
         <UnitName Value="Rtti"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="3743"/>
-        <CursorPos Y="3776"/>
-        <UsageCount Value="5"/>
+        <TopLine Value="4317"/>
+        <CursorPos X="53" Y="4329"/>
+        <UsageCount Value="8"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFe.pas"/>
-        <EditorIndex Value="-1"/>
-        <WindowIndex Value="1"/>
-        <CursorPos X="18" Y="11"/>
-        <UsageCount Value="22"/>
+        <EditorIndex Value="4"/>
+        <TopLine Value="59"/>
+        <CursorPos X="13" Y="75"/>
+        <UsageCount Value="18"/>
+        <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFeConfiguracoes.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="53"/>
         <CursorPos X="45" Y="74"/>
-        <UsageCount Value="2"/>
+        <UsageCount Value="8"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFeWebServices.pas"/>
-        <WindowIndex Value="1"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
         <TopLine Value="16"/>
         <CursorPos X="12" Y="18"/>
-        <UsageCount Value="12"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="20"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\PCNNFe\pcnEnvEventoNFe.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="59"/>
         <CursorPos X="22" Y="105"/>
-        <UsageCount Value="8"/>
+        <UsageCount Value="4"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\PCNComum\pcnConversao.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="34"/>
         <CursorPos X="18" Y="51"/>
-        <UsageCount Value="84"/>
+        <UsageCount Value="80"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrDFeSSL.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="28"/>
         <CursorPos X="16" Y="35"/>
-        <UsageCount Value="26"/>
+        <UsageCount Value="22"/>
       </Unit>
       <Unit>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-json\src\fpjson.pp"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="586"/>
         <CursorPos X="3" Y="604"/>
-        <UsageCount Value="25"/>
+        <UsageCount Value="21"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFeNotasFiscais.pas"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="97"/>
-        <CursorPos X="13" Y="133"/>
-        <UsageCount Value="79"/>
+        <EditorIndex Value="5"/>
+        <TopLine Value="45"/>
+        <CursorPos X="23" Y="59"/>
+        <UsageCount Value="75"/>
+        <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\PCNNFe\pcnNFe.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="1832"/>
         <CursorPos X="21" Y="1847"/>
-        <UsageCount Value="78"/>
+        <UsageCount Value="74"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\PCNNFe\pcnProcNFe.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="66"/>
         <CursorPos X="34" Y="70"/>
-        <UsageCount Value="2"/>
+        <UsageCount Value="8"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\PCNNFe\pcnNFeR.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="433"/>
         <CursorPos X="37" Y="476"/>
-        <UsageCount Value="2"/>
+        <UsageCount Value="8"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrXmlDocument.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="288"/>
         <CursorPos X="42" Y="329"/>
-        <UsageCount Value="72"/>
+        <UsageCount Value="68"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrDFeWinCrypt.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="68"/>
         <CursorPos X="61" Y="88"/>
-        <UsageCount Value="70"/>
+        <UsageCount Value="66"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrDFeOpenSSL.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="76"/>
         <CursorPos X="7" Y="97"/>
-        <UsageCount Value="70"/>
+        <UsageCount Value="66"/>
       </Unit>
       <Unit>
         <Filename Value="method\method.acbr.certificados.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="371"/>
         <CursorPos X="106" Y="392"/>
-        <UsageCount Value="70"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+        <UsageCount Value="66"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\Terceiros\synalist\synautil.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="638"/>
         <CursorPos X="96" Y="657"/>
-        <UsageCount Value="58"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+        <UsageCount Value="54"/>
       </Unit>
       <Unit>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\vcl-compat\src\system.netencoding.pp"/>
         <UnitName Value="System.NetEncoding"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="3" Y="32"/>
-        <UsageCount Value="58"/>
+        <UsageCount Value="54"/>
       </Unit>
       <Unit>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-json\src\jsonparser.pp"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="136"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="20"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\Terceiros\synalist\blcksock.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="82"/>
         <CursorPos X="14" Y="103"/>
-        <UsageCount Value="12"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+        <UsageCount Value="8"/>
       </Unit>
       <Unit>
         <Filename Value="routes\route.acbr.certificados.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="114"/>
         <CursorPos X="32" Y="116"/>
-        <UsageCount Value="10"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+        <UsageCount Value="6"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrCTe\ACBrCTe.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="132"/>
         <CursorPos X="14" Y="153"/>
-        <UsageCount Value="9"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+        <UsageCount Value="5"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrCTe\ACBrCTeConfiguracoes.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="48"/>
         <CursorPos X="14" Y="65"/>
-        <UsageCount Value="9"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+        <UsageCount Value="5"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrCTe\PCNCTe\pcteConversaoCTe.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="43"/>
         <CursorPos X="3" Y="60"/>
-        <UsageCount Value="9"/>
+        <UsageCount Value="5"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrDFeConfiguracoes.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="131"/>
         <CursorPos X="14" Y="149"/>
-        <UsageCount Value="23"/>
+        <UsageCount Value="19"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrCTe\ACBrCTeWebServices.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="161"/>
         <CursorPos X="18" Y="179"/>
-        <UsageCount Value="8"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+        <UsageCount Value="4"/>
       </Unit>
       <Unit>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-base\src\base64.pp"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="9"/>
+        <UsageCount Value="5"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrCTe\ACBrCTeConhecimentos.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="114"/>
         <CursorPos X="14" Y="130"/>
-        <UsageCount Value="9"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+        <UsageCount Value="5"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrCTe\Base\ACBrCTe.Classes.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="2594"/>
         <CursorPos X="41" Y="2600"/>
-        <UsageCount Value="9"/>
+        <UsageCount Value="5"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrCTe\Base\Servicos\ACBrCTe.EnvEvento.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="65"/>
         <CursorPos X="43" Y="82"/>
-        <UsageCount Value="28"/>
+        <UsageCount Value="24"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDiversos\ACBrExtenso.pas"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="30" Y="57"/>
-        <UsageCount Value="24"/>
+        <UsageCount Value="20"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrMDFe\ACBrMDFeConfiguracoes.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="41"/>
         <CursorPos X="14" Y="59"/>
-        <UsageCount Value="24"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+        <UsageCount Value="20"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrMDFe\ACBrMDFe.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="28"/>
         <CursorPos X="66" Y="45"/>
-        <UsageCount Value="8"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+        <UsageCount Value="4"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrMDFe\PCNMDFe\pmdfeConversaoMDFe.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="12"/>
         <CursorPos X="24" Y="35"/>
-        <UsageCount Value="22"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+        <UsageCount Value="18"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrMDFe\Base\ACBrMDFe.Classes.pas"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="1345"/>
-        <CursorPos X="4" Y="1374"/>
-        <UsageCount Value="22"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="7"/>
+        <TopLine Value="436"/>
+        <CursorPos X="20" Y="451"/>
+        <UsageCount Value="18"/>
+        <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrMDFe\ACBrMDFeManifestos.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="3"/>
         <CursorPos X="24" Y="35"/>
-        <UsageCount Value="22"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+        <UsageCount Value="18"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrMDFe\Base\Servicos\ACBrMDFe.EnvEvento.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="19"/>
         <CursorPos X="24" Y="35"/>
-        <UsageCount Value="11"/>
+        <UsageCount Value="7"/>
       </Unit>
       <Unit>
         <Filename Value="routes\route.acbr.cte.pas"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="42" Y="6"/>
-        <UsageCount Value="10"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+        <UsageCount Value="6"/>
       </Unit>
       <Unit>
         <Filename Value="i18n\i18n.pas"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="10"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+        <UsageCount Value="6"/>
       </Unit>
       <Unit>
         <Filename Value="i18n\i18n.utils.pas"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="31" Y="12"/>
+        <UsageCount Value="6"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes\route.files.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="45"/>
+        <CursorPos X="36" Y="66"/>
+        <UsageCount Value="19"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\horse-master\src\Horse.Core.RouterTree.NextCaller.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="63"/>
+        <CursorPos Y="85"/>
+        <UsageCount Value="9"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\horse-master\src\Horse.Response.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="71"/>
+        <CursorPos X="45" Y="81"/>
+        <UsageCount Value="9"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\gbswagger\Source\Core\GBSwagger.Model.Interfaces.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="40"/>
+        <CursorPos X="3" Y="134"/>
+        <UsageCount Value="24"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\gbswagger\Source\Core\GBSwagger.Model.Types.pas"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="50" Y="31"/>
+        <UsageCount Value="24"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\gbswagger\Source\Core\GBSwagger.Model.Contact.pas"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos Y="2"/>
+        <UsageCount Value="25"/>
+      </Unit>
+      <Unit>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\inc\objpash.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="184"/>
+        <CursorPos X="8" Y="196"/>
+        <UsageCount Value="11"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\gbswagger\Source\Core\GBSwagger.Model.Info.pas"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="33" Y="3"/>
+        <UsageCount Value="24"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\gbswagger\Source\Core\GBSwagger.Model.Tag.pas"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="33" Y="3"/>
+        <UsageCount Value="24"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\gbswagger\Source\Core\GBSwagger.Model.Parameter.pas"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="15" Y="2"/>
+        <UsageCount Value="23"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\gbswagger\Source\Core\GBSwagger.RTTI.pas"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="6"/>
         <UsageCount Value="10"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit>
       <Unit>
-        <Filename Value="resources\resource.strings.global.pas"/>
-        <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="1"/>
-        <UsageCount Value="20"/>
-        <Loaded Value="True"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+        <Filename Value="..\gbswagger\Source\Core\GBSwagger.Model.Config.pas"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="97" Y="36"/>
+        <UsageCount Value="23"/>
       </Unit>
       <Unit>
-        <Filename Value="resources\resource.strings.msg.pas"/>
-        <IsPartOfProject Value="True"/>
-        <EditorIndex Value="2"/>
-        <UsageCount Value="20"/>
-        <Loaded Value="True"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+        <Filename Value="..\gbswagger\Source\Core\GBSwagger.Model.Attributes.pas"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="48" Y="9"/>
+        <UsageCount Value="23"/>
       </Unit>
       <Unit>
-        <Filename Value="resources\resource.strings.routes.pas"/>
-        <IsPartOfProject Value="True"/>
-        <EditorIndex Value="3"/>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\rtl-objpas\src\inc\strutils.pp"/>
+        <UnitName Value="StrUtils"/>
+        <EditorIndex Value="-1"/>
+        <UsageCount Value="10"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\gbswagger\Source\Core\GBSwagger.Path.Attributes.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="77"/>
+        <CursorPos X="22" Y="86"/>
+        <UsageCount Value="11"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\gbswagger\Source\Validator\GBSwagger.Validator.Base.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="16"/>
+        <CursorPos X="21" Y="5"/>
+        <UsageCount Value="8"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\gbswagger\Source\Horse\Horse.GBSwagger.Register.pas"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="11" Y="15"/>
+        <UsageCount Value="8"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\gbswagger\Source\Datasnap\Datasnap.GBSwagger.pas"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="11" Y="17"/>
+        <UsageCount Value="8"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\gbswagger\Source\Core\GBSwagger.Path.Registry.pas"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="11" Y="12"/>
+        <UsageCount Value="8"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\gbswagger\Source\Core\GBSwagger.Model.pas"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="11" Y="18"/>
+        <UsageCount Value="8"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\gbswagger\Source\Core\GBSwagger.JSON.V2.Schema.pas"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="11" Y="12"/>
         <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\gbswagger\Source\Core\GBSwagger.JSON.V2.PathResponse.pas"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="11" Y="10"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\gbswagger\Source\Core\GBSwagger.JSON.V2.pas"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="34" Y="10"/>
+        <UsageCount Value="8"/>
+      </Unit>
+      <Unit>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\objpas\sysutils\syshelph.inc"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="11" Y="4"/>
+        <UsageCount Value="21"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\gbswagger\Source\Core\GBSwagger.Model.PathResponse.pas"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="7" Y="11"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\gbswagger\Source\Core\GBSwagger.Model.Header.pas"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="20" Y="2"/>
+        <UsageCount Value="21"/>
+      </Unit>
+      <Unit>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\objpas\typinfo.pp"/>
+        <UnitName Value="TypInfo"/>
+        <EditorIndex Value="12"/>
+        <CursorPos X="8" Y="44"/>
+        <UsageCount Value="11"/>
         <Loaded Value="True"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit>
+      <Unit>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-json\src\fpjsonrtti.pp"/>
+        <EditorIndex Value="10"/>
+        <TopLine Value="77"/>
+        <CursorPos X="53" Y="84"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-base\src\rttiutils.pp"/>
+        <UnitName Value="RttiUtils"/>
+        <EditorIndex Value="11"/>
+        <TopLine Value="134"/>
+        <CursorPos X="65" Y="161"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\gbswagger\Source\Core\GBSwagger.Model.PathMethod.pas"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="21" Y="19"/>
+        <UsageCount Value="10"/>
+      </Unit>
+      <Unit>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\objpas\fgl.pp"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="62"/>
+        <CursorPos X="22" Y="103"/>
+        <UsageCount Value="10"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\acbr\Fontes\ACBrComum\ACBr.inc"/>
+        <EditorIndex Value="8"/>
+        <TopLine Value="82"/>
+        <CursorPos X="42" Y="97"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\Base\ACBrNFe.Classes.pas"/>
+        <EditorIndex Value="6"/>
+        <TopLine Value="19"/>
+        <CursorPos X="60" Y="33"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\inc\rttih.inc"/>
+        <EditorIndex Value="13"/>
+        <CursorPos X="62" Y="10"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
       </Unit>
     </Units>
     <Debugger>
       <Backend Value="{514D45D2-1BEC-49C6-B1C1-7EF5FBE5597E}"/>
     </Debugger>
-    <JumpHistory HistoryIndex="8">
+    <JumpHistory HistoryIndex="29">
       <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFeWebServices.pas"/>
-        <Caret Line="506" Column="13" TopLine="503"/>
+        <Filename Value="tools\jsonconvert.pas"/>
+        <Caret Line="20" Column="24" TopLine="4"/>
       </Position>
       <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFeWebServices.pas"/>
+        <Filename Value="tools\jsonconvert.pas"/>
+        <Caret Line="50" Column="30" TopLine="36"/>
       </Position>
       <Position>
-        <Filename Value="ACBRWebService.lpr"/>
-        <Caret Line="38" Column="16" TopLine="33"/>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="148" Column="16" TopLine="130"/>
       </Position>
       <Position>
-        <Filename Value="ACBRWebService.lpr"/>
-        <Caret Line="55" TopLine="37"/>
+        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFe.pas"/>
+        <Caret Line="35" Column="14" TopLine="19"/>
       </Position>
       <Position>
-        <Filename Value="ACBRWebService.lpr"/>
-        <Caret Line="52" Column="23" TopLine="33"/>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="78" Column="21" TopLine="67"/>
       </Position>
       <Position>
-        <Filename Value="ACBRWebService.lpr"/>
-        <Caret Line="14" Column="27"/>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="135" Column="17" TopLine="130"/>
       </Position>
       <Position>
-        <Filename Value="ACBRWebService.lpr"/>
-        <Caret Line="36" Column="21" TopLine="28"/>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="44" Column="7" TopLine="22"/>
       </Position>
       <Position>
-        <Filename Value="ACBRWebService.lpr"/>
-        <Caret Line="41" Column="22" TopLine="34"/>
+        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFe.pas"/>
+        <Caret Line="75" Column="13" TopLine="59"/>
       </Position>
       <Position>
-        <Filename Value="ACBRWebService.lpr"/>
-        <Caret Line="61" Column="32"/>
+        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFeNotasFiscais.pas"/>
+        <Caret Line="59" Column="23" TopLine="45"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="78" Column="20" TopLine="46"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="157" Column="19" TopLine="130"/>
+      </Position>
+      <Position>
+        <Filename Value="tools\jsonconvert.pas"/>
+        <Caret Line="20" Column="26" TopLine="13"/>
+      </Position>
+      <Position>
+        <Filename Value="tools\jsonconvert.pas"/>
+        <Caret Line="49" Column="27" TopLine="25"/>
+      </Position>
+      <Position>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-json\src\fpjsonrtti.pp"/>
+        <Caret Line="71" Column="15"/>
+      </Position>
+      <Position>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-json\src\fpjsonrtti.pp"/>
+        <Caret Line="837" Column="22" TopLine="834"/>
+      </Position>
+      <Position>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-json\src\fpjsonrtti.pp"/>
+        <Caret Line="935" Column="40" TopLine="924"/>
+      </Position>
+      <Position>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-json\src\fpjsonrtti.pp"/>
+        <Caret Line="97" Column="10" TopLine="76"/>
+      </Position>
+      <Position>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-json\src\fpjsonrtti.pp"/>
+        <Caret Line="166" Column="15" TopLine="140"/>
+      </Position>
+      <Position>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-json\src\fpjsonrtti.pp"/>
+        <Caret Line="97" Column="10" TopLine="76"/>
+      </Position>
+      <Position>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-json\src\fpjsonrtti.pp"/>
+        <Caret Line="166" Column="15" TopLine="131"/>
+      </Position>
+      <Position>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-base\src\rttiutils.pp"/>
+        <Caret Line="40" Column="73" TopLine="31"/>
+      </Position>
+      <Position>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-base\src\rttiutils.pp"/>
+        <Caret Line="161" Column="65" TopLine="134"/>
+      </Position>
+      <Position>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\objpas\typinfo.pp"/>
+        <Caret Line="143" Column="7" TopLine="121"/>
+      </Position>
+      <Position>
+        <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\objpas\typinfo.pp"/>
+        <Caret Line="44" Column="8" TopLine="22"/>
+      </Position>
+      <Position>
+        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\Base\ACBrNFe.Classes.pas"/>
+        <Caret Line="33" Column="61" TopLine="19"/>
+      </Position>
+      <Position>
+        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrMDFe\Base\ACBrMDFe.Classes.pas"/>
+        <Caret Line="457" Column="36" TopLine="433"/>
+      </Position>
+      <Position>
+        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrMDFe\Base\ACBrMDFe.Classes.pas"/>
+        <Caret Line="454" Column="21" TopLine="430"/>
+      </Position>
+      <Position>
+        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrMDFe\Base\ACBrMDFe.Classes.pas"/>
+        <Caret Line="461" Column="49" TopLine="440"/>
+      </Position>
+      <Position>
+        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrMDFe\Base\ACBrMDFe.Classes.pas"/>
+        <Caret Line="459" Column="65" TopLine="438"/>
+      </Position>
+      <Position>
+        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrMDFe\Base\ACBrMDFe.Classes.pas"/>
+        <Caret Line="443" TopLine="429"/>
       </Position>
     </JumpHistory>
     <RunParams>
@@ -622,13 +919,6 @@
         <WatchKind Value="wpkWrite"/>
         <Source Value="C:\fpcupdeluxe\fpcsrc\packages\rtl-objpas\src\inc\rtti.pp"/>
         <Line Value="1204"/>
-      </Item>
-      <Item>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="routes\route.acbr.diversos.extenso.pas"/>
-        <Line Value="39"/>
       </Item>
     </BreakPoints>
     <Watches>

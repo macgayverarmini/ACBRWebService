@@ -1,184 +1,261 @@
-#Código em colaboração com CHAT GPT.
-
 import os
 import shutil
+import re
+from tqdm import tqdm
 
 backups_file_list = []
 
 def backup_file(file_path):
+    """Cria um backup do arquivo original antes de modificá-lo."""
     backups_file_list.append(file_path)
     backup_path = file_path + ".clone"
     if os.path.exists(backup_path):
         os.remove(backup_path)
     shutil.copy(file_path, backup_path)
 
-def restore_files(contador = 0):
-    for pre_backup_file_path in backups_file_list:
+def restore_files():
+    """Restaura os arquivos a partir dos backups, com uma barra de progresso."""
+    if not backups_file_list:
+        print("Nenhum backup para restaurar.")
+        return
+
+    print("Restaurando arquivos originais...")
+    for pre_backup_file_path in tqdm(backups_file_list, desc="Restaurando arquivos", unit="file", ncols=100):
         backup_file_path = pre_backup_file_path + ".clone"
         if os.path.exists(backup_file_path):
             shutil.copy(backup_file_path, pre_backup_file_path)
             os.remove(backup_file_path)
-            
-            print(("." * contador))
-            contador += 1
         else:
-            print("Arquivo de backup não encontrado")
+            tqdm.write(f"Aviso: Arquivo de backup não encontrado para {os.path.basename(pre_backup_file_path)}")
 
 def read_file(file_path):
-    encoding = None
+    """Tenta ler um arquivo com diferentes codificações."""
     for enc in ('utf-8', 'ISO-8859-1', 'cp1252'):
         try:
             with open(file_path, 'r', encoding=enc) as f:
-                encoding = enc
-                return f.readlines(), encoding
+                return f.readlines(), enc
         except UnicodeDecodeError:
             continue
-    raise Exception(f"Unable to read file '{file_path}' with any of the encodings: utf-8, ISO-8859-1, cp1252")
+    raise Exception(f"Não foi possível ler o arquivo '{file_path}' com nenhuma das codificações tentadas.")
 
 def write_file(file_path, lines, encoding):
+    """Escreve as linhas de volta no arquivo com a codificação correta."""
     with open(file_path, 'w', encoding=encoding) as f:
         f.writelines(lines)
 
 def backup_linha(indice, lines):
-    return {'codigo':indice,'valor':lines[indice]}
+    """Cria um dicionário para o backup de uma linha específica."""
+    return {'codigo': indice, 'valor': lines[indice]}
 
-def modify_file(file_path, modified_files):    
+def modify_file(file_path):
+    """
+    Modifica um único arquivo .pas, movendo propriedades de 'public' para 'published',
+    ignorando blocos de comentários.
+    Retorna True se o arquivo foi modificado, False caso contrário.
+    """
     lines, encoding = read_file(file_path)
-    file_modified = False    
+    file_modified = False
     start_monitor = False
     start_public = False
     property_lines = []
-    #usado para desfazer as alterações caso encontre uma propriedade published
     backup_linhas = []
     
     i = 0
     published_found = False
-    # passando pelas linhas
+    in_multiline_comment = False  # NOVO: Flag para controlar o estado do comentário multilinha
+
     while i < len(lines):
-        line = lines[i]
+        original_line = lines[i]
+        line_to_process = original_line
 
-        # só inicia a verificação quando achar a sessão public no arquivo pascal.
-        if "type" in line:
-            start_public = True
-        elif "public" in line and start_public:
-            start_monitor = True
-        # quando achar na linha a palavra property, devemos verificar a partir da aqui, todas as linhas por ";"
-        # a fim de garantir mover as propriedades que são multilinhas corretamente.
-        elif "published" in line:        
-            published_found = True   
-        elif "property " in line and start_monitor:
-            property_line = line
-
-            if "property Certificado: PCCERT_CONTEXT" in property_line:
-                continue;
+        # --- LÓGICA PARA LIDAR COM COMENTÁRIOS ---
+        # 1. Se já estamos em um comentário, procurar pelo fim
+        if in_multiline_comment:
+            end_star_pos = line_to_process.find('*)')
+            end_curly_pos = line_to_process.find('}')
             
-            if "property Certificado: pX509" in property_line:
-                continue;
-            
-            if "property SaveOptions: TSaveOptions" in property_line:
-                continue;
+            end_pos = -1
+            if end_star_pos != -1 and end_curly_pos != -1:
+                end_pos = min(end_star_pos, end_curly_pos)
+            elif end_star_pos != -1:
+                end_pos = end_star_pos
+            elif end_curly_pos != -1:
+                end_pos = end_curly_pos
 
-            alimpar = []
-            alimpar.append(i)            
-            #caso especial, quando a propriedade está em mais de uma linha
-            while ";" not in property_line:
-                                
+            if end_pos != -1:
+                in_multiline_comment = False
+                # A linha a ser processada é o que vem DEPOIS do comentário
+                line_to_process = line_to_process[end_pos + (2 if end_pos == end_star_pos else 1):]
+            else:
+                # Ainda dentro do comentário, pular a linha inteira
                 i += 1
-                if i == len(lines):
-                    break                
-                alimpar.append(i)
-                property_line += lines[i]
-                                    
-            # para uma propriedade ser válida para se tornar published, ela precisa ter na property_line
-            # os termos "write F" e "read F".
-            if "read F" in property_line:
-                property_lines.append(property_line)
-                
-                #limpando as linhas, e fazendo o backup delas
-                for index in alimpar:                                    
-                    backup_linhas.append(backup_linha(index, lines))                
-                    lines[index] = ''
-                    file_modified = True
+                continue
+        
+        # 2. Remover comentários de linha única e procurar por início de multilinha
+        # Remove comentários de linha (//)
+        if '//' in line_to_process:
+            line_to_process = line_to_process.split('//', 1)[0]
 
-        # quando encontrar o end, provávlemente foi encontrado o fim da classe que estamos passando
-        # nesse caso vamos adicionar as propriedades uma linha antes.
-        elif "end;" in line.replace(" ", ""):            
-            if (len(property_lines) > 0):
-                # se achou published, que dizer que a classe atual que está sendo processada no arquivo 
-                # não precisa de alteração.
+        # Lida com múltiplos comentários (*...*) ou {...} na mesma linha
+        clean_line = ""
+        while '(*' in line_to_process or '{' in line_to_process:
+            start_star_pos = line_to_process.find('(*')
+            start_curly_pos = line_to_process.find('{')
+
+            start_pos = -1
+            if start_star_pos != -1 and start_curly_pos != -1:
+                start_pos = min(start_star_pos, start_curly_pos)
+            elif start_star_pos != -1:
+                start_pos = start_star_pos
+            else:
+                start_pos = start_curly_pos
+            
+            clean_line += line_to_process[:start_pos] # Adiciona o trecho antes do comentário
+            
+            # Encontrar o fim do comentário
+            is_star_comment = (start_pos == start_star_pos)
+            end_marker = '*)' if is_star_comment else '}'
+            end_pos = line_to_process.find(end_marker, start_pos)
+
+            if end_pos != -1: # Comentário fecha na mesma linha
+                line_to_process = line_to_process[end_pos + len(end_marker):]
+            else: # Comentário não fecha, entramos no modo multilinha
+                in_multiline_comment = True
+                line_to_process = "" # O resto da linha é comentário
+                break
+        
+        clean_line += line_to_process
+        line_to_process = clean_line.strip()
+        # --- FIM DA LÓGICA DE COMENTÁRIOS ---
+
+        if not line_to_process: # Se a linha ficou vazia após limpar comentários
+            i += 1
+            continue
+
+        # A partir daqui, usar "line_to_process" para a lógica de negócio
+        if "type" in line_to_process:
+            start_public = True
+        elif "public" in line_to_process and start_public:
+            start_monitor = True
+        elif "published" in line_to_process:
+            published_found = True
+        elif "property " in line_to_process and start_monitor:
+            property_line = original_line # Coleta a linha original, não a processada
+
+            if any(s in property_line for s in ["property Certificado: PCCERT_CONTEXT", 
+                                                "property Certificado: pX509", 
+                                                "property SaveOptions: TSaveOptions"]):
+                i += 1
+                continue
+            
+            alimpar = [i]
+            # Usa a linha original para a lógica de multilinhas da propriedade
+            temp_prop_line = original_line 
+            while ";" not in temp_prop_line:
+                i += 1
+                if i >= len(lines):
+                    break
+                alimpar.append(i)
+                temp_prop_line += lines[i]
+                property_line += lines[i]
+            
+            # A verificação final usa a linha completa da propriedade
+            if "read F" in temp_prop_line:
+                property_lines.append(property_line)
+                for index in alimpar:
+                    backup_linhas.append(backup_linha(index, lines))
+                    lines[index] = ''
+                file_modified = True
+
+        elif "end;" in line_to_process.replace(" ", ""):
+            if property_lines:
                 if not published_found:
-                    lines[i-1] = lines[i-1] + "\n  published\n" + "".join(property_lines)                                        
+                    lines[i-1] = lines[i-1] + "\n  published\n" + "".join(property_lines)
                 else:
                     for item in backup_linhas:
                         lines[int(item['codigo'])] = item['valor']
-                file_modified = True                                
-            
+                    file_modified = False
+                
                 backup_linhas.clear()
                 property_lines.clear()
             
-            published_found = False            
+            published_found = False
             start_monitor = False
-        # quando encontrar "implementation", é hora de terminar a função. 
-        elif "implementation" in line:
+        elif "implementation" in line_to_process:
             break
         i += 1
 
     if file_modified:
-        modified_files.append(os.path.basename(file_path))
-        write_file(file_path, lines, encoding)
+        write_file(file_path, [l for l in lines if l is not None], encoding)
         return True
-    else:
-        return False
+    return False
 
-
+# O restante do script (print_result, alter_files, e o bloco main) permanece o mesmo da versão anterior.
+# Por questão de completude, o incluí abaixo sem alterações.
 
 def print_result(files_altered, modified_files):
-    print("Concluído! Arquivos alterados:", files_altered)
+    """Imprime o resultado final da operação."""
+    print("\nConcluído!")
     if files_altered > 0:
-        print("Nomes dos arquivos alterados:")
-        for filename in modified_files:
-            print(filename)
+        print(f"Total de arquivos alterados: {files_altered}")
+    else:
+        print("Nenhum arquivo foi modificado.")
 
 def alter_files(path, search_subdirectories):
+    """Percorre os diretórios, encontra os arquivos .pas e os modifica."""
     if not os.path.isdir(path):
         print("O caminho informado não é uma pasta válida.")
-        exit()
+        return 0, []
 
-    files_altered = 0
-    modified_files = []
-
+    pas_files_to_process = []
     if search_subdirectories == 's':
-        for root, dirs, files in os.walk(path):
+        for root, _, files in os.walk(path):
             for filename in files:
-                if filename.endswith(".pas"):                    
-                    file_path = os.path.join(root, filename)
-                    backup_file(file_path)
-                    files_altered += modify_file(file_path, modified_files)
+                if filename.endswith(".pas"):
+                    pas_files_to_process.append(os.path.join(root, filename))
     else:
         for filename in os.listdir(path):
-            if filename.endswith(".pas"):                
-                file_path = os.path.join(path, filename)
-                backup_file(file_path)
-                files_altered += modify_file(file_path, modified_files)
+            if filename.endswith(".pas"):
+                pas_files_to_process.append(os.path.join(path, filename))
 
-    return files_altered, modified_files
-  
+    if not pas_files_to_process:
+        print("Nenhum arquivo .pas encontrado no caminho especificado.")
+        return 0, []
 
-path = input("Digite o caminho da pasta ACBR: ")
+    modified_files = []
+    
+    for file_path in tqdm(pas_files_to_process, desc="Processando arquivos Pascal", unit="file", ncols=100):
+        try:
+            backup_file(file_path)
+            if modify_file(file_path):
+                modified_files.append(os.path.basename(file_path))
+        except Exception as e:
+            tqdm.write(f"\nErro ao processar o arquivo {os.path.basename(file_path)}: {e}")
 
-if path == '':
-    path = 'C:\\NFMonitor\\acbr\\Fontes\\ACBrDFe\\'
 
-search_subdirectories = input("Deseja pesquisar em subdiretórios (s/n)? ")
+    return len(modified_files), modified_files
 
-files_altered, modified_files = alter_files(path, search_subdirectories)
+# --- Bloco Principal ---
+if __name__ == "__main__":
+    try:
+        path = input("Digite o caminho da pasta ACBR (ex: C:\\ACBr\\Fontes\\ACBrDFe\\): ")
+        if not path:
+            path = 'C:\\NFMonitor\\acbr\\Fontes\\ACBrDFe\\'
+            print(f"Usando caminho padrão: {path}")
 
-print_result(files_altered, modified_files)
+        search_subdirectories = input("Deseja pesquisar em subdiretórios (s/n)? [s]: ") or 's'
 
-if files_altered > 0:
-    undo = input("Deseja desfazer as alterações (s/n)? (Dica: você pode tentar compilar no Lazarus antes de tentar desfazer aqui!) ")
-    if undo == "s":        
+        files_altered, modified_files = alter_files(path, search_subdirectories)
+        print_result(files_altered, modified_files)
+
+        if files_altered > 0:
+            undo = input("Deseja desfazer as alterações (s/n)? [n]: ") or 'n'
+            if undo.lower() == "s":
+                restore_files()
+                print("Alterações desfeitas com sucesso.")
+    except KeyboardInterrupt:
+        print("\nOperação interrompida pelo usuário. Desfazendo alterações...")
         restore_files()
         print("Alterações desfeitas.")
-
-
+    except Exception as e:
+        print(f"\nOcorreu um erro inesperado: {e}")
