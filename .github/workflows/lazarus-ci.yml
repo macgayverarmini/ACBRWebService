@@ -44,7 +44,7 @@ jobs:
     - name: Compilar o projeto para Linux
       run: |
         cd project
-        lazbuild ACBRWebService.lpi
+        lazbuild -B ACBRWebService.lpi
 
     - name: Upload do executável de Linux (Artefato)
       uses: actions/upload-artifact@v4
@@ -90,7 +90,7 @@ jobs:
     - name: Compilar o projeto para Windows 64-bit
       run: |
         cd project
-        lazbuild --os=win64 --cpu=x86_64 ACBRWebService.lpi
+        lazbuild -B --os=win64 --cpu=x86_64 ACBRWebService.lpi
 
     - name: Upload do executável de Windows (Artefato)
       uses: actions/upload-artifact@v4
