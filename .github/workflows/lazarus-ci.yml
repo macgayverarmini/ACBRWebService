@@ -8,112 +8,91 @@ on:
   workflow_dispatch:
 
 jobs:
-  # Job para compilar a versão de Linux
   build-linux:
     runs-on: ubuntu-latest
     steps:
-    - name: 1. Checkout do código do projeto
+    - name: Checkout do código do projeto
       uses: actions/checkout@v4
       with:
         path: 'project'
 
-    - name: 2. Configurar Lazarus e FPC
-      id: setup-lazarus
-      uses: gcarreno/setup-lazarus@v1
+    - name: Configurar Lazarus e FPC
+      uses: gcarreno/setup-lazarus@v3
       with:
         lazarus-version: '2.2.0'
-        fpc-version: '3.2.0'
 
-    - name: 3. Checkout das dependências
+    - name: Checkout das dependências
       run: |
         git clone https://github.com/ProjetoACBr/ACBr.git ../acbr
         git clone https://github.com/HashLoad/horse.git ../horse-master
         git clone https://github.com/HashLoad/handle-exception.git ../handle-exception
         git clone https://github.com/HashLoad/jhonson.git ../jhonson
 
-    - name: 4. Configurar Python
+    - name: Configurar Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.x'
 
-    - name: 5. Instalar dependências Python
+    - name: Instalar dependências Python
       run: pip install tqdm
-
-    - name: 6. Remover a referência ao gbswagger do .lpi
-      run: |
-        cd project
-        sed -i '/gbswagger/d' ACBRWebService.lpi
       
-    - name: 7. Executar script de alteração do ACBr
+    - name: Executar script de alteração do ACBr
       run: |
-        # O script pede o caminho do ACBr. Fornecemos o caminho relativo criado no passo 3.
-        # O 'yes' responde 's' para a pergunta de procurar em subdiretórios.
         cd project
         yes s | python script_altera_acbr.py ../acbr/Fontes/ACBrDFe/
       
-    - name: 8. Compilar o projeto para Linux
+    - name: Compilar o projeto para Linux
       run: |
         cd project
-        # CORREÇÃO: Usando o caminho completo para o lazbuild
-        ${{ steps.setup-lazarus.outputs.lazarus-path }}/lazbuild ACBRWebService.lpi
+        lazbuild ACBRWebService.lpi
 
-    - name: 9. Upload do executável de Linux (Artefato)
+    - name: Upload do executável de Linux (Artefato)
       uses: actions/upload-artifact@v4
       with:
         name: ACBRWebService-Linux
         path: project/bin/ACBRWebService
 
-  # Job para compilar a versão de Windows (EXE)
   build-windows:
     runs-on: ubuntu-latest
     steps:
-    - name: 1. Checkout do código do projeto
+    - name: Checkout do código do projeto
       uses: actions/checkout@v4
       with:
         path: 'project'
 
-    - name: 2. Configurar Lazarus, FPC e o Cross-Compiler
-      id: setup-lazarus
-      uses: gcarreno/setup-lazarus@v1
+    - name: Configurar Lazarus, FPC e o Cross-Compiler
+      uses: gcarreno/setup-lazarus@v3
       with:
         lazarus-version: '2.2.0'
-        fpc-version: '3.2.0'
         with-cross-bits: '64'
         with-cross-os: 'win'
 
-    - name: 3. Checkout das dependências
+    - name: Checkout das dependências
       run: |
         git clone https://github.com/ProjetoACBr/ACBr.git ../acbr
         git clone https://github.com/HashLoad/horse.git ../horse-master
         git clone https://github.com/HashLoad/handle-exception.git ../handle-exception
         git clone https://github.com/HashLoad/jhonson.git ../jhonson
 
-    - name: 4. Configurar Python
+    - name: Configurar Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.x'
 
-    - name: 5. Instalar dependências Python
+    - name: Instalar dependências Python
       run: pip install tqdm
-
-    - name: 6. Remover a referência ao gbswagger do .lpi
-      run: |
-        cd project
-        sed -i '/gbswagger/d' ACBRWebService.lpi
       
-    - name: 7. Executar script de alteração do ACBr
+    - name: Executar script de alteração do ACBr
       run: |
         cd project
-        # O 'yes' responde 's' para a pergunta de procurar em subdiretórios.
         yes s | python script_altera_acbr.py ../acbr/Fontes/ACBrDFe/
       
-    - name: 8. Compilar o projeto para Windows 64-bit
+    - name: Compilar o projeto para Windows 64-bit
       run: |
         cd project
-        # CORREÇÃO: Usando o caminho completo para o lazbuild
-        ${{ steps.setup-lazarus.outputs.lazarus-path }}/lazbuild --os=win64 --cpu=x86_64 ACBRWebService.lpi
+        lazbuild --os=win64 --cpu=x86_64 ACBRWebService.lpi
 
-    - name: 9. Upload do executável de Windows (Artefato)
+    - name: Upload do executável de Windows (Artefato)
       uses: actions/upload-artifact@v4
       with:
         name: ACBRWebService-Win64
