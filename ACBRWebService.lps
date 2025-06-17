@@ -145,22 +145,6 @@
         <Loaded Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="..\gbswagger\Source\Core\gbswagger.lazarus.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="GBSwagger.Lazarus"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="10" Y="4"/>
-        <UsageCount Value="47"/>
-      </Unit>
-      <Unit>
-        <Filename Value="..\gbswagger\Source\Core\gbswagger.rtti.fpc.pas"/>
-        <UnitName Value="GBSwagger.RTTI.fpc"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="27"/>
-        <CursorPos X="81" Y="41"/>
-        <UsageCount Value="43"/>
-      </Unit>
-      <Unit>
         <Filename Value="route.pas"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="27" Y="16"/>
@@ -473,146 +457,10 @@
         <UsageCount Value="9"/>
       </Unit>
       <Unit>
-        <Filename Value="..\gbswagger\Source\Core\GBSwagger.Model.Interfaces.pas"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="40"/>
-        <CursorPos X="3" Y="134"/>
-        <UsageCount Value="24"/>
-      </Unit>
-      <Unit>
-        <Filename Value="..\gbswagger\Source\Core\GBSwagger.Model.Types.pas"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="50" Y="31"/>
-        <UsageCount Value="24"/>
-      </Unit>
-      <Unit>
-        <Filename Value="..\gbswagger\Source\Core\GBSwagger.Model.Contact.pas"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos Y="2"/>
-        <UsageCount Value="25"/>
-      </Unit>
-      <Unit>
-        <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\inc\objpash.inc"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="184"/>
-        <CursorPos X="8" Y="196"/>
-        <UsageCount Value="11"/>
-      </Unit>
-      <Unit>
-        <Filename Value="..\gbswagger\Source\Core\GBSwagger.Model.Info.pas"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="33" Y="3"/>
-        <UsageCount Value="24"/>
-      </Unit>
-      <Unit>
-        <Filename Value="..\gbswagger\Source\Core\GBSwagger.Model.Tag.pas"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="33" Y="3"/>
-        <UsageCount Value="24"/>
-      </Unit>
-      <Unit>
-        <Filename Value="..\gbswagger\Source\Core\GBSwagger.Model.Parameter.pas"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="15" Y="2"/>
-        <UsageCount Value="23"/>
-      </Unit>
-      <Unit>
-        <Filename Value="..\gbswagger\Source\Core\GBSwagger.RTTI.pas"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="6"/>
-        <UsageCount Value="10"/>
-      </Unit>
-      <Unit>
-        <Filename Value="..\gbswagger\Source\Core\GBSwagger.Model.Config.pas"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="97" Y="36"/>
-        <UsageCount Value="23"/>
-      </Unit>
-      <Unit>
-        <Filename Value="..\gbswagger\Source\Core\GBSwagger.Model.Attributes.pas"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="48" Y="9"/>
-        <UsageCount Value="23"/>
-      </Unit>
-      <Unit>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\rtl-objpas\src\inc\strutils.pp"/>
         <UnitName Value="StrUtils"/>
         <EditorIndex Value="-1"/>
         <UsageCount Value="10"/>
-      </Unit>
-      <Unit>
-        <Filename Value="..\gbswagger\Source\Core\GBSwagger.Path.Attributes.pas"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="77"/>
-        <CursorPos X="22" Y="86"/>
-        <UsageCount Value="11"/>
-      </Unit>
-      <Unit>
-        <Filename Value="..\gbswagger\Source\Validator\GBSwagger.Validator.Base.pas"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="16"/>
-        <CursorPos X="21" Y="5"/>
-        <UsageCount Value="8"/>
-      </Unit>
-      <Unit>
-        <Filename Value="..\gbswagger\Source\Horse\Horse.GBSwagger.Register.pas"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="11" Y="15"/>
-        <UsageCount Value="8"/>
-      </Unit>
-      <Unit>
-        <Filename Value="..\gbswagger\Source\Datasnap\Datasnap.GBSwagger.pas"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="11" Y="17"/>
-        <UsageCount Value="8"/>
-      </Unit>
-      <Unit>
-        <Filename Value="..\gbswagger\Source\Core\GBSwagger.Path.Registry.pas"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="11" Y="12"/>
-        <UsageCount Value="8"/>
-      </Unit>
-      <Unit>
-        <Filename Value="..\gbswagger\Source\Core\GBSwagger.Model.pas"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="11" Y="18"/>
-        <UsageCount Value="8"/>
-      </Unit>
-      <Unit>
-        <Filename Value="..\gbswagger\Source\Core\GBSwagger.JSON.V2.Schema.pas"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="11" Y="12"/>
-        <UsageCount Value="20"/>
-      </Unit>
-      <Unit>
-        <Filename Value="..\gbswagger\Source\Core\GBSwagger.JSON.V2.PathResponse.pas"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="11" Y="10"/>
-        <UsageCount Value="20"/>
-      </Unit>
-      <Unit>
-        <Filename Value="..\gbswagger\Source\Core\GBSwagger.JSON.V2.pas"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="34" Y="10"/>
-        <UsageCount Value="8"/>
-      </Unit>
-      <Unit>
-        <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\objpas\sysutils\syshelph.inc"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="11" Y="4"/>
-        <UsageCount Value="21"/>
-      </Unit>
-      <Unit>
-        <Filename Value="..\gbswagger\Source\Core\GBSwagger.Model.PathResponse.pas"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="7" Y="11"/>
-        <UsageCount Value="20"/>
-      </Unit>
-      <Unit>
-        <Filename Value="..\gbswagger\Source\Core\GBSwagger.Model.Header.pas"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="20" Y="2"/>
-        <UsageCount Value="21"/>
       </Unit>
       <Unit>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\objpas\typinfo.pp"/>
@@ -638,12 +486,6 @@
         <CursorPos X="65" Y="161"/>
         <UsageCount Value="11"/>
         <Loaded Value="True"/>
-      </Unit>
-      <Unit>
-        <Filename Value="..\gbswagger\Source\Core\GBSwagger.Model.PathMethod.pas"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="21" Y="19"/>
-        <UsageCount Value="10"/>
       </Unit>
       <Unit>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\objpas\fgl.pp"/>

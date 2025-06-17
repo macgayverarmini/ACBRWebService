@@ -1,8 +1,5 @@
 program ACBRWebService;
 
-{$MODESWITCH ATTRIBUTES ON}
-{$modeswitch PrefixedAttributes}
-{$MODESWITCH ExtendedRTTI ON}
 uses
   Interfaces,
   SysUtils, // Adicionado para usar FormatDateTime e Now
