@@ -27,6 +27,21 @@ jobs:
         git clone https://github.com/HashLoad/horse.git ../horse-master
         git clone https://github.com/HashLoad/handle-exception.git ../handle-exception
         git clone https://github.com/HashLoad/jhonson.git ../jhonson
+        git clone https://github.com/fortesreport/fortesreport-ce.git ../fortesreport-ce
+
+    - name: Compilar pacotes de dependência
+      run: |
+        lazbuild -B ../fortesreport-ce/packages/lazarus/frce.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_Comum.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_OpenSSL.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_PCN.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_DFe_Comum.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_NFe.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_NFe_DanfeRL.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_CTe.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_CTe_DACTeRL.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_MDFe.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_MDFe_DAMDFeRL.lpk
 
     - name: Configurar Python
       uses: actions/setup-python@v4
@@ -73,6 +88,21 @@ jobs:
         git clone https://github.com/HashLoad/horse.git ../horse-master
         git clone https://github.com/HashLoad/handle-exception.git ../handle-exception
         git clone https://github.com/HashLoad/jhonson.git ../jhonson
+        git clone https://github.com/fortesreport/fortesreport-ce.git ../fortesreport-ce
+    
+    - name: Compilar pacotes de dependência
+      run: |
+        lazbuild -B ../fortesreport-ce/packages/lazarus/frce.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_Comum.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_OpenSSL.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_PCN.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_DFe_Comum.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_NFe.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_NFe_DanfeRL.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_CTe.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_CTe_DACTeRL.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_MDFe.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_MDFe_DAMDFeRL.lpk
 
     - name: Configurar Python
       uses: actions/setup-python@v4
