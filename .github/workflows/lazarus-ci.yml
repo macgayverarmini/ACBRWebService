@@ -93,10 +93,10 @@ jobs:
     - name: Compilar pacotes de dependência
       run: |
         lazbuild -B ../fortesreport-ce4/Packages/frce.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_Comum.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_OpenSSL.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_PCN.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_DFe_Comum.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrComum.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrOpenSSL.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrPCN.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFeComum.lpk
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_NFe.lpk
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_NFe_DanfeRL.lpk
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_CTe.lpk
