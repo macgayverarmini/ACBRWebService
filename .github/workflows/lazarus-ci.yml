@@ -31,17 +31,29 @@ jobs:
 
     - name: Compilar pacotes de dependência
       run: |
+        # Dependências primárias
+        lazbuild -B ../acbr/Pacotes/Lazarus/synapse/laz_synapse.lpk
         lazbuild -B ../fortesreport-ce/packages/lazarus/frce.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_Comum.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_OpenSSL.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_PCN.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_DFe_Comum.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_NFe.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_NFe_DanfeRL.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_CTe.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_CTe_DACTeRL.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_MDFe.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBr_MDFe_DAMDFeRL.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrComum/ACBrComum.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrOpenSSL/ACBrOpenSSL.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDiversos/ACBrDiversos.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrTCP/ACBrTCP.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/PCNComum/PCNComum.lpk
+        
+        # Dependências DFe
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrDFeComum.lpk
+        
+        # NFe
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrNFe/ACBr_NFe.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrNFe/DANFE/NFe/Fortes/ACBr_NFe_DanfeRL.lpk
+        
+        # CTe
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrCTe/ACBr_CTe.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrCTe/DACTE/Fortes/ACBr_CTe_DACTeRL.lpk
+        
+        # MDFe
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrMDFe/ACBr_MDFe.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrMDFe/DAMDFE/Fortes/ACBr_MDFe_DAMDFeRL.lpk
 
     - name: Configurar Python
       uses: actions/setup-python@v4
@@ -54,6 +66,7 @@ jobs:
     - name: Executar script de alteração do ACBr
       run: |
         cd project
+        # O 'yes s' responde 's' (sim) para a pergunta sobre subdiretórios no script
         yes s | python script_altera_acbr.py ../acbr/Fontes/ACBrDFe/
       
     - name: Compilar o projeto para Linux
@@ -88,18 +101,31 @@ jobs:
         git clone https://github.com/HashLoad/horse.git ../horse-master
         git clone https://github.com/HashLoad/handle-exception.git ../handle-exception
         git clone https://github.com/HashLoad/jhonson.git ../jhonson
-        git clone https://github.com/fortesinformatica/fortesreport-ce.git ../fortesreport-ce4
+        git clone https://github.com/fortesreport/fortesreport-ce.git ../fortesreport-ce
     
     - name: Compilar pacotes de dependência
       run: |
-        lazbuild -B ../fortesreport-ce4/Packages/frce.lpk
+        # Dependências primárias
+        lazbuild -B ../acbr/Pacotes/Lazarus/synapse/laz_synapse.lpk
+        lazbuild -B ../fortesreport-ce/packages/lazarus/frce.lpk
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrComum/ACBrComum.lpk
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrOpenSSL/ACBrOpenSSL.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDiversos/ACBrDiversos.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrTCP/ACBrTCP.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/PCNComum/PCNComum.lpk
+        
+        # Dependências DFe
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrDFeComum.lpk
+        
+        # NFe
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrNFe/ACBr_NFe.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrNFe/DANFE/NFe/ACBr_NFe_DanfeRL.lpk
+        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrNFe/DANFE/NFe/Fortes/ACBr_NFe_DanfeRL.lpk
+        
+        # CTe
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrCTe/ACBr_CTe.lpk
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrCTe/DACTE/Fortes/ACBr_CTe_DACTeRL.lpk
+        
+        # MDFe
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrMDFe/ACBr_MDFe.lpk
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrMDFe/DAMDFE/Fortes/ACBr_MDFe_DAMDFeRL.lpk
 
