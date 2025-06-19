@@ -8,6 +8,8 @@
       <Unit>
         <Filename Value="ACBRWebService.lpr"/>
         <IsPartOfProject Value="True"/>
+        <IsVisibleTab Value="True"/>
+        <TopLine Value="3"/>
         <CursorPos Y="40"/>
         <UsageCount Value="217"/>
         <Loaded Value="True"/>
@@ -15,33 +17,30 @@
       <Unit>
         <Filename Value="routes\route.acbr.nfe.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="1"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="22"/>
         <CursorPos Y="4"/>
         <UsageCount Value="217"/>
-        <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="routes\route.pas"/>
         <IsPartOfProject Value="True"/>
-        <UsageCount Value="70"/>
+        <UsageCount Value="72"/>
       </Unit>
       <Unit>
         <Filename Value="method\method.acbr.nfe.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="-1"/>
         <CursorPos X="53" Y="12"/>
         <UsageCount Value="216"/>
-        <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="tools\jsonconvert.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="9"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="25"/>
         <CursorPos X="27" Y="49"/>
         <UsageCount Value="209"/>
-        <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="method\method.acbr.diversos.extenso.pas"/>
@@ -96,7 +95,7 @@
         <WindowIndex Value="1"/>
         <TopLine Value="418"/>
         <CursorPos X="31" Y="429"/>
-        <UsageCount Value="74"/>
+        <UsageCount Value="76"/>
       </Unit>
       <Unit>
         <Filename Value="routes\router.acbr.cte.pas"/>
@@ -104,7 +103,7 @@
         <EditorIndex Value="-1"/>
         <WindowIndex Value="1"/>
         <CursorPos X="14" Y="26"/>
-        <UsageCount Value="110"/>
+        <UsageCount Value="112"/>
       </Unit>
       <Unit>
         <Filename Value="method\method.acbr.mdfe.pas"/>
@@ -112,7 +111,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="447"/>
         <CursorPos X="51" Y="477"/>
-        <UsageCount Value="101"/>
+        <UsageCount Value="103"/>
       </Unit>
       <Unit>
         <Filename Value="routes\route.acbr.mdfe.pas"/>
@@ -120,29 +119,33 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="153"/>
         <CursorPos X="44" Y="183"/>
-        <UsageCount Value="72"/>
+        <UsageCount Value="74"/>
       </Unit>
       <Unit>
         <Filename Value="resources\resource.strings.global.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="70"/>
+        <UsageCount Value="72"/>
       </Unit>
       <Unit>
         <Filename Value="resources\resource.strings.msg.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="14"/>
+        <EditorIndex Value="-1"/>
         <CursorPos X="3" Y="13"/>
-        <UsageCount Value="70"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="72"/>
       </Unit>
       <Unit>
         <Filename Value="resources\resource.strings.routes.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="-1"/>
         <CursorPos X="4" Y="29"/>
-        <UsageCount Value="70"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="72"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\gbswagger\Source\Core\gbswagger.lazarus.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="GBSwagger.Lazarus"/>
+        <UsageCount Value="22"/>
       </Unit>
       <Unit>
         <Filename Value="route.pas"/>
@@ -167,11 +170,10 @@
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFe.pas"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="59"/>
         <CursorPos X="13" Y="75"/>
         <UsageCount Value="18"/>
-        <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFeConfiguracoes.pas"/>
@@ -218,11 +220,10 @@
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFeNotasFiscais.pas"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="45"/>
         <CursorPos X="23" Y="59"/>
         <UsageCount Value="75"/>
-        <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\PCNNFe\pcnNFe.pas"/>
@@ -397,12 +398,10 @@
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrMDFe\Base\ACBrMDFe.Classes.pas"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="436"/>
-        <CursorPos X="20" Y="451"/>
+        <CursorPos X="42" Y="447"/>
         <UsageCount Value="18"/>
-        <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrMDFe\ACBrMDFeManifestos.pas"/>
@@ -465,27 +464,24 @@
       <Unit>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\objpas\typinfo.pp"/>
         <UnitName Value="TypInfo"/>
-        <EditorIndex Value="12"/>
+        <EditorIndex Value="-1"/>
         <CursorPos X="8" Y="44"/>
         <UsageCount Value="11"/>
-        <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-json\src\fpjsonrtti.pp"/>
-        <EditorIndex Value="10"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="77"/>
         <CursorPos X="53" Y="84"/>
         <UsageCount Value="11"/>
-        <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-base\src\rttiutils.pp"/>
         <UnitName Value="RttiUtils"/>
-        <EditorIndex Value="11"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="134"/>
         <CursorPos X="65" Y="161"/>
         <UsageCount Value="11"/>
-        <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\objpas\fgl.pp"/>
@@ -496,153 +492,29 @@
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrComum\ACBr.inc"/>
-        <EditorIndex Value="8"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="82"/>
         <CursorPos X="42" Y="97"/>
         <UsageCount Value="10"/>
-        <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\Base\ACBrNFe.Classes.pas"/>
-        <EditorIndex Value="6"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="19"/>
         <CursorPos X="60" Y="33"/>
         <UsageCount Value="10"/>
-        <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\inc\rttih.inc"/>
-        <EditorIndex Value="13"/>
+        <EditorIndex Value="-1"/>
         <CursorPos X="62" Y="10"/>
         <UsageCount Value="10"/>
-        <Loaded Value="True"/>
       </Unit>
     </Units>
     <Debugger>
       <Backend Value="{514D45D2-1BEC-49C6-B1C1-7EF5FBE5597E}"/>
     </Debugger>
-    <JumpHistory HistoryIndex="29">
-      <Position>
-        <Filename Value="tools\jsonconvert.pas"/>
-        <Caret Line="20" Column="24" TopLine="4"/>
-      </Position>
-      <Position>
-        <Filename Value="tools\jsonconvert.pas"/>
-        <Caret Line="50" Column="30" TopLine="36"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.nfe.pas"/>
-        <Caret Line="148" Column="16" TopLine="130"/>
-      </Position>
-      <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFe.pas"/>
-        <Caret Line="35" Column="14" TopLine="19"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.nfe.pas"/>
-        <Caret Line="78" Column="21" TopLine="67"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.nfe.pas"/>
-        <Caret Line="135" Column="17" TopLine="130"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.nfe.pas"/>
-        <Caret Line="44" Column="7" TopLine="22"/>
-      </Position>
-      <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFe.pas"/>
-        <Caret Line="75" Column="13" TopLine="59"/>
-      </Position>
-      <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFeNotasFiscais.pas"/>
-        <Caret Line="59" Column="23" TopLine="45"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.nfe.pas"/>
-        <Caret Line="78" Column="20" TopLine="46"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.nfe.pas"/>
-        <Caret Line="157" Column="19" TopLine="130"/>
-      </Position>
-      <Position>
-        <Filename Value="tools\jsonconvert.pas"/>
-        <Caret Line="20" Column="26" TopLine="13"/>
-      </Position>
-      <Position>
-        <Filename Value="tools\jsonconvert.pas"/>
-        <Caret Line="49" Column="27" TopLine="25"/>
-      </Position>
-      <Position>
-        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-json\src\fpjsonrtti.pp"/>
-        <Caret Line="71" Column="15"/>
-      </Position>
-      <Position>
-        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-json\src\fpjsonrtti.pp"/>
-        <Caret Line="837" Column="22" TopLine="834"/>
-      </Position>
-      <Position>
-        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-json\src\fpjsonrtti.pp"/>
-        <Caret Line="935" Column="40" TopLine="924"/>
-      </Position>
-      <Position>
-        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-json\src\fpjsonrtti.pp"/>
-        <Caret Line="97" Column="10" TopLine="76"/>
-      </Position>
-      <Position>
-        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-json\src\fpjsonrtti.pp"/>
-        <Caret Line="166" Column="15" TopLine="140"/>
-      </Position>
-      <Position>
-        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-json\src\fpjsonrtti.pp"/>
-        <Caret Line="97" Column="10" TopLine="76"/>
-      </Position>
-      <Position>
-        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-json\src\fpjsonrtti.pp"/>
-        <Caret Line="166" Column="15" TopLine="131"/>
-      </Position>
-      <Position>
-        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-base\src\rttiutils.pp"/>
-        <Caret Line="40" Column="73" TopLine="31"/>
-      </Position>
-      <Position>
-        <Filename Value="C:\fpcupdeluxe\fpcsrc\packages\fcl-base\src\rttiutils.pp"/>
-        <Caret Line="161" Column="65" TopLine="134"/>
-      </Position>
-      <Position>
-        <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\objpas\typinfo.pp"/>
-        <Caret Line="143" Column="7" TopLine="121"/>
-      </Position>
-      <Position>
-        <Filename Value="C:\fpcupdeluxe\fpcsrc\rtl\objpas\typinfo.pp"/>
-        <Caret Line="44" Column="8" TopLine="22"/>
-      </Position>
-      <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\Base\ACBrNFe.Classes.pas"/>
-        <Caret Line="33" Column="61" TopLine="19"/>
-      </Position>
-      <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrMDFe\Base\ACBrMDFe.Classes.pas"/>
-        <Caret Line="457" Column="36" TopLine="433"/>
-      </Position>
-      <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrMDFe\Base\ACBrMDFe.Classes.pas"/>
-        <Caret Line="454" Column="21" TopLine="430"/>
-      </Position>
-      <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrMDFe\Base\ACBrMDFe.Classes.pas"/>
-        <Caret Line="461" Column="49" TopLine="440"/>
-      </Position>
-      <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrMDFe\Base\ACBrMDFe.Classes.pas"/>
-        <Caret Line="459" Column="65" TopLine="438"/>
-      </Position>
-      <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrMDFe\Base\ACBrMDFe.Classes.pas"/>
-        <Caret Line="443" TopLine="429"/>
-      </Position>
-    </JumpHistory>
+    <JumpHistory HistoryIndex="-1"/>
     <RunParams>
       <FormatVersion Value="2"/>
       <Modes ActiveMode=""/>
