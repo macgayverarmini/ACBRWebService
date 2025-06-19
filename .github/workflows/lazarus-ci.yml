@@ -29,6 +29,9 @@ jobs:
         git clone https://github.com/HashLoad/jhonson.git ../jhonson
         git clone https://github.com/fortesinformatica/fortesreport-ce ../fortesreport-ce4
 
+    - name: Instalar dependências do sistema
+      run: sudo apt-get update && sudo apt-get install -y binutils
+
     - name: Compilar pacotes de dependência
       run: |
         # Dependências primárias
