@@ -33,7 +33,7 @@ jobs:
       run: |
         # Dependências primárias
         lazbuild -B ../acbr/Pacotes/Lazarus/synapse/laz_synapse.lpk
-        lazbuild -B ../fortesreport-ce4/packages/frce.lpk
+        lazbuild -B ../fortesreport-ce4/Packages/frce.lpk
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrComum/ACBrComum.lpk
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrOpenSSL/ACBrOpenSSL.lpk
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDiversos/ACBrDiversos.lpk
@@ -107,7 +107,7 @@ jobs:
       run: |
         # Dependências primárias
         lazbuild -B ../acbr/Pacotes/Lazarus/synapse/laz_synapse.lpk
-        lazbuild -B ../fortesreport-ce4/packages/frce.lpk
+        lazbuild -B ../fortesreport-ce4/Packages/frce.lpk
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrComum/ACBrComum.lpk
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrOpenSSL/ACBrOpenSSL.lpk
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDiversos/ACBrDiversos.lpk
