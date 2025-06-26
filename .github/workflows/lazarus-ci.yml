@@ -11,6 +11,9 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
     steps:
+    - name: Instalar dependências de sistema
+      run: sudo apt-get update && sudo apt-get install -y subversion
+
     - name: Checkout do código do projeto
       uses: actions/checkout@v4
       with:
@@ -21,20 +24,17 @@ jobs:
       with:
         lazarus-version: '2.2.0'
 
-    - name: Checkout das dependências
+    - name: Checkout das dependências (ACBr via SVN)
       run: |
-        git clone https://github.com/ProjetoACBr/ACBr.git ../acbr
+        svn checkout https://svn.code.sf.net/p/acbr/code/trunk2 ../acbr
         git clone https://github.com/HashLoad/horse.git ../horse-master
         git clone https://github.com/HashLoad/handle-exception.git ../handle-exception
         git clone https://github.com/HashLoad/jhonson.git ../jhonson
-        git clone https://github.com/fortesinformatica/fortesreport-ce ../fortesreport-ce4
-
-    - name: Instalar dependências do sistema
-      run: sudo apt-get update && sudo apt-get install -y binutils
+        git clone https://github.com/fortesinformatica/fortesreport-ce.git ../fortesreport-ce4
 
     - name: Compilar pacotes de dependência
       run: |
-        # Dependências primárias
+        cd project
         lazbuild -B ../acbr/Pacotes/Lazarus/synapse/laz_synapse.lpk
         lazbuild -B ../fortesreport-ce4/Packages/frce.lpk
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrComum/ACBrComum.lpk
@@ -42,19 +42,11 @@ jobs:
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDiversos/ACBrDiversos.lpk
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrTCP/ACBrTCP.lpk
         lazbuild -B ../acbr/Pacotes/Lazarus/PCNComum/PCNComum.lpk
-        
-        # Dependências DFe
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrDFeComum.lpk
-        
-        # NFe
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrNFe/ACBr_NFe.lpk
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrNFe/DANFE/NFe/Fortes/ACBr_NFe_DanfeRL.lpk
-        
-        # CTe
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrCTe/ACBr_CTe.lpk
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrCTe/DACTE/Fortes/ACBr_CTe_DACTeRL.lpk
-        
-        # MDFe
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrMDFe/ACBr_MDFe.lpk
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrMDFe/DAMDFE/Fortes/ACBr_MDFe_DAMDFeRL.lpk
 
@@ -69,7 +61,6 @@ jobs:
     - name: Executar script de alteração do ACBr
       run: |
         cd project
-        # O 'yes s' responde 's' (sim) para a pergunta sobre subdiretórios no script
         yes s | python script_altera_acbr.py ../acbr/Fontes/ACBrDFe/
       
     - name: Compilar o projeto para Linux
@@ -86,6 +77,9 @@ jobs:
   build-windows:
     runs-on: ubuntu-latest
     steps:
+    - name: Instalar dependências de sistema
+      run: sudo apt-get update && sudo apt-get install -y subversion
+
     - name: Checkout do código do projeto
       uses: actions/checkout@v4
       with:
@@ -98,20 +92,17 @@ jobs:
         with-cross-bits: '64'
         with-cross-os: 'win'
 
-    - name: Checkout das dependências
+    - name: Checkout das dependências (ACBr via SVN)
       run: |
-        git clone https://github.com/ProjetoACBr/ACBr.git ../acbr
+        svn checkout https://svn.code.sf.net/p/acbr/code/trunk2 ../acbr
         git clone https://github.com/HashLoad/horse.git ../horse-master
         git clone https://github.com/HashLoad/handle-exception.git ../handle-exception
         git clone https://github.com/HashLoad/jhonson.git ../jhonson
-        git clone https://github.com/fortesinformatica/fortesreport-ce ../fortesreport-ce4
-
-    - name: Instalar dependências do sistema
-      run: sudo apt-get update && sudo apt-get install -y binutils
-
+        git clone https://github.com/fortesinformatica/fortesreport-ce.git ../fortesreport-ce4
+    
     - name: Compilar pacotes de dependência
       run: |
-        # Dependências primárias
+        cd project
         lazbuild -B ../acbr/Pacotes/Lazarus/synapse/laz_synapse.lpk
         lazbuild -B ../fortesreport-ce4/Packages/frce.lpk
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrComum/ACBrComum.lpk
@@ -119,19 +110,11 @@ jobs:
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDiversos/ACBrDiversos.lpk
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrTCP/ACBrTCP.lpk
         lazbuild -B ../acbr/Pacotes/Lazarus/PCNComum/PCNComum.lpk
-        
-        # Dependências DFe
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrDFeComum.lpk
-        
-        # NFe
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrNFe/ACBr_NFe.lpk
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrNFe/DANFE/NFe/Fortes/ACBr_NFe_DanfeRL.lpk
-        
-        # CTe
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrCTe/ACBr_CTe.lpk
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrCTe/DACTE/Fortes/ACBr_CTe_DACTeRL.lpk
-        
-        # MDFe
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrMDFe/ACBr_MDFe.lpk
         lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrMDFe/DAMDFE/Fortes/ACBr_MDFe_DAMDFeRL.lpk
 
