@@ -1,4 +1,4 @@
-name: Lazarus CI
+name: Lazarus CI/CD
 
 on:
   push:
@@ -8,142 +8,68 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-linux:
+  build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [linux, windows]
+
     steps:
+    - name: Checkout do código do projeto
+      uses: actions/checkout@v4
+
     - name: Instalar dependências de sistema
       run: |
         sudo apt-get update
-        sudo apt-get install -y subversion binutils binutils-dev
+        sudo apt-get install -y subversion python3 python3-pip mingw-w64
+        # A correção crucial para o windres, necessária para compilação cruzada
         sudo ln -s /usr/bin/x86_64-w64-mingw32-windres /usr/bin/windres
 
-    - name: Checkout do código do projeto
-      uses: actions/checkout@v4
-      with:
-        path: 'project'
-
-    - name: Configurar Lazarus e FPC
+    - name: Configurar Lazarus e FPC (Cross-compile para Windows)
       uses: gcarreno/setup-lazarus@v3
       with:
-        lazarus-version: '2.2.0'
+        lazarus-version: '3.2.0' # Usando uma versão mais recente e estável
+        with-cross-bits: '64'
+        with-cross-os: 'win'
+      if: matrix.target == 'windows'
 
-    - name: Checkout das dependências (ACBr via SVN)
-      run: |
-        svn checkout https://svn.code.sf.net/p/acbr/code/trunk2 ../acbr
-        git clone https://github.com/HashLoad/horse.git ../horse-master
-        git clone https://github.com/HashLoad/handle-exception.git ../handle-exception
-        git clone https://github.com/HashLoad/jhonson.git ../jhonson
-        git clone https://github.com/fortesinformatica/fortesreport-ce.git ../fortesreport-ce4
-
-    - name: Compilar pacotes de dependência
-      run: |
-        cd project
-        lazbuild -B ../acbr/Pacotes/Lazarus/synapse/laz_synapse.lpk
-        lazbuild -B ../fortesreport-ce4/Packages/frce.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrComum/ACBrComum.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrOpenSSL/ACBrOpenSSL.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDiversos/ACBrDiversos.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrTCP/ACBrTCP.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/PCNComum/PCNComum.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrDFeComum.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrNFe/ACBr_NFe.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrNFe/DANFE/NFe/Fortes/ACBr_NFe_DanfeRL.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrCTe/ACBr_CTe.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrCTe/DACTE/Fortes/ACBr_CTe_DACTeRL.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrMDFe/ACBr_MDFe.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrMDFe/DAMDFE/Fortes/ACBr_MDFe_DAMDFeRL.lpk
-
-    - name: Configurar Python
-      uses: actions/setup-python@v4
+    - name: Configurar Lazarus e FPC (Nativo para Linux)
+      uses: gcarreno/setup-lazarus@v3
       with:
-        python-version: '3.x'
+        lazarus-version: '3.2.0'
+      if: matrix.target == 'linux'
+
+    - name: Dar permissão de execução aos scripts
+      run: chmod +x download.sh build.sh
+
+    - name: Baixar dependências (ACBr, Horse, etc)
+      run: ./download.sh
 
     - name: Instalar dependências Python
-      run: pip install tqdm
-      
-    - name: Executar script de alteração do ACBr
+      run: pip3 install tqdm
+
+    # A compilação dos pacotes e do projeto agora pode ser feita pelo build.sh
+    # que já contém a lógica correta, garantindo consistência.
+    - name: Construir o projeto (compilar pacotes e o executável)
+      run: ./build.sh
+
+    - name: Compilar o projeto para Windows 64-bit (se build.sh não fizer)
+      if: matrix.target == 'windows'
       run: |
-        cd project
-        yes s | python script_altera_acbr.py ../acbr/Fontes/ACBrDFe/
-      
-    - name: Compilar o projeto para Linux
-      run: |
-        cd project
-        lazbuild -B ACBRWebService.lpi
+        # O build.sh já deve compilar, mas esta é uma garantia.
+        # Se o build.sh já faz a compilação cruzada, este passo pode ser removido.
+        lazbuild -B --os=win64 --cpu=x86_64 ACBRWebService.lpi
 
     - name: Upload do executável de Linux (Artefato)
+      if: matrix.target == 'linux'
       uses: actions/upload-artifact@v4
       with:
         name: ACBRWebService-Linux
-        path: project/bin/ACBRWebService
-
-  build-windows:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Instalar dependências de sistema
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y subversion binutils binutils-dev
-        sudo ln -s /usr/bin/x86_64-w64-mingw32-windres /usr/bin/windres
-
-    - name: Checkout do código do projeto
-      uses: actions/checkout@v4
-      with:
-        path: 'project'
-
-    - name: Configurar Lazarus, FPC e o Cross-Compiler
-      uses: gcarreno/setup-lazarus@v3
-      with:
-        lazarus-version: '2.2.0'
-        with-cross-bits: '64'
-        with-cross-os: 'win'
-
-    - name: Checkout das dependências (ACBr via SVN)
-      run: |
-        svn checkout https://svn.code.sf.net/p/acbr/code/trunk2 ../acbr
-        git clone https://github.com/HashLoad/horse.git ../horse-master
-        git clone https://github.com/HashLoad/handle-exception.git ../handle-exception
-        git clone https://github.com/HashLoad/jhonson.git ../jhonson
-        git clone https://github.com/fortesinformatica/fortesreport-ce.git ../fortesreport-ce4
-    
-    - name: Compilar pacotes de dependência
-      run: |
-        cd project
-        lazbuild -B ../acbr/Pacotes/Lazarus/synapse/laz_synapse.lpk
-        lazbuild -B ../fortesreport-ce4/Packages/frce.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrComum/ACBrComum.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrOpenSSL/ACBrOpenSSL.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDiversos/ACBrDiversos.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrTCP/ACBrTCP.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/PCNComum/PCNComum.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrDFeComum.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrNFe/ACBr_NFe.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrNFe/DANFE/NFe/Fortes/ACBr_NFe_DanfeRL.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrCTe/ACBr_CTe.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrCTe/DACTE/Fortes/ACBr_CTe_DACTeRL.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrMDFe/ACBr_MDFe.lpk
-        lazbuild -B ../acbr/Pacotes/Lazarus/ACBrDFe/ACBrMDFe/DAMDFE/Fortes/ACBr_MDFe_DAMDFeRL.lpk
-
-    - name: Configurar Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
-
-    - name: Instalar dependências Python
-      run: pip install tqdm
-      
-    - name: Executar script de alteração do ACBr
-      run: |
-        cd project
-        yes s | python script_altera_acbr.py ../acbr/Fontes/ACBrDFe/
-      
-    - name: Compilar o projeto para Windows 64-bit
-      run: |
-        cd project
-        lazbuild -B --os=win64 --cpu=x86_64 ACBRWebService.lpi
+        path: ACBRWebService
 
     - name: Upload do executável de Windows (Artefato)
+      if: matrix.target == 'windows'
       uses: actions/upload-artifact@v4
       with:
         name: ACBRWebService-Win64
-        path: project/bin/ACBRWebService.exe
+        path: ACBRWebService.exe

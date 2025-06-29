@@ -1,33 +1,38 @@
-# Use uma imagem base do Ubuntu, a mesma usada pelo GitHub Actions
+# Use uma imagem base do Ubuntu que seja compatível com as dependências
 FROM ubuntu:22.04
 
-# Evita que a instala��o pe�a intera��o do usu�rio
+# Evita que a instalação peça interação do usuário
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Instala as depend�ncias de sistema, incluindo o 'subversion'
+# Instala todas as dependências de sistema de uma vez
+# Inclui git, svn, python, e o compilador C++ para o Lazarus
 RUN apt-get update && apt-get install -y \
     git \
     subversion \
     python3 \
     python3-pip \
     dos2unix \
+    fpc \
+    lazarus \
     && rm -rf /var/lib/apt/lists/*
 
-# Instala a depend�ncia Python (tqdm)
-RUN pip3 install tqdm
-
-# Instala o FPC e o Lazarus
-RUN wget -O - https://pascal-programming.com/fpc-lazarus.asc | gpg --dearmor | tee /usr/share/keyrings/lazarus.gpg > /dev/null
-RUN echo "deb [signed-by=/usr/share/keyrings/lazarus.gpg] https://pascal-programming.com/fpc-lazarus/laz-fpc-3-2-2-ubuntu-22-04 ./" > /etc/apt/sources.list.d/lazarus.list
-RUN apt-get update && apt-get install -y fpc lazarus
-
-# Define um diret�rio de trabalho dentro do container
+# Define o diretório de trabalho
 WORKDIR /app
 
-# Copia o seu script de build e o prepara
-COPY build.sh .
-RUN dos2unix build.sh
-RUN chmod +x build.sh
+# Copia todos os arquivos do projeto para o diretório de trabalho
+# Isso inclui os scripts, o código-fonte e os arquivos de configuração
+COPY . .
 
-# Define o comando padr�o para iniciar o build
+# Garante que os scripts tenham permissão de execução
+RUN chmod +x download.sh build.sh
+
+# Baixa as dependências externas (ACBr, Horse, etc.)
+# Centraliza a lógica de download no script, como no CI
+RUN ./download.sh
+
+# Instala as dependências Python necessárias para os scripts
+RUN pip3 install tqdm
+
+# Executa o script de build principal que compila pacotes e o projeto
+# Este é o comando final que produz o executável
 CMD ["./build.sh"]
