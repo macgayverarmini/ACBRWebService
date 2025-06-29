@@ -8,7 +8,8 @@
       <Unit>
         <Filename Value="ACBRWebService.lpr"/>
         <IsPartOfProject Value="True"/>
-        <CursorPos X="25" Y="8"/>
+        <IsVisibleTab Value="True"/>
+        <CursorPos X="31" Y="13"/>
         <UsageCount Value="217"/>
         <Loaded Value="True"/>
       </Unit>
@@ -146,61 +147,11 @@
         <UnitName Value="GBSwagger.Lazarus"/>
         <UsageCount Value="21"/>
       </Unit>
-      <Unit>
-        <Filename Value="..\acbr\Pacotes\Lazarus\ACBrComum\ACBrComum.pas"/>
-        <EditorIndex Value="4"/>
-        <CursorPos X="5" Y="25"/>
-        <UsageCount Value="11"/>
-        <Loaded Value="True"/>
-      </Unit>
-      <Unit>
-        <Filename Value="..\acbr\Fontes\ACBrTCP\ACBrWinReqRespClass.pas"/>
-        <EditorIndex Value="5"/>
-        <TopLine Value="749"/>
-        <CursorPos Y="782"/>
-        <UsageCount Value="11"/>
-        <Loaded Value="True"/>
-      </Unit>
-      <Unit>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFe.pas"/>
-        <EditorIndex Value="2"/>
-        <UsageCount Value="10"/>
-        <Loaded Value="True"/>
-      </Unit>
-      <Unit>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrCTe\Base\ACBrCTe.Classes.pas"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="3"/>
-        <TopLine Value="34"/>
-        <CursorPos X="36" Y="52"/>
-        <UsageCount Value="10"/>
-        <Loaded Value="True"/>
-      </Unit>
     </Units>
     <Debugger>
       <Backend Value="{514D45D2-1BEC-49C6-B1C1-7EF5FBE5597E}"/>
     </Debugger>
-    <JumpHistory HistoryIndex="4">
-      <Position>
-        <Filename Value="ACBRWebService.lpr"/>
-        <Caret Line="40" TopLine="3"/>
-      </Position>
-      <Position>
-        <Filename Value="..\acbr\Pacotes\Lazarus\ACBrComum\ACBrComum.pas"/>
-        <Caret Line="14" Column="13"/>
-      </Position>
-      <Position>
-        <Filename Value="..\acbr\Fontes\ACBrTCP\ACBrWinReqRespClass.pas"/>
-        <Caret Line="160" Column="10" TopLine="153"/>
-      </Position>
-      <Position>
-        <Filename Value="method\method.acbr.nfe.pas"/>
-        <Caret Line="12" Column="53"/>
-      </Position>
-      <Position>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFe.pas"/>
-      </Position>
-    </JumpHistory>
+    <JumpHistory HistoryIndex="-1"/>
     <RunParams>
       <FormatVersion Value="2"/>
       <Modes ActiveMode=""/>

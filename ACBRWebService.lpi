@@ -2,7 +2,6 @@
 <CONFIG>
   <ProjectOptions>
     <Version Value="12"/>
-    <PathDelim Value="\"/>
     <General>
       <Flags>
         <MainUnitHasCreateFormStatements Value="False"/>
@@ -21,7 +20,7 @@
     <VersionInfo>
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
-      <BuildNr Value="6"/>
+      <BuildNr Value="8"/>
       <Language Value="0416"/>
       <Attributes pvaDebug="True"/>
     </VersionInfo>
@@ -73,75 +72,75 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="routes\route.acbr.nfe.pas"/>
+        <Filename Value="routes/route.acbr.nfe.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="routes\route.pas"/>
+        <Filename Value="routes/route.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Filename Value="method/method.acbr.nfe.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="tools\jsonconvert.pas"/>
+        <Filename Value="tools/jsonconvert.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="method\method.acbr.diversos.extenso.pas"/>
+        <Filename Value="method/method.acbr.diversos.extenso.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="routes\route.acbr.diversos.extenso.pas"/>
+        <Filename Value="routes/route.acbr.diversos.extenso.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="routes\route.acbr.diversos.validador.pas"/>
+        <Filename Value="routes/route.acbr.diversos.validador.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="method\method.acbr.diversos.validador.pas"/>
+        <Filename Value="method/method.acbr.diversos.validador.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\LazReport\ACBrNFeDANFeLazReport.pas"/>
+        <Filename Value="../acbr/Fontes/ACBrDFe/ACBrNFe/DANFE/NFe/LazReport/ACBrNFeDANFeLazReport.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="tools\streamtools.pas"/>
+        <Filename Value="tools/streamtools.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="method\method.acbr.cte.pas"/>
+        <Filename Value="method/method.acbr.cte.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="routes\router.acbr.cte.pas"/>
+        <Filename Value="routes/router.acbr.cte.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="method\method.acbr.mdfe.pas"/>
+        <Filename Value="method/method.acbr.mdfe.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="routes\route.acbr.mdfe.pas"/>
+        <Filename Value="routes/route.acbr.mdfe.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="resources\resource.strings.global.pas"/>
+        <Filename Value="resources/resource.strings.global.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="resources\resource.strings.msg.pas"/>
+        <Filename Value="resources/resource.strings.msg.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="resources\resource.strings.routes.pas"/>
+        <Filename Value="resources/resource.strings.routes.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="..\gbswagger\Source\Core\gbswagger.lazarus.pas"/>
+        <Filename Value="../gbswagger/Source/Core/gbswagger.lazarus.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="GBSwagger.Lazarus"/>
       </Unit>
@@ -155,7 +154,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="..\horse-master\src;routes;method;..\handle-exception\src;tools;..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\LazReport;..\acbr\Fontes\ACBrDFe\ACBrCTe\DACTE\Fortes;..\jhonson\src;..\acbr\Fontes\Terceiros\synalist;..\acbr\Fontes\ACBrDFe\ACBrCTe;..\acbr\Fontes\ACBrDFe\ACBrMDFe;..\acbr\Fontes\ACBrDFe\ACBrMDFe\DAMDFE\Fortes;..\acbr\Fontes\ACBrDFe\ACBrMDFe\PCNMDFe;..\acbr\Fontes\ACBrDFe\ACBrMDFe\Base;resources;..\acbr\Fontes\ACBrDFe\ACBrCTe\PCNCTe;..\acbr\Fontes\ACBrDFe\ACBrCTe\Base;..\acbr\Fontes\ACBrDFe\ACBrCTe\Base\Servicos;..\acbr\Fontes\ACBrDFe\ACBrNFe;..\acbr\Fontes\ACBrDFe\ACBrNFe\Base;..\acbr\Fontes\ACBrDFe\ACBrNFe\Base\Servicos;..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE;..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\Fortes"/>
+      <OtherUnitFiles Value="..\horse-master\src;routes;method;..\handle-exception\src;tools;..\jhonson\src;resources;..\acbr\Fontes\ACBrDFe\ACBrMDFe\PCNMDFe"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <CodeGeneration>
