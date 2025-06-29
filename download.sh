@@ -25,7 +25,6 @@ check_command "git"
 echo "OK: Ferramentas encontradas."
 
 print_header "Baixando e/ou atualizando dependências"
-mkdir -p deps
 
 update_git_repo() {
     local url="$1"; local dir="$2"
@@ -49,33 +48,33 @@ update_svn_repo() {
     fi
 }
 
-update_svn_repo "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes" "./deps/acbr/Fontes"
-update_svn_repo "https://svn.code.sf.net/p/acbr/code/trunk2/Pacotes" "./deps/acbr/Pacotes"
-update_git_repo "https://github.com/HashLoad/horse.git" "./deps/horse-master"
-update_git_repo "https://github.com/HashLoad/handle-exception.git" "./deps/handle-exception"
-update_git_repo "https://github.com/HashLoad/jhonson.git" "./deps/jhonson"
-update_git_repo "https://github.com/fortesinformatica/fortesreport-ce.git" "./deps/fortesreport-ce4"
+update_svn_repo "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes" "../acbr/Fontes"
+update_svn_repo "https://svn.code.sf.net/p/acbr/code/trunk2/Pacotes" "../acbr/Pacotes"
+update_git_repo "https://github.com/HashLoad/horse.git" "../horse-master"
+update_git_repo "https://github.com/HashLoad/handle-exception.git" "../handle-exception"
+update_git_repo "https://github.com/HashLoad/jhonson.git" "../jhonson"
+update_git_repo "https://github.com/fortesinformatica/fortesreport-ce.git" "../fortesreport-ce4"
 
 # Special handling for powerpdf as it's a subdirectory of another repo
 echo "Cloning opsi-org/lazarus and extracting powerpdf..."
-if [ -d "./deps/lazarus-temp" ]; then
+if [ -d "../lazarus-temp" ]; then
     echo "Updating temporary lazarus repo..."
-    (cd "./deps/lazarus-temp" && git pull)
+    (cd "../lazarus-temp" && git pull)
 else
-    git clone "https://github.com/opsi-org/lazarus.git" "./deps/lazarus-temp"
+    git clone "https://github.com/opsi-org/lazarus.git" "../lazarus-temp"
 fi
 
 # Remove existing powerpdf to ensure a clean copy
-if [ -d "./deps/powerpdf" ]; then
-    echo "Removing existing ./deps/powerpdf..."
-    rm -rf "./deps/powerpdf"
+if [ -d "../powerpdf" ]; then
+    echo "Removing existing ../powerpdf..."
+    rm -rf "../powerpdf"
 fi
 
-echo "Moving powerpdf to ./deps/powerpdf..."
-mv "./deps/lazarus-temp/external_libraries/powerpdf" "./deps/powerpdf"
+echo "Moving powerpdf to ../powerpdf..."
+mv "../lazarus-temp/external_libraries/powerpdf" "../powerpdf"
 
 echo "Cleaning up temporary lazarus repo..."
-rm -rf "./deps/lazarus-temp"
+rm -rf "../lazarus-temp"
 
 echo "OK: Dependências baixadas/atualizadas."
 

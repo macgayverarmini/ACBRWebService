@@ -35,17 +35,12 @@ echo "OK: Lazarus encontrado em: $LAZARUS_DIR"
 
 # --- VERIFICAÇÃO DE DEPENDÊNCIAS ---
 print_header "Verificando dependências..."
-if [ ! -d "./deps" ]; then
-    echo "ERRO: O diretório 'deps' não foi encontrado."
-    echo "Por favor, execute o script 'download.sh' primeiro para baixar as dependências."
-    exit 1
-fi
 if [ ! -f "acbrlist.txt" ]; then
     echo "ERRO: O arquivo 'acbrlist.txt' não foi encontrado."
     echo "Este arquivo é necessário para saber quais pacotes instalar."
     exit 1
 fi
-echo "OK: Diretório de dependências e acbrlist.txt encontrados."
+echo "OK: acbrlist.txt encontrado."
 
 
 # --- LIMPEZA FORÇADA ---
@@ -66,23 +61,20 @@ echo "Adicionando link para o pacote LazReport..."
 
 # Adiciona o pacote PowerPDF, que é uma dependência do LazReport e de outros pacotes ACBr
 echo "Adicionando link para o pacote PowerPDF..."
-"$LAZBUILD_CMD" --add-package-link "./deps/powerpdf/pack_powerpdf.lpk"
+"$LAZBUILD_CMD" --add-package-link "../powerpdf/pack_powerpdf.lpk"
 
 # Adiciona o pacote FortesReport CE (frce), que é uma dependência de alguns pacotes ACBr
 echo "Adicionando link para o pacote FortesReport CE (frce)..."
-"$LAZBUILD_CMD" --add-package-link "./deps/fortesreport-ce4/Packages/frce.lpk"
+"$LAZBUILD_CMD" --add-package-link "../fortesreport-ce4/Packages/frce.lpk"
 
 # Adiciona o pacote Horse
-echo "Adicionando link para o pacote Horse..."
-"$LAZBUILD_CMD" --add-package-link "./deps/horse-master/Packages/horse.lpk"
 
-# Garante que o pacote ACBr_BoletoFC_LazReport não esteja linkado, caso tenha sido adicionado anteriormente.
-echo "Removendo link para o pacote ACBr_BoletoFC_LazReport (se existir)..."
-"$LAZBUILD_CMD" --remove-package-link "./deps/acbr/Pacotes/Lazarus/ACBrBoleto/FC/LazReport/ACBr_BoletoFC_LazReport.lpk" || true
+
+
 
 # Adiciona os pacotes do ACBr listados em acbrlist.txt
 echo "Adicionando links para os pacotes do ACBr..."
-ACBR_PKG_DIR="./deps/acbr/Pacotes/Lazarus"
+ACBR_PKG_DIR="../acbr/Pacotes/Lazarus"
 
 while IFS= read -r package_file || [[ -n "$package_file" ]]; do
     # Remove possíveis caracteres de retorno de carro do Windows (\r) e converte barras invertidas
@@ -113,13 +105,17 @@ echo "OK: IDE recompilada com sucesso!"
 
 if [ -f "script_altera_acbr.py" ]; then
     print_header "PASSO 4: Executando script de alteração do ACBr"
-    python3 script_altera_acbr.py ./deps/acbr/Fontes/ACBrDFe/ --search-subdirectories s
+    python3 script_altera_acbr.py <<EOF
+../acbr/Fontes/ACBrDFe/
+s
+n
+EOF
     echo "OK: Script executado."
 fi
 
 if [ -f "compile_resources.py" ]; then
     print_header "PASSO 5: Compilando recursos do ACBr"
-    python3 compile_resources.py --lazarus-path "$LAZARUS_DIR" --acbr-path "./deps/acbr/Fontes/"
+    python3 compile_resources.py --lazarus-path "$LAZARUS_DIR" --acbr-path "../acbr/Fontes/"
     echo "OK: Recursos do ACBr compilados."
 fi
 

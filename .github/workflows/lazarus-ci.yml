@@ -11,10 +11,13 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
     steps:
-    - name: Instalar dependências de sistema
-      run: sudo apt-get update && sudo apt-get install -y subversion
+    - name: Instalar dependÃªncias de sistema
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y subversion binutils binutils-dev
+        sudo ln -s /usr/bin/x86_64-w64-mingw32-windres /usr/bin/windres
 
-    - name: Checkout do código do projeto
+    - name: Checkout do cÃ³digo do projeto
       uses: actions/checkout@v4
       with:
         path: 'project'
@@ -24,7 +27,7 @@ jobs:
       with:
         lazarus-version: '2.2.0'
 
-    - name: Checkout das dependências (ACBr via SVN)
+    - name: Checkout das dependÃªncias (ACBr via SVN)
       run: |
         svn checkout https://svn.code.sf.net/p/acbr/code/trunk2 ../acbr
         git clone https://github.com/HashLoad/horse.git ../horse-master
@@ -32,7 +35,7 @@ jobs:
         git clone https://github.com/HashLoad/jhonson.git ../jhonson
         git clone https://github.com/fortesinformatica/fortesreport-ce.git ../fortesreport-ce4
 
-    - name: Compilar pacotes de dependência
+    - name: Compilar pacotes de dependÃªncia
       run: |
         cd project
         lazbuild -B ../acbr/Pacotes/Lazarus/synapse/laz_synapse.lpk
@@ -55,10 +58,10 @@ jobs:
       with:
         python-version: '3.x'
 
-    - name: Instalar dependências Python
+    - name: Instalar dependÃªncias Python
       run: pip install tqdm
       
-    - name: Executar script de alteração do ACBr
+    - name: Executar script de alteraÃ§Ã£o do ACBr
       run: |
         cd project
         yes s | python script_altera_acbr.py ../acbr/Fontes/ACBrDFe/
@@ -68,7 +71,7 @@ jobs:
         cd project
         lazbuild -B ACBRWebService.lpi
 
-    - name: Upload do executável de Linux (Artefato)
+    - name: Upload do executÃ¡vel de Linux (Artefato)
       uses: actions/upload-artifact@v4
       with:
         name: ACBRWebService-Linux
@@ -77,10 +80,13 @@ jobs:
   build-windows:
     runs-on: ubuntu-latest
     steps:
-    - name: Instalar dependências de sistema
-      run: sudo apt-get update && sudo apt-get install -y subversion
+    - name: Instalar dependÃªncias de sistema
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y subversion binutils binutils-dev
+        sudo ln -s /usr/bin/x86_64-w64-mingw32-windres /usr/bin/windres
 
-    - name: Checkout do código do projeto
+    - name: Checkout do cÃ³digo do projeto
       uses: actions/checkout@v4
       with:
         path: 'project'
@@ -92,7 +98,7 @@ jobs:
         with-cross-bits: '64'
         with-cross-os: 'win'
 
-    - name: Checkout das dependências (ACBr via SVN)
+    - name: Checkout das dependÃªncias (ACBr via SVN)
       run: |
         svn checkout https://svn.code.sf.net/p/acbr/code/trunk2 ../acbr
         git clone https://github.com/HashLoad/horse.git ../horse-master
@@ -100,7 +106,7 @@ jobs:
         git clone https://github.com/HashLoad/jhonson.git ../jhonson
         git clone https://github.com/fortesinformatica/fortesreport-ce.git ../fortesreport-ce4
     
-    - name: Compilar pacotes de dependência
+    - name: Compilar pacotes de dependÃªncia
       run: |
         cd project
         lazbuild -B ../acbr/Pacotes/Lazarus/synapse/laz_synapse.lpk
@@ -123,10 +129,10 @@ jobs:
       with:
         python-version: '3.x'
 
-    - name: Instalar dependências Python
+    - name: Instalar dependÃªncias Python
       run: pip install tqdm
       
-    - name: Executar script de alteração do ACBr
+    - name: Executar script de alteraÃ§Ã£o do ACBr
       run: |
         cd project
         yes s | python script_altera_acbr.py ../acbr/Fontes/ACBrDFe/
@@ -136,7 +142,7 @@ jobs:
         cd project
         lazbuild -B --os=win64 --cpu=x86_64 ACBRWebService.lpi
 
-    - name: Upload do executável de Windows (Artefato)
+    - name: Upload do executÃ¡vel de Windows (Artefato)
       uses: actions/upload-artifact@v4
       with:
         name: ACBRWebService-Win64

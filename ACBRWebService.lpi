@@ -155,7 +155,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="..\horse-master\src;routes;method;..\handle-exception\src;tools;..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\LazReport;..\acbr\Fontes\ACBrDFe\ACBrCTe\DACTE\Fortes;..\jhonson\src;..\acbr\Fontes\Terceiros\synalist;..\acbr\Fontes\ACBrDFe\ACBrCTe;..\acbr\Fontes\ACBrDFe\ACBrMDFe;..\acbr\Fontes\ACBrDFe\ACBrMDFe\DAMDFE\Fortes;..\acbr\Fontes\ACBrDFe\ACBrMDFe\PCNMDFe;..\acbr\Fontes\ACBrDFe\ACBrMDFe\Base;resources"/>
+      <OtherUnitFiles Value="..\horse-master\src;routes;method;..\handle-exception\src;tools;..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\LazReport;..\acbr\Fontes\ACBrDFe\ACBrCTe\DACTE\Fortes;..\jhonson\src;..\acbr\Fontes\Terceiros\synalist;..\acbr\Fontes\ACBrDFe\ACBrCTe;..\acbr\Fontes\ACBrDFe\ACBrMDFe;..\acbr\Fontes\ACBrDFe\ACBrMDFe\DAMDFE\Fortes;..\acbr\Fontes\ACBrDFe\ACBrMDFe\PCNMDFe;..\acbr\Fontes\ACBrDFe\ACBrMDFe\Base;resources;..\acbr\Fontes\ACBrDFe\ACBrCTe\PCNCTe;..\acbr\Fontes\ACBrDFe\ACBrCTe\Base;..\acbr\Fontes\ACBrDFe\ACBrCTe\Base\Servicos;..\acbr\Fontes\ACBrDFe\ACBrNFe;..\acbr\Fontes\ACBrDFe\ACBrNFe\Base;..\acbr\Fontes\ACBrDFe\ACBrNFe\Base\Servicos;..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE;..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\Fortes"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <CodeGeneration>

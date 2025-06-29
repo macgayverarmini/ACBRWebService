@@ -8,8 +8,7 @@
       <Unit>
         <Filename Value="ACBRWebService.lpr"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
-        <CursorPos X="15" Y="32"/>
+        <CursorPos X="25" Y="8"/>
         <UsageCount Value="217"/>
         <Loaded Value="True"/>
       </Unit>
@@ -24,14 +23,15 @@
       <Unit>
         <Filename Value="routes\route.pas"/>
         <IsPartOfProject Value="True"/>
-        <UsageCount Value="72"/>
+        <UsageCount Value="73"/>
       </Unit>
       <Unit>
         <Filename Value="method\method.acbr.nfe.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="53" Y="12"/>
+        <EditorIndex Value="1"/>
+        <CursorPos X="9" Y="12"/>
         <UsageCount Value="216"/>
+        <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="tools\jsonconvert.pas"/>
@@ -94,7 +94,7 @@
         <WindowIndex Value="1"/>
         <TopLine Value="418"/>
         <CursorPos X="31" Y="429"/>
-        <UsageCount Value="76"/>
+        <UsageCount Value="77"/>
       </Unit>
       <Unit>
         <Filename Value="routes\router.acbr.cte.pas"/>
@@ -102,7 +102,7 @@
         <EditorIndex Value="-1"/>
         <WindowIndex Value="1"/>
         <CursorPos X="14" Y="26"/>
-        <UsageCount Value="112"/>
+        <UsageCount Value="113"/>
       </Unit>
       <Unit>
         <Filename Value="method\method.acbr.mdfe.pas"/>
@@ -110,7 +110,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="447"/>
         <CursorPos X="51" Y="477"/>
-        <UsageCount Value="103"/>
+        <UsageCount Value="104"/>
       </Unit>
       <Unit>
         <Filename Value="routes\route.acbr.mdfe.pas"/>
@@ -118,40 +118,61 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="153"/>
         <CursorPos X="44" Y="183"/>
-        <UsageCount Value="74"/>
+        <UsageCount Value="75"/>
       </Unit>
       <Unit>
         <Filename Value="resources\resource.strings.global.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="72"/>
+        <UsageCount Value="73"/>
       </Unit>
       <Unit>
         <Filename Value="resources\resource.strings.msg.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="3" Y="13"/>
-        <UsageCount Value="72"/>
+        <UsageCount Value="73"/>
       </Unit>
       <Unit>
         <Filename Value="resources\resource.strings.routes.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="4" Y="29"/>
-        <UsageCount Value="72"/>
+        <UsageCount Value="73"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\gbswagger\Source\Core\gbswagger.lazarus.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="GBSwagger.Lazarus"/>
+        <UsageCount Value="21"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Pacotes\Lazarus\ACBrComum\ACBrComum.pas"/>
-        <EditorIndex Value="1"/>
-        <CursorPos X="62" Y="14"/>
-        <UsageCount Value="10"/>
+        <EditorIndex Value="4"/>
+        <CursorPos X="5" Y="25"/>
+        <UsageCount Value="11"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrTCP\ACBrWinReqRespClass.pas"/>
-        <EditorIndex Value="2"/>
-        <TopLine Value="739"/>
+        <EditorIndex Value="5"/>
+        <TopLine Value="749"/>
         <CursorPos Y="782"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFe.pas"/>
+        <EditorIndex Value="2"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrCTe\Base\ACBrCTe.Classes.pas"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="34"/>
+        <CursorPos X="36" Y="52"/>
         <UsageCount Value="10"/>
         <Loaded Value="True"/>
       </Unit>
@@ -159,7 +180,7 @@
     <Debugger>
       <Backend Value="{514D45D2-1BEC-49C6-B1C1-7EF5FBE5597E}"/>
     </Debugger>
-    <JumpHistory HistoryIndex="2">
+    <JumpHistory HistoryIndex="4">
       <Position>
         <Filename Value="ACBRWebService.lpr"/>
         <Caret Line="40" TopLine="3"/>
@@ -171,6 +192,13 @@
       <Position>
         <Filename Value="..\acbr\Fontes\ACBrTCP\ACBrWinReqRespClass.pas"/>
         <Caret Line="160" Column="10" TopLine="153"/>
+      </Position>
+      <Position>
+        <Filename Value="method\method.acbr.nfe.pas"/>
+        <Caret Line="12" Column="53"/>
+      </Position>
+      <Position>
+        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\ACBrNFe.pas"/>
       </Position>
     </JumpHistory>
     <RunParams>
