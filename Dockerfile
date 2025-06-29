@@ -13,8 +13,7 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     dos2unix \
     fpc \
-    lazarus \
-    && rm -rf /var/lib/apt/lists/*
+    lazarus     && rm -rf /var/lib/apt/lists/*RUN find / -name lazreport.lpk 2>/dev/null || echo "lazreport.lpk not found"
 
 # Define o diretório de trabalho
 WORKDIR /app
@@ -23,8 +22,8 @@ WORKDIR /app
 # Isso inclui os scripts, o código-fonte e os arquivos de configuração
 COPY . .
 
-# Garante que os scripts tenham permissão de execução
-RUN chmod +x download.sh build.sh
+# Converte os line-endings para o formato Unix e garante permissão de execução
+RUN dos2unix ./download.sh ./build.sh && chmod +x ./download.sh ./build.sh
 
 # Baixa as dependências externas (ACBr, Horse, etc.)
 # Centraliza a lógica de download no script, como no CI

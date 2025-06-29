@@ -41,10 +41,10 @@ update_svn_repo() {
     local url="$1"; local dir="$2"
     if [ -d "$dir/.svn" ]; then
         echo "Atualizando repositório SVN em '$dir'..."
-        svn update "$dir"
+        svn update --non-interactive --trust-server-cert "$dir"
     else
         echo "Baixando repositório SVN de '$url' para '$dir'..."
-        svn checkout "$url" "$dir"
+        svn checkout --non-interactive --trust-server-cert "$url" "$dir"
     fi
 }
 

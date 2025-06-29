@@ -18,7 +18,9 @@ print_header() {
 print_header "Procurando pelo diretório do Lazarus..."
 
 LAZARUS_DIR=""
-if [ -f "./lazbuild" ]; then
+if [ -d "/usr/lib/lazarus/2.2.0" ]; then
+    LAZARUS_DIR="/usr/lib/lazarus/2.2.0"
+elif [ -f "./lazbuild" ]; then
     LAZARUS_DIR=$(pwd)
 elif [ -f "$HOME/lazarus/lazbuild" ]; then
     LAZARUS_DIR="$HOME/lazarus"
@@ -57,7 +59,7 @@ print_header "PASSO 2: Registrando pacotes na IDE Lazarus"
 
 # Adiciona LazReport primeiro, que é uma dependência para outros pacotes
 echo "Adicionando link para o pacote LazReport..."
-"$LAZBUILD_CMD" --add-package-link "/home/datalider/fpcupdeluxe/lazarus/components/lazreport/source/lazreport.lpk"
+"$LAZBUILD_CMD" --add-package-link "$LAZARUS_DIR/components/lazreport/source/lazreport.lpk"
 
 # Adiciona o pacote PowerPDF, que é uma dependência do LazReport e de outros pacotes ACBr
 echo "Adicionando link para o pacote PowerPDF..."
@@ -68,6 +70,7 @@ echo "Adicionando link para o pacote FortesReport CE (frce)..."
 "$LAZBUILD_CMD" --add-package-link "../fortesreport-ce4/Packages/frce.lpk"
 
 # Adiciona o pacote Horse
+
 
 
 
