@@ -9,8 +9,7 @@
         <Filename Value="ACBRWebService.lpr"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
-        <TopLine Value="3"/>
-        <CursorPos Y="40"/>
+        <CursorPos X="15" Y="32"/>
         <UsageCount Value="217"/>
         <Loaded Value="True"/>
       </Unit>
@@ -142,16 +141,38 @@
         <UsageCount Value="72"/>
       </Unit>
       <Unit>
-        <Filename Value="..\gbswagger\Source\Core\gbswagger.lazarus.pas"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="GBSwagger.Lazarus"/>
-        <UsageCount Value="22"/>
+        <Filename Value="..\acbr\Pacotes\Lazarus\ACBrComum\ACBrComum.pas"/>
+        <EditorIndex Value="1"/>
+        <CursorPos X="62" Y="14"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\acbr\Fontes\ACBrTCP\ACBrWinReqRespClass.pas"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="739"/>
+        <CursorPos Y="782"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
       </Unit>
     </Units>
     <Debugger>
       <Backend Value="{514D45D2-1BEC-49C6-B1C1-7EF5FBE5597E}"/>
     </Debugger>
-    <JumpHistory HistoryIndex="-1"/>
+    <JumpHistory HistoryIndex="2">
+      <Position>
+        <Filename Value="ACBRWebService.lpr"/>
+        <Caret Line="40" TopLine="3"/>
+      </Position>
+      <Position>
+        <Filename Value="..\acbr\Pacotes\Lazarus\ACBrComum\ACBrComum.pas"/>
+        <Caret Line="14" Column="13"/>
+      </Position>
+      <Position>
+        <Filename Value="..\acbr\Fontes\ACBrTCP\ACBrWinReqRespClass.pas"/>
+        <Caret Line="160" Column="10" TopLine="153"/>
+      </Position>
+    </JumpHistory>
     <RunParams>
       <FormatVersion Value="2"/>
       <Modes ActiveMode=""/>

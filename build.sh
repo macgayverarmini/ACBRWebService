@@ -1,86 +1,140 @@
 #!/bin/bash
 
-# Encerra o script imediatamente se qualquer comando falhar
-set -e
+# Encerra o script imediatamente se qualquer comando falhar, e trata erros em pipelines
+set -eo pipefail
 
-echo "========================================="
-echo "PASSO 1: Baixando depend�ncias (ACBr via SVN Seletivo e Robusto)..."
-echo "========================================="
-# Limpa o diret�rio de depend�ncias para garantir um clone limpo
-rm -rf deps
-mkdir -p deps
+# --- FUNÇÕES AUXILIARES ---
 
-# --- L�GICA DE DOWNLOAD SUPER ROBUSTA ---
-ACBR_DIR="./deps/acbr"
-ACBR_SVN_URL="https://svn.code.sf.net/p/acbr/code/trunk2"
-# Adiciona um timeout de 300 segundos (5 minutos) para os comandos SVN
-SVN_OPTIONS="--config-option servers:global:http-timeout=300"
-
-# Fun��o para realizar o checkout seletivo
-perform_selective_checkout() {
-    echo "Baixando ACBr do reposit�rio SVN oficial (apenas diret�rios necess�rios)..."
-    # 1. Come�a com um checkout "vazio" (apenas o n�vel raiz)
-    svn checkout $SVN_OPTIONS --depth empty "$ACBR_SVN_URL" "$ACBR_DIR"
-    # 2. Atualiza apenas os diret�rios que realmente precisamos
-    svn update $SVN_OPTIONS --set-depth infinity "$ACBR_DIR/Fontes"
-    svn update $SVN_OPTIONS --set-depth infinity "$ACBR_DIR/Pacotes"
-    echo "Checkout seletivo do ACBr conclu�do com sucesso."
+# Função para imprimir um cabeçalho formatado
+print_header() {
+    echo ""
+    echo "========================================================================"
+    echo "  $1"
+    echo "========================================================================"
 }
 
-# Loop de retentativa
-MAX_ATTEMPTS=5
-ATTEMPT_NUM=1
-until (perform_selective_checkout); do
-    if (( ATTEMPT_NUM == MAX_ATTEMPTS )); then
-      echo "ERRO CR�TICO: O checkout do ACBr falhou ap�s $MAX_ATTEMPTS tentativas."
-      exit 1
+# --- DETECÇÃO DO LAZARUS ---
+
+print_header "Procurando pelo diretório do Lazarus..."
+
+LAZARUS_DIR=""
+if [ -f "./lazbuild" ]; then
+    LAZARUS_DIR=$(pwd)
+elif [ -f "$HOME/lazarus/lazbuild" ]; then
+    LAZARUS_DIR="$HOME/lazarus"
+elif [ -f "$HOME/fpcupdeluxe/lazarus/lazbuild" ]; then
+    LAZARUS_DIR="$HOME/fpcupdeluxe/lazarus"
+elif command -v lazbuild &> /dev/null; then
+    LAZARUS_DIR=$(dirname "$(command -v lazbuild)")
+else
+    echo "ERRO CRÍTICO: O executável 'lazbuild' não foi encontrado."
+    exit 1
+fi
+LAZBUILD_CMD="$LAZARUS_DIR/lazbuild"
+echo "OK: Lazarus encontrado em: $LAZARUS_DIR"
+
+# --- VERIFICAÇÃO DE DEPENDÊNCIAS ---
+print_header "Verificando dependências..."
+if [ ! -d "./deps" ]; then
+    echo "ERRO: O diretório 'deps' não foi encontrado."
+    echo "Por favor, execute o script 'download.sh' primeiro para baixar as dependências."
+    exit 1
+fi
+if [ ! -f "acbrlist.txt" ]; then
+    echo "ERRO: O arquivo 'acbrlist.txt' não foi encontrado."
+    echo "Este arquivo é necessário para saber quais pacotes instalar."
+    exit 1
+fi
+echo "OK: Diretório de dependências e acbrlist.txt encontrados."
+
+
+# --- LIMPEZA FORÇADA ---
+print_header "PASSO 1: Limpando configurações antigas do Lazarus (incluindo o diretório .lazarus)"
+rm -rf "$HOME/.lazarus"
+mkdir -p "$HOME/.lazarus"
+echo "AVISO: O diretório de configuração do Lazarus ($HOME/.lazarus) foi removido para garantir uma limpeza completa."
+echo "OK: Configurações antigas removidas."
+
+
+# --- INSTALAÇÃO DOS PACOTES ---
+
+print_header "PASSO 2: Registrando pacotes na IDE Lazarus"
+
+# Adiciona LazReport primeiro, que é uma dependência para outros pacotes
+echo "Adicionando link para o pacote LazReport..."
+"$LAZBUILD_CMD" --add-package-link "/home/datalider/fpcupdeluxe/lazarus/components/lazreport/source/lazreport.lpk"
+
+# Adiciona o pacote PowerPDF, que é uma dependência do LazReport e de outros pacotes ACBr
+echo "Adicionando link para o pacote PowerPDF..."
+"$LAZBUILD_CMD" --add-package-link "./deps/powerpdf/pack_powerpdf.lpk"
+
+# Adiciona o pacote FortesReport CE (frce), que é uma dependência de alguns pacotes ACBr
+echo "Adicionando link para o pacote FortesReport CE (frce)..."
+"$LAZBUILD_CMD" --add-package-link "./deps/fortesreport-ce4/Packages/frce.lpk"
+
+# Adiciona o pacote Horse
+echo "Adicionando link para o pacote Horse..."
+"$LAZBUILD_CMD" --add-package-link "./deps/horse-master/Packages/horse.lpk"
+
+# Garante que o pacote ACBr_BoletoFC_LazReport não esteja linkado, caso tenha sido adicionado anteriormente.
+echo "Removendo link para o pacote ACBr_BoletoFC_LazReport (se existir)..."
+"$LAZBUILD_CMD" --remove-package-link "./deps/acbr/Pacotes/Lazarus/ACBrBoleto/FC/LazReport/ACBr_BoletoFC_LazReport.lpk" || true
+
+# Adiciona os pacotes do ACBr listados em acbrlist.txt
+echo "Adicionando links para os pacotes do ACBr..."
+ACBR_PKG_DIR="./deps/acbr/Pacotes/Lazarus"
+
+while IFS= read -r package_file || [[ -n "$package_file" ]]; do
+    # Remove possíveis caracteres de retorno de carro do Windows (\r) e converte barras invertidas
+    package_file=$(echo "$package_file" | tr -d '\r' | tr '\\' '/')
+    if [ -n "$package_file" ]; then
+        pkg_path="$ACBR_PKG_DIR/$package_file"
+        if [ -f "$pkg_path" ]; then
+            echo "Adicionando link para o pacote: $package_file"
+            "$LAZBUILD_CMD" --add-package-link "$pkg_path"
+        else
+            echo "AVISO: Pacote não encontrado em '$pkg_path'. Pulando."
+        fi
     fi
-    echo "------------------------------------------------------------------------"
-    echo "Tentativa de checkout $ATTEMPT_NUM falhou. Limpando e tentando novamente em 20 segundos..."
-    echo "------------------------------------------------------------------------"
-    # Remove completamente o diret�rio que falhou para evitar o erro "locked"
-    rm -rf "$ACBR_DIR"
-    mkdir -p "$ACBR_DIR"
-    sleep 20
-    ((ATTEMPT_NUM++))
-done
+done < "acbrlist.txt"
 
-# Baixa as outras depend�ncias via Git
-echo "Baixando outras depend�ncias do Git..."
-git clone https://github.com/HashLoad/horse.git ./deps/horse-master
-git clone https://github.com/HashLoad/handle-exception.git ./deps/handle-exception
-git clone https://github.com/HashLoad/jhonson.git ./deps/jhonson
-git clone https://github.com/fortesinformatica/fortesreport-ce.git ./deps/fortesreport-ce4
+echo "OK: Registro de pacotes concluído."
 
-echo "========================================="
-echo "PASSO 2: Compilando pacotes de depend�ncia..."
-echo "========================================="
-lazbuild -B ./deps/acbr/Pacotes/Lazarus/synapse/laz_synapse.lpk
-lazbuild -B ./deps/fortesreport-ce4/Packages/frce.lpk
-lazbuild -B ./deps/acbr/Pacotes/Lazarus/ACBrComum/ACBrComum.lpk
-lazbuild -B ./deps/acbr/Pacotes/Lazarus/ACBrOpenSSL/ACBrOpenSSL.lpk
-lazbuild -B ./deps/acbr/Pacotes/Lazarus/ACBrDiversos/ACBrDiversos.lpk
-lazbuild -B ./deps/acbr/Pacotes/Lazarus/ACBrTCP/ACBrTCP.lpk
-lazbuild -B ./deps/acbr/Pacotes/Lazarus/PCNComum/PCNComum.lpk
-lazbuild -B ./deps/acbr/Pacotes/Lazarus/ACBrDFe/ACBrDFeComum.lpk
-lazbuild -B ./deps/acbr/Pacotes/Lazarus/ACBrDFe/ACBrNFe/ACBr_NFe.lpk
-lazbuild -B ./deps/acbr/Pacotes/Lazarus/ACBrDFe/ACBrNFe/DANFE/NFe/Fortes/ACBr_NFe_DanfeRL.lpk
-lazbuild -B ./deps/acbr/Pacotes/Lazarus/ACBrDFe/ACBrCTe/ACBr_CTe.lpk
-lazbuild -B ./deps/acbr/Pacotes/Lazarus/ACBrDFe/ACBrCTe/DACTE/Fortes/ACBr_CTe_DACTeRL.lpk
-lazbuild -B ./deps/acbr/Pacotes/Lazarus/ACBrDFe/ACBrMDFe/ACBr_MDFe.lpk
-lazbuild -B ./deps/acbr/Pacotes/Lazarus/ACBrDFe/ACBrMDFe/DAMDFE/Fortes/ACBr_MDFe_DAMDFeRL.lpk
+# --- RECOMPILAÇÃO DA IDE ---
 
-echo "========================================="
-echo "PASSO 3: Executando script de altera��o do ACBr..."
-echo "========================================="
-yes s | python3 script_altera_acbr.py ./deps/acbr/Fontes/ACBrDFe/
+print_header "PASSO 3: Recompilando a IDE do Lazarus com os novos pacotes"
+echo "Este processo pode levar vários minutos. Por favor, aguarde..."
+"$LAZBUILD_CMD" --build-ide=
+echo "OK: IDE recompilada com sucesso!"
 
-echo "========================================="
-echo "PASSO 4: Compilando o projeto principal..."
-echo "========================================="
-lazbuild -B ACBRWebService.lpi
 
-echo "====================================================="
-echo "Build de teste local conclu�do com sucesso!"
-echo "O execut�vel est� na pasta 'bin/' do seu projeto."
-echo "====================================================="
+
+# --- SCRIPT PÓS-BUILD ---
+
+if [ -f "script_altera_acbr.py" ]; then
+    print_header "PASSO 4: Executando script de alteração do ACBr"
+    python3 script_altera_acbr.py ./deps/acbr/Fontes/ACBrDFe/ --search-subdirectories s
+    echo "OK: Script executado."
+fi
+
+if [ -f "compile_resources.py" ]; then
+    print_header "PASSO 5: Compilando recursos do ACBr"
+    python3 compile_resources.py --lazarus-path "$LAZARUS_DIR" --acbr-path "./deps/acbr/Fontes/"
+    echo "OK: Recursos do ACBr compilados."
+fi
+
+# --- COMPILAÇÃO FINAL ---
+
+print_header "PASSO 6: Compilando o projeto final (ACBRWebService.lpi)"
+if [ -f "ACBRWebService.lpi" ]; then
+    "$LAZBUILD_CMD" -B ACBRWebService.lpi
+    echo "OK: Projeto compilado com sucesso!"
+else
+    echo "ERRO: Arquivo de projeto 'ACBRWebService.lpi' não encontrado."
+    exit 1
+fi
+
+# --- CONCLUSÃO ---
+
+print_header "Build concluído com sucesso!"
+echo "O executável deve estar disponível no diretório do seu projeto."
