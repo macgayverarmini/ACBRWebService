@@ -1,4 +1,3 @@
-# =========================================================================
 # ESTÁGIO 1: BUILDER - Um ambiente completo para compilar o projeto
 # =========================================================================
 FROM ubuntu:22.04 AS builder
@@ -39,6 +38,7 @@ ENV PATH="/root/development/lazarus":$PATH
 WORKDIR /app
 
 # Copia todos os arquivos do seu projeto para dentro do contêiner
+# DICA: Use um arquivo .dockerignore para evitar copiar arquivos desnecessários
 COPY . .
 
 # Garante que os scripts tenham o formato e permissões corretos para Linux
@@ -51,6 +51,7 @@ RUN ./download.sh
 RUN pip3 install tqdm
 
 # Executa o script de build DURANTE a construção da imagem
+# Assumimos que este script gera o executável em /app/bin/ACBRWebService-x86_64-linux
 RUN ./build.sh
 
 # =========================================================================
@@ -67,13 +68,16 @@ RUN apt-get update && apt-get install -y \
 # Define o diretório de trabalho
 WORKDIR /app
 
-# Copia APENAS o executável compilado do estágio 'builder'
-# O caminho reflete a saída do projeto Lazarus: bin/ACBRWebService-$(TargetCPU)-$(TargetOS)
-# e o executável é renomeado para ACBRWebService na imagem final.
-COPY --from=builder /app/bin/ACBRWebService-x86_64-linux ./ACBRWebService
+# Copia APENAS o executável compilado do estágio 'builder' para a imagem final.
+# O caminho de origem é /app/bin/... no 'builder' e o de destino é /app/ (o WORKDIR atual) no 'final'.
+COPY --from=builder /app/bin/ACBRWebService-x86_64-linux .
+
+# Garante que o executável tenha permissão de execução no novo estágio.
+# O caminho agora é relativo ao WORKDIR /app.
+RUN chmod +x ./ACBRWebService-x86_64-linux
 
 # A porta que a aplicação expõe
 EXPOSE 8080
 
-# O comando para INICIAR a aplicação quando o contêiner for executado
-CMD ["./ACBRWebService"]
+
+CMD ["./ACBRWebService-x86_64-linux"]

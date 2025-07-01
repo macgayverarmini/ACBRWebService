@@ -1,0 +1,6 @@
+.vscode
+__history
+*.local
+*.log
+/bin
+/lib
