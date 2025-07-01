@@ -1,6 +1,7 @@
 unit route.acbr.certificados;
 
-{$mode Delphi}{$H+}
+{$mode Delphi}
+{$DEFINE UseGenerics}
 
 interface
 

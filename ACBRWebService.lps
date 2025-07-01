@@ -8,7 +8,7 @@
       <Unit>
         <Filename Value="ACBRWebService.lpr"/>
         <IsPartOfProject Value="True"/>
-        <CursorPos X="18" Y="13"/>
+        <CursorPos X="27" Y="12"/>
         <UsageCount Value="217"/>
         <Loaded Value="True"/>
       </Unit>
@@ -23,12 +23,12 @@
       <Unit>
         <Filename Value="routes\route.pas"/>
         <IsPartOfProject Value="True"/>
-        <UsageCount Value="73"/>
+        <UsageCount Value="74"/>
       </Unit>
       <Unit>
         <Filename Value="method\method.acbr.nfe.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="3"/>
         <CursorPos X="9" Y="12"/>
         <UsageCount Value="216"/>
         <Loaded Value="True"/>
@@ -75,7 +75,7 @@
       <Unit>
         <Filename Value="\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\LazReport\ACBrNFeDANFeLazReport.pas"/>
         <IsPartOfProject Value="True"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="21"/>
       </Unit>
       <Unit>
         <Filename Value="tools\streamtools.pas"/>
@@ -88,10 +88,9 @@
       <Unit>
         <Filename Value="method\method.acbr.cte.pas"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="1"/>
-        <CursorPos X="3" Y="9"/>
-        <UsageCount Value="77"/>
+        <EditorIndex Value="2"/>
+        <CursorPos Y="4"/>
+        <UsageCount Value="78"/>
         <Loaded Value="True"/>
       </Unit>
       <Unit>
@@ -100,7 +99,7 @@
         <EditorIndex Value="-1"/>
         <WindowIndex Value="1"/>
         <CursorPos X="14" Y="26"/>
-        <UsageCount Value="113"/>
+        <UsageCount Value="114"/>
       </Unit>
       <Unit>
         <Filename Value="method\method.acbr.mdfe.pas"/>
@@ -108,7 +107,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="447"/>
         <CursorPos X="51" Y="477"/>
-        <UsageCount Value="104"/>
+        <UsageCount Value="105"/>
       </Unit>
       <Unit>
         <Filename Value="routes\route.acbr.mdfe.pas"/>
@@ -116,33 +115,33 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="153"/>
         <CursorPos X="44" Y="183"/>
-        <UsageCount Value="75"/>
+        <UsageCount Value="76"/>
       </Unit>
       <Unit>
         <Filename Value="resources\resource.strings.global.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="73"/>
+        <UsageCount Value="74"/>
       </Unit>
       <Unit>
         <Filename Value="resources\resource.strings.msg.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="3" Y="13"/>
-        <UsageCount Value="73"/>
+        <UsageCount Value="74"/>
       </Unit>
       <Unit>
         <Filename Value="resources\resource.strings.routes.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="4" Y="29"/>
-        <UsageCount Value="73"/>
+        <UsageCount Value="74"/>
       </Unit>
       <Unit>
         <Filename Value="\gbswagger\Source\Core\gbswagger.lazarus.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="GBSwagger.Lazarus"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="21"/>
       </Unit>
       <Unit>
         <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\LazReport\ACBrNFeDANFeLazReport.pas"/>
@@ -151,15 +150,24 @@
         <UsageCount Value="203"/>
       </Unit>
       <Unit>
-        <Filename Value="..\gbswagger\Source\Core\gbswagger.lazarus.pas"/>
-        <UnitName Value="GBSwagger.Lazarus"/>
-        <UsageCount Value="21"/>
+        <Filename Value="routes\route.acbr.certificados.pas"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="169"/>
+        <CursorPos X="43" Y="25"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
       </Unit>
     </Units>
     <Debugger>
       <Backend Value="{514D45D2-1BEC-49C6-B1C1-7EF5FBE5597E}"/>
     </Debugger>
-    <JumpHistory HistoryIndex="-1"/>
+    <JumpHistory>
+      <Position>
+        <Filename Value="ACBRWebService.lpr"/>
+        <Caret Line="12" Column="22"/>
+      </Position>
+    </JumpHistory>
     <RunParams>
       <FormatVersion Value="2"/>
       <Modes ActiveMode=""/>
