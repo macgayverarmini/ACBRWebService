@@ -8,8 +8,7 @@
       <Unit>
         <Filename Value="ACBRWebService.lpr"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
-        <CursorPos X="31" Y="13"/>
+        <CursorPos X="18" Y="13"/>
         <UsageCount Value="217"/>
         <Loaded Value="True"/>
       </Unit>
@@ -29,7 +28,7 @@
       <Unit>
         <Filename Value="method\method.acbr.nfe.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="1"/>
+        <EditorIndex Value="2"/>
         <CursorPos X="9" Y="12"/>
         <UsageCount Value="216"/>
         <Loaded Value="True"/>
@@ -74,11 +73,9 @@
         <UsageCount Value="209"/>
       </Unit>
       <Unit>
-        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\LazReport\ACBrNFeDANFeLazReport.pas"/>
+        <Filename Value="\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\LazReport\ACBrNFeDANFeLazReport.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="50" Y="1827"/>
-        <UsageCount Value="203"/>
+        <UsageCount Value="20"/>
       </Unit>
       <Unit>
         <Filename Value="tools\streamtools.pas"/>
@@ -91,11 +88,11 @@
       <Unit>
         <Filename Value="method\method.acbr.cte.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="418"/>
-        <CursorPos X="31" Y="429"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="1"/>
+        <CursorPos X="3" Y="9"/>
         <UsageCount Value="77"/>
+        <Loaded Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="routes\router.acbr.cte.pas"/>
@@ -142,8 +139,19 @@
         <UsageCount Value="73"/>
       </Unit>
       <Unit>
-        <Filename Value="..\gbswagger\Source\Core\gbswagger.lazarus.pas"/>
+        <Filename Value="\gbswagger\Source\Core\gbswagger.lazarus.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="GBSwagger.Lazarus"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\LazReport\ACBrNFeDANFeLazReport.pas"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="50" Y="1827"/>
+        <UsageCount Value="203"/>
+      </Unit>
+      <Unit>
+        <Filename Value="..\gbswagger\Source\Core\gbswagger.lazarus.pas"/>
         <UnitName Value="GBSwagger.Lazarus"/>
         <UsageCount Value="21"/>
       </Unit>

@@ -37,14 +37,53 @@ update_git_repo() {
     fi
 }
 
+# Função atualizada com lógica de repetição e cleanup para o SVN
 update_svn_repo() {
-    local url="$1"; local dir="$2"
+    local url="$1"
+    local dir="$2"
+    local max_attempts=3
+    local attempt=1
+    local success=false
+
     if [ -d "$dir/.svn" ]; then
-        echo "Atualizando repositório SVN em '$dir'..."
-        svn update --non-interactive --trust-server-cert "$dir"
+        # Lógica de UPDATE para um repositório existente
+        while [ $attempt -le $max_attempts ] && [ "$success" = false ]; do
+            echo "Atualizando repositório SVN em '$dir' (Tentativa $attempt/$max_attempts)..."
+            if svn update --non-interactive --trust-server-cert "$dir"; then
+                success=true
+                echo "Update do SVN bem-sucedido."
+            else
+                echo "Update do SVN falhou."
+                if [ $attempt -lt $max_attempts ]; then
+                    echo "Executando 'svn cleanup' antes de tentar novamente em 5 segundos..."
+                    # O cleanup pode falhar se não houver nada para limpar, então não saímos em caso de erro.
+                    svn cleanup "$dir" || true
+                    sleep 5
+                fi
+                attempt=$((attempt + 1))
+            fi
+        done
     else
-        echo "Baixando repositório SVN de '$url' para '$dir'..."
-        svn checkout --non-interactive --trust-server-cert "$url" "$dir"
+        # Lógica de CHECKOUT para um novo repositório
+        while [ $attempt -le $max_attempts ] && [ "$success" = false ]; do
+            echo "Baixando repositório SVN de '$url' para '$dir' (Tentativa $attempt/$max_attempts)..."
+            if svn checkout --non-interactive --trust-server-cert "$url" "$dir"; then
+                success=true
+                echo "Checkout do SVN bem-sucedido."
+            else
+                echo "Checkout do SVN falhou."
+                if [ $attempt -lt $max_attempts ]; then
+                    echo "Tentando novamente em 5 segundos..."
+                    sleep 5
+                fi
+                attempt=$((attempt + 1))
+            fi
+        done
+    fi
+
+    if [ "$success" = false ]; then
+        echo "ERRO CRÍTICO: Falha ao sincronizar o repositório SVN de '$url' após $max_attempts tentativas."
+        exit 1
     fi
 }
 

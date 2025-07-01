@@ -20,7 +20,7 @@
     <VersionInfo>
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
-      <BuildNr Value="8"/>
+      <BuildNr Value="9"/>
       <Language Value="0416"/>
       <Attributes pvaDebug="True"/>
     </VersionInfo>
@@ -101,7 +101,7 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="../acbr/Fontes/ACBrDFe/ACBrNFe/DANFE/NFe/LazReport/ACBrNFeDANFeLazReport.pas"/>
+        <Filename Value="/acbr/Fontes/ACBrDFe/ACBrNFe/DANFE/NFe/LazReport/ACBrNFeDANFeLazReport.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
@@ -137,7 +137,7 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="../gbswagger/Source/Core/gbswagger.lazarus.pas"/>
+        <Filename Value="/gbswagger/Source/Core/gbswagger.lazarus.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="GBSwagger.Lazarus"/>
       </Unit>
@@ -147,11 +147,11 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="..\bin\ACBRWebService"/>
+      <Filename Value="bin\ACBRWebService-$(TargetCPU)-$(TargetOS)"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="..\horse-master\src;routes;method;..\handle-exception\src;tools;..\jhonson\src;resources;..\acbr\Fontes\ACBrDFe\ACBrMDFe\PCNMDFe"/>
+      <OtherUnitFiles Value="..\horse-master\src;routes;method;..\handle-exception\src;tools;..\jhonson\src;resources;..\acbr\Fontes\ACBrDFe\ACBrMDFe\PCNMDFe;..\acbr\Fontes\Terceiros\synalist"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <CodeGeneration>

@@ -29,7 +29,9 @@ uses
 const
   cAppPort = 9000;
 
-  {$R *.res}
+  {$mode Delphi}
+
+{$DEFINE UseGenerics}
 
 begin
 
