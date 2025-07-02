@@ -1,3 +1,4 @@
+# =========================================================================
 # ESTÁGIO 1: BUILDER - Um ambiente completo para compilar o projeto
 # =========================================================================
 FROM ubuntu:22.04 AS builder
@@ -5,8 +6,8 @@ FROM ubuntu:22.04 AS builder
 # Evita que a instalação peça interação do usuário
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Instala dependências de sistema essenciais
-RUN apt-get update && apt-get install -y \
+# Instala dependências de sistema essenciais e limpa o cache para otimizar a camada
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     git \
     subversion \
@@ -16,42 +17,38 @@ RUN apt-get update && apt-get install -y \
     wget \
     unzip \
     binutils-mingw-w64 \
-    libgtk2.0-dev \
-    --no-install-recommends && \
+    libgtk2.0-dev && \
     rm -rf /var/lib/apt/lists/*
 
-# Não ter esse ln é a causa de problemas ao compilar projetos que usam arquivos *.rc no lazarus
+# Link simbólico para o windres
 RUN ln -s /usr/bin/x86_64-w64-mingw32-windres /usr/bin/windres
 
-# Baixa a versão específica do fpclazup (ferramenta CLI) usando o link direto
-# Se você está lendo isso, entre no git dele, e da uma estrela, ele merece!
+# Baixa e instala fpclazup
 RUN wget https://github.com/LongDirtyAnimAlf/Reiniero-fpcup/releases/download/v2.4.0f/fpclazup-x86_64-linux -O /usr/local/bin/fpclazup && \
     chmod +x /usr/local/bin/fpclazup
 
-# Instala o FPC e o Lazarus de forma não-interativa com as versões especificadas
+# Instala FPC e Lazarus
 RUN fpclazup --noconfirm --lazversion=3.6 --fpcversion=3.2.2
 
-# Adiciona as ferramentas do Lazarus ao PATH do ambiente
+# Adiciona as ferramentas do Lazarus ao PATH
 ENV PATH="/root/development/lazarus":$PATH
 
 # Define o diretório de trabalho
 WORKDIR /app
 
-# Copia todos os arquivos do seu projeto para dentro do contêiner
-# DICA: Use um arquivo .dockerignore para evitar copiar arquivos desnecessários
+# Copia todos os arquivos do projeto
 COPY . .
 
-# Garante que os scripts tenham o formato e permissões corretos para Linux
+# Garante permissões e formato corretos
 RUN dos2unix ./download.sh ./build.sh && chmod +x ./download.sh ./build.sh
 
-# Baixa as dependências do projeto (ACBr, Horse, etc.)
+# Baixa as dependências do projeto
 RUN ./download.sh
 
-# Instala as dependências Python para os scripts de build
+# Instala dependências Python
 RUN pip3 install tqdm
 
-# Executa o script de build DURANTE a construção da imagem
-# Assumimos que este script gera o executável em /app/bin/ACBRWebService-x86_64-linux
+# Executa o script de build
 RUN ./build.sh
 
 # =========================================================================
@@ -59,25 +56,35 @@ RUN ./build.sh
 # =========================================================================
 FROM ubuntu:22.04
 
-# Instala apenas as dependências mínimas para EXECUTAR a aplicação
-RUN apt-get update && apt-get install -y \
+# Instala as dependências MÍNIMAS e o dos2unix para garantir a compatibilidade de scripts
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libgtk2.0-0 \
-    --no-install-recommends && \
+    xvfb \
+    dos2unix && \
     rm -rf /var/lib/apt/lists/*
+
+# Cria um usuário não-root para a aplicação (boa prática de segurança)
+RUN groupadd -r appuser && useradd --no-log-init -r -g appuser appuser
 
 # Define o diretório de trabalho
 WORKDIR /app
 
-# Copia APENAS o executável compilado do estágio 'builder' para a imagem final.
-# O caminho de origem é /app/bin/... no 'builder' e o de destino é /app/ (o WORKDIR atual) no 'final'.
-COPY --from=builder /app/bin/ACBRWebService-x86_64-linux .
+# Copia o script de entrypoint e corrige o formato de linha e permissões
+COPY --chown=appuser:appuser entrypoint.sh .
+RUN dos2unix ./entrypoint.sh && chmod +x ./entrypoint.sh
 
-# Garante que o executável tenha permissão de execução no novo estágio.
-# O caminho agora é relativo ao WORKDIR /app.
+# Copia o executável do estágio builder e garante a permissão de execução
+COPY --from=builder --chown=appuser:appuser /app/bin/ACBRWebService-x86_64-linux .
 RUN chmod +x ./ACBRWebService-x86_64-linux
 
-# A porta que a aplicação expõe
-EXPOSE 8080
+# Muda para o usuário não-root
+USER appuser
 
+# Expõe a porta da aplicação
+EXPOSE 9000
 
+# Define o entrypoint para executar nosso script de inicialização
+ENTRYPOINT ["./entrypoint.sh"]
+
+# Define o comando padrão que o entrypoint irá executar
 CMD ["./ACBRWebService-x86_64-linux"]

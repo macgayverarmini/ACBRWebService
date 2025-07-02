@@ -64,7 +64,7 @@ update_svn_repo() {
             else
                 echo "Update do SVN falhou."
                 if [ $attempt -lt $max_attempts ]; then
-                    echo "Executando 'svn cleanup' antes de tentar novamente em 5 segundos..."
+                    echo "Executando 'svn cleanup' antes de tentar novamente em 20 segundos..."
                     # O cleanup pode falhar se não houver nada para limpar, então não saímos em caso de erro.
                     svn cleanup "$dir" || true
                     sleep 20
@@ -82,8 +82,9 @@ update_svn_repo() {
             else
                 echo "Checkout do SVN falhou."
                 if [ $attempt -lt $max_attempts ]; then
-                    echo "Tentando novamente em 5 segundos..."
+                    echo "Tentando novamente em 20 segundos..."
                     sleep 20
+                    svn cleanup "$dir" || true
                 fi
                 attempt=$((attempt + 1))
             fi

@@ -12,15 +12,12 @@ uses
   ACBrMDFe,
   ACBrMDFeManifestos,
   ACBrMDFe.Classes,
-  ACBrMDFeDAMDFeRL,
   ACBrMDFeDAMDFeRLClass,
   ACBrMDFe.EnvEvento,
   ACBrDFeSSL,
   ACBrMDFeWebServices,
   pmdfeConversaoMDFe,
-  pmdfeProcMDFe,
   pcnConversao,
-  StrUtils,
   Variants,
   Controls,
   fpjson, jsonconvert,
@@ -139,7 +136,7 @@ begin
     UFFim := 'SP';
   end;
 
-  MDFe.MDFe.Ide.infMunCarrega.Add;
+  MDFe.MDFe.Ide.infMunCarrega.New;
 
   // Bloco do Emitente (emit)
   with MDFe.MDFe.Emit do
@@ -191,11 +188,11 @@ begin
   MunDescarga := MDFe.MDFe.infDoc.infMunDescarga.New;
 
   // Informações do CT-e
-  infCTe := MunDescarga.infCTe.Add;
+  infCTe := MunDescarga.infCTe.New;
   infCTe.chCTe := '35110803911545000148570010000001011000001018';
 
   // Unidade de Transporte
-  infUnidTranspCTe := infCTe.infUnidTransp.Add;
+  infUnidTranspCTe := infCTe.infUnidTransp.New;
 
   infUnidTranspCTe.tpUnidTransp := utRodoTracao;
   infUnidTranspCTe.idUnidTransp := 'ABC1234';
@@ -370,7 +367,6 @@ end;
 function TACBRBridgeMDFe.Distribuicao(const jDistribuicao: TJSONObject): TJSONObject;
 var
   objDistribuicao: TDistribuicaoDFe;
-  UF: TJSONString;
   CNPJCPF, ultNSU, NSU, chMDFe: TJSONString;
 begin
   CarregaConfig;
