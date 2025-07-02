@@ -1,8 +1,10 @@
 program ACBRWebService;
 
+{$mode Delphi}
 uses
+  cthreads,
   Interfaces,
-  SysUtils, // Adicionado para usar FormatDateTime e Now
+  SysUtils,
   Horse,
   Horse.Jhonson,
   Horse.HandleException,
@@ -29,7 +31,7 @@ uses
 const
   cAppPort = 9000;
 
-  {$mode Delphi}
+
 
 {$DEFINE UseGenerics}
 

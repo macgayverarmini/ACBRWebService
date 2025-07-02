@@ -2,6 +2,12 @@
 # Encerra o script imediatamente se qualquer comando falhar
 set -eo pipefail
 
+# --- Parâmetros de Repetição Configuráveis ---
+# Aumentamos o número de tentativas e o tempo de espera para o SVN.
+# Isso torna o script mais resiliente a instabilidades de rede.
+MAX_ATTEMPTS=5
+RETRY_DELAY_SECONDS=20
+
 # Função para imprimir um cabeçalho formatado
 print_header() {
     echo ""
@@ -26,6 +32,8 @@ echo "OK: Ferramentas encontradas."
 
 print_header "Baixando e/ou atualizando dependências"
 
+# --- LÓGICA DE GIT RESTAURADA ---
+# Função de clone/update do Git restaurada para o comportamento original (clone completo).
 update_git_repo() {
     local url="$1"; local dir="$2"
     if [ -d "$dir/.git" ]; then
@@ -49,16 +57,17 @@ update_svn_repo() {
         # Lógica de UPDATE para um repositório existente
         while [ $attempt -le $max_attempts ] && [ "$success" = false ]; do
             echo "Atualizando repositório SVN em '$dir' (Tentativa $attempt/$max_attempts)..."
+            svn cleanup "$dir" || true
             if svn update --non-interactive --trust-server-cert "$dir"; then
                 success=true
                 echo "Update do SVN bem-sucedido."
             else
                 echo "Update do SVN falhou."
                 if [ $attempt -lt $max_attempts ]; then
-                    echo "Executando 'svn cleanup' antes de tentar novamente em 5 segundos..."
+                    echo "Executando 'svn cleanup' antes de tentar novamente em 20 segundos..."
                     # O cleanup pode falhar se não houver nada para limpar, então não saímos em caso de erro.
                     svn cleanup "$dir" || true
-                    sleep 5
+                    sleep 20
                 fi
                 attempt=$((attempt + 1))
             fi
@@ -73,8 +82,9 @@ update_svn_repo() {
             else
                 echo "Checkout do SVN falhou."
                 if [ $attempt -lt $max_attempts ]; then
-                    echo "Tentando novamente em 5 segundos..."
-                    sleep 5
+                    echo "Tentando novamente em 20 segundos..."
+                    sleep 20
+                    svn cleanup "$dir" || true
                 fi
                 attempt=$((attempt + 1))
             fi
@@ -87,6 +97,7 @@ update_svn_repo() {
     fi
 }
 
+# --- Chamadas para as funções de download ---
 update_svn_repo "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes" "../acbr/Fontes"
 update_svn_repo "https://svn.code.sf.net/p/acbr/code/trunk2/Pacotes" "../acbr/Pacotes"
 update_git_repo "https://github.com/HashLoad/horse.git" "../horse-master"
@@ -94,25 +105,27 @@ update_git_repo "https://github.com/HashLoad/handle-exception.git" "../handle-ex
 update_git_repo "https://github.com/HashLoad/jhonson.git" "../jhonson"
 update_git_repo "https://github.com/fortesinformatica/fortesreport-ce.git" "../fortesreport-ce4"
 
-# Special handling for powerpdf as it's a subdirectory of another repo
-echo "Cloning opsi-org/lazarus and extracting powerpdf..."
+# --- LÓGICA DO POWERPDF RESTAURADA ---
+# Tratamento especial para o powerpdf, restaurado para o comportamento original.
+print_header "Baixando e extraindo PowerPDF"
+echo "Clonando opsi-org/lazarus e extraindo powerpdf..."
 if [ -d "../lazarus-temp" ]; then
-    echo "Updating temporary lazarus repo..."
+    echo "Atualizando repositório temporário lazarus..."
     (cd "../lazarus-temp" && git pull)
 else
     git clone "https://github.com/opsi-org/lazarus.git" "../lazarus-temp"
 fi
 
-# Remove existing powerpdf to ensure a clean copy
+# Remove o powerpdf existente para garantir uma cópia limpa
 if [ -d "../powerpdf" ]; then
-    echo "Removing existing ../powerpdf..."
+    echo "Removendo ../powerpdf existente..."
     rm -rf "../powerpdf"
 fi
 
-echo "Moving powerpdf to ../powerpdf..."
+echo "Movendo powerpdf para ../powerpdf..."
 mv "../lazarus-temp/external_libraries/powerpdf" "../powerpdf"
 
-echo "Cleaning up temporary lazarus repo..."
+echo "Limpando repositório temporário lazarus..."
 rm -rf "../lazarus-temp"
 
 echo "OK: Dependências baixadas/atualizadas."
