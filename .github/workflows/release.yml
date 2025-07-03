@@ -75,15 +75,15 @@ jobs:
 
       - name: Run build.sh
         run: |
-          dos2unix build.sh # Ajuste o caminho
+          dos2unix build.sh
           chmod +x build.sh # Ajuste o caminho
-          ./build.sh # Ajuste o caminho
+          ./build.sh
 
       # MELHORIA: Nome do artefato dinâmico
       - name: Package Artifact
         run: |
           mkdir -p release
-          zip -j release/ACBRWebService-${{ github.ref_name }}-${{ runner.os }}.zip ./ACBRWebService # Ajuste o caminho do executável
+          zip -j release/ACBRWebService-${{ github.ref_name }}-linux-x86_64.zip bin/ACBRWebService-x86_64-linux
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
