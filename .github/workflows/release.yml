@@ -83,7 +83,7 @@ jobs:
       - name: Package Artifact
         run: |
           mkdir -p release
-          zip -j release/ACBRWebService-${{ github.ref_name }}-linux-x86_64.zip bin/ACBRWebService-x86_64-linux
+          zip -j release/ACBRWebService-${{ github.ref_name }}-linux-x86_64.zip /home/runner/work/ACBRWebService/ACBRWebService/bin/ACBRWebService-x86_64-linux
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
