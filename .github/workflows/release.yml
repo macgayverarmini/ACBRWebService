@@ -9,7 +9,10 @@ on:
 jobs:
   build-and-release:
     runs-on: ubuntu-22.04
-    
+ 
+    permissions:
+          contents: write # 
+          
     # Adicionando uma matriz de build para facilitar a adição de outras plataformas no futuro (ex: Windows)
     strategy:
       matrix:
