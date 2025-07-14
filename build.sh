@@ -3,6 +3,29 @@
 # Encerra o script imediatamente se qualquer comando falhar, e trata erros em pipelines
 set -eo pipefail
 
+# --- PARÂMETROS DE LINHA DE COMANDO ---
+TARGET_OS="linux"
+TARGET_CPU="x86_64"
+
+# Processa argumentos da linha de comando
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --os=*)
+            TARGET_OS="${1#*=}"
+            shift
+            ;;
+        --cpu=*)
+            TARGET_CPU="${1#*=}"
+            shift
+            ;;
+        *)
+            echo "Parâmetro desconhecido: $1"
+            echo "Uso: $0 [--os=linux|win32|win64|darwin] [--cpu=x86_64|i386|aarch64]"
+            exit 1
+            ;;
+    esac
+done
+
 # --- FUNÇÕES AUXILIARES ---
 
 # Função para imprimir um cabeçalho formatado
@@ -125,8 +148,11 @@ fi
 # --- COMPILAÇÃO FINAL ---
 
 print_header "PASSO 6: Compilando o projeto final (ACBRWebService.lpi)"
+echo "Compilando para: $TARGET_OS ($TARGET_CPU)"
+
 if [ -f "ACBRWebService.lpi" ]; then
-    "$LAZBUILD_CMD" -B ACBRWebService.lpi
+    # Compila com os parâmetros de plataforma específicos
+    "$LAZBUILD_CMD" -B --os="$TARGET_OS" --cpu="$TARGET_CPU" ACBRWebService.lpi
     echo "OK: Projeto compilado com sucesso!"
 else
     echo "ERRO: Arquivo de projeto 'ACBRWebService.lpi' não encontrado."
