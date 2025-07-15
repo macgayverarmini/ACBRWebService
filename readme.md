@@ -1,4 +1,3 @@
-(atenção, esse texto foi gerado usando Chat GPT da OpenAI, assim com várias partes do código.)
 
 # ACBRWebService
 
