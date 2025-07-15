@@ -11,21 +11,22 @@ Esse projeto não tem intenção de funcionar no Delphi, apenas no Lazarus, isso
 - Versão 3.2.0 do Free Pascal Compiler (FPC).
 - Versão 2.2.0 do Lazarus.
 - fpcupdeluxe instalado para compilar o código fonte. (https://github.com/LongDirtyAnimAlf/fpcupdeluxe/releases/tag/v2.2.0n)
-- Componente ACBR (informações disponíveis em http://acbr.sourceforge.net/).
+- Git (para baixar as dependências)
+- Componente ACBR (baixado automaticamente via Git mirror: https://github.com/macgayverarmini/acbr-mirror.git)
 - FortesReport-CE4 (informações disponíveis em http://www.fortesinformatica.com.br/produtos/report-ce/).
 - Horse (informações disponíveis em https://github.com/HashLoad/horse).
 - Handle-Exception - (informações disponíveis em https://github.com/HashLoad/handle-exception)
 - Jhonson - (informações disponíveis em https://github.com/HashLoad/jhonson)
-- 
-- Python 3 (Para permitir converter a propriedade dos arquivos da ACBRDFe (inteira) em publish
+- Python 3 (Para permitir converter a propriedade dos arquivos da ACBRDFe (inteira) em publish)
 
 ## Instalação
 1. Faça o download do fpcupdeluxe em https://github.com/LongDirtyAnimAlf/fpcupdeluxe.
 2. Instale o fpcupdeluxe seguindo as versões informada em requisitos.
-3. Baixe e instale os componentes ACBR, FortesReport-CE4 e Horse no Lazarus.
+3. Instale o Git em sua máquina.
 4. Baixe e instale o Python3.
 5. Clone o repositório ACBRWebService em sua máquina.
-6. Execute o compando na sua pasta clonada "python script_altera_acbr.py"
+6. Execute o script `./download.sh` para baixar automaticamente todas as dependências (ACBR, FortesReport-CE4, Horse, etc.).
+7. Execute o comando na sua pasta clonada "python script_altera_acbr.py"
 
 ## Licença
 O projeto ACBRWebService é licenciado sob a mesma licença do projeto ACBR.

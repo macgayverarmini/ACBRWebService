@@ -3,8 +3,7 @@
 set -eo pipefail
 
 # --- Parâmetros de Repetição Configuráveis ---
-# Aumentamos o número de tentativas e o tempo de espera para o SVN.
-# Isso torna o script mais resiliente a instabilidades de rede.
+# Parâmetros mantidos para compatibilidade, mas não mais necessários para Git.
 MAX_ATTEMPTS=5
 RETRY_DELAY_SECONDS=20
 
@@ -25,8 +24,7 @@ check_command() {
     fi
 }
 
-print_header "Verificando ferramentas (svn, git)..."
-check_command "svn"
+print_header "Verificando ferramentas (git)..."
 check_command "git"
 echo "OK: Ferramentas encontradas."
 
@@ -45,61 +43,22 @@ update_git_repo() {
     fi
 }
 
-# Função atualizada com lógica de repetição e cleanup para o SVN
-update_svn_repo() {
-    local url="$1"
-    local dir="$2"
-    local max_attempts=3
-    local attempt=1
-    local success=false
-
-    if [ -d "$dir/.svn" ]; then
-        # Lógica de UPDATE para um repositório existente
-        while [ $attempt -le $max_attempts ] && [ "$success" = false ]; do
-            echo "Atualizando repositório SVN em '$dir' (Tentativa $attempt/$max_attempts)..."
-            svn cleanup "$dir" || true
-            if svn update --non-interactive --trust-server-cert "$dir"; then
-                success=true
-                echo "Update do SVN bem-sucedido."
-            else
-                echo "Update do SVN falhou."
-                if [ $attempt -lt $max_attempts ]; then
-                    echo "Executando 'svn cleanup' antes de tentar novamente em 20 segundos..."
-                    # O cleanup pode falhar se não houver nada para limpar, então não saímos em caso de erro.
-                    svn cleanup "$dir" || true
-                    sleep 20
-                fi
-                attempt=$((attempt + 1))
-            fi
-        done
+# Função para clonar/atualizar repositório ACBR do mirror Git
+update_acbr_repo() {
+    local mirror_url="https://github.com/macgayverarmini/acbr-mirror.git"
+    local acbr_dir="../acbr"
+    
+    if [ -d "$acbr_dir/.git" ]; then
+        echo "Atualizando repositório ACBR mirror em '$acbr_dir'..."
+        (cd "$acbr_dir" && git pull)
     else
-        # Lógica de CHECKOUT para um novo repositório
-        while [ $attempt -le $max_attempts ] && [ "$success" = false ]; do
-            echo "Baixando repositório SVN de '$url' para '$dir' (Tentativa $attempt/$max_attempts)..."
-            if svn checkout --non-interactive --trust-server-cert "$url" "$dir"; then
-                success=true
-                echo "Checkout do SVN bem-sucedido."
-            else
-                echo "Checkout do SVN falhou."
-                if [ $attempt -lt $max_attempts ]; then
-                    echo "Tentando novamente em 20 segundos..."
-                    sleep 20
-                    svn cleanup "$dir" || true
-                fi
-                attempt=$((attempt + 1))
-            fi
-        done
-    fi
-
-    if [ "$success" = false ]; then
-        echo "ERRO CRÍTICO: Falha ao sincronizar o repositório SVN de '$url' após $max_attempts tentativas."
-        exit 1
+        echo "Clonando repositório ACBR mirror de '$mirror_url' para '$acbr_dir'..."
+        git clone "$mirror_url" "$acbr_dir"
     fi
 }
 
 # --- Chamadas para as funções de download ---
-update_svn_repo "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes" "../acbr/Fontes"
-update_svn_repo "https://svn.code.sf.net/p/acbr/code/trunk2/Pacotes" "../acbr/Pacotes"
+update_acbr_repo
 update_git_repo "https://github.com/HashLoad/horse.git" "../horse-master"
 update_git_repo "https://github.com/HashLoad/handle-exception.git" "../handle-exception"
 update_git_repo "https://github.com/HashLoad/jhonson.git" "../jhonson"
