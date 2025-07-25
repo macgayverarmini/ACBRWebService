@@ -41,7 +41,7 @@ jobs:
           # Instala a lista exata e otimizada de pacotes necessários, baseada no Dockerfile funcional.
           sudo apt-get install -y --no-install-recommends \
             build-essential git python3 python3-pip python3-tqdm dos2unix wget unzip zip \
-            subversion clang gdb binutils-mingw-w4 libx11-dev libgtk2.0-dev \
+            subversion clang gdb binutils-mingw-w64-x86-64 libx11-dev libgtk2.0-dev \
             libgdk-pixbuf2.0-dev libcairo2-dev libpango1.0-dev gcc-multilib libgtk2.0-dev:i386
           # Comando de robustez para corrigir pacotes quebrados, caso ocorra algum problema.
           sudo apt-get --fix-broken install -y
