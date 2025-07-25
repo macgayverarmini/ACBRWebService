@@ -34,29 +34,29 @@ jobs:
       - name: Install System Dependencies
         if: steps.cache-lazarus.outputs.cache-hit != 'true'
         run: |
-          sudo apt-get update
+          apt-get update
           # Adiciona suporte para arquitetura 32-bit, essencial para o alvo i386.
-          sudo dpkg --add-architecture i386
-          sudo apt-get update
+          dpkg --add-architecture i386
+          apt-get update
           # Instala a lista exata e otimizada de pacotes necessários, baseada no Dockerfile funcional.
-          sudo apt-get install -y --no-install-recommends \
+          apt-get install -y --no-install-recommends \
             build-essential git python3 python3-pip python3-tqdm dos2unix wget unzip zip \
             subversion clang gdb binutils-mingw-w64-x86-64 libx11-dev libgtk2.0-dev \
             libgdk-pixbuf2.0-dev libcairo2-dev libpango1.0-dev gcc-multilib libgtk2.0-dev:i386
           # Comando de robustez para corrigir pacotes quebrados, caso ocorra algum problema.
-          sudo apt-get --fix-broken install -y
+          apt-get --fix-broken install -y
 
       # 4. Cria o link simbólico para o windres, um workaround necessário.
       - name: Create windres symlink
         if: steps.cache-lazarus.outputs.cache-hit != 'true'
-        run: sudo ln -s /usr/bin/x86_64-w64-mingw32-windres /usr/bin/windres
+        run: ln -s /usr/bin/x86_64-w64-mingw32-windres /usr/bin/windres
 
       # 5. Baixa e instala a ferramenta fpclazup.
       - name: Install fpclazup
         if: steps.cache-lazarus.outputs.cache-hit != 'true'
         run: |
-          sudo wget https://github.com/LongDirtyAnimAlf/Reiniero-fpcup/releases/download/v2.4.0f/fpclazup-x86_64-linux -O /usr/local/bin/fpclazup
-          sudo chmod +x /usr/local/bin/fpclazup
+          wget https://github.com/LongDirtyAnimAlf/Reiniero-fpcup/releases/download/v2.4.0f/fpclazup-x86_64-linux -O /usr/local/bin/fpclazup
+          chmod +x /usr/local/bin/fpclazup
 
       # 6. Instala o FPC/Lazarus e os Cross-Compilers na ordem correta e exata.
       - name: Install Lazarus, FPC, and Cross-Compilers
@@ -99,6 +99,8 @@ jobs:
           LAZBUILD_CMD: "$HOME/development/lazarus/lazbuild"
           LAZARUS_DIR: "$HOME/development/lazarus/"
         run: |
+          export LAZBUILD_CMD="$HOME/development/lazarus/lazbuild"
+          export LAZARUS_DIR="$HOME/development/lazarus/"
           dos2unix build.sh
           chmod +x build.sh
           ./build.sh
