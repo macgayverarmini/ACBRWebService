@@ -8,8 +8,8 @@
       <Unit>
         <Filename Value="ACBRWebService.lpr"/>
         <IsPartOfProject Value="True"/>
-        <TopLine Value="5"/>
-        <CursorPos X="35" Y="27"/>
+        <IsVisibleTab Value="True"/>
+        <CursorPos X="11" Y="7"/>
         <UsageCount Value="217"/>
         <Loaded Value="True"/>
       </Unit>
@@ -113,7 +113,6 @@
       <Unit>
         <Filename Value="routes\route.acbr.mdfe.pas"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <TopLine Value="128"/>
         <CursorPos X="43" Y="140"/>

@@ -1,23 +1,43 @@
 # =========================================================================
-# ESTÁGIO 1: BUILDER - Um ambiente completo para compilar o projeto
+# DOCKERFILE DE TESTE - Para testar builds multi-plataforma
 # =========================================================================
-FROM ubuntu:22.04 AS builder
+FROM ubuntu:22.04
 
 # Evita que a instalação peça interação do usuário
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Instala dependências de sistema essenciais e limpa o cache para otimizar a camada
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Instala dependências de sistema essenciais (incluindo suporte para 32 bits)
+RUN apt-get update && \
+    # Adiciona arquitetura i386 para suporte a 32 bits
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
     build-essential \
+    libpango1.0-dev \
     git \
     python3 \
     python3-pip \
     dos2unix \
+    libpango \
     wget \
     unzip \
+    python3-tqdm \
     binutils-mingw-w64 \
-    libgtk2.0-dev && \
+    libgtk2.0-dev \
+    gcc-multilib \
+    clang \
+    make \ 
+    binutils \ 
+    gdb \ 
+    subversion \
+    zip \
+    libx11-dev \ 
+    libgtk2.0-dev \
+    libgdk-pixbuf2.0-dev \
+    libcairo2-dev \
+    libpango1.0-dev && \
     rm -rf /var/lib/apt/lists/*
+RUN dpkg -i --force-overwrite /var/cache/apt/archives/libpango1.0-dev_1.52.1+ds-1build1_amd64.deb
+RUN apt --fix-broken install
 
 # Link simbólico para o windres
 RUN ln -s /usr/bin/x86_64-w64-mingw32-windres /usr/bin/windres
@@ -27,10 +47,13 @@ RUN wget https://github.com/LongDirtyAnimAlf/Reiniero-fpcup/releases/download/v2
     chmod +x /usr/local/bin/fpclazup
 
 # Instala FPC e Lazarus
-RUN fpclazup --noconfirm --lazversion=3.6 --fpcversion=3.2.2
+RUN fpclazup --noconfirm lazVersion=fixes-4.0.gitlab fpcVersion=fixes-3.2.gitlab --installdir=/root/development
+RUN fpclazup --cputarget=i386 --ostarget=win32 --autotools --noconfirm
+RUN fpclazup --cputarget=x86_64 --ostarget=win64 --autotools --noconfirm
+
 
 # Adiciona as ferramentas do Lazarus ao PATH
-ENV PATH="/root/development/lazarus":$PATH
+ENV PATH="/root/development/lazarus:$PATH"
 
 # Define o diretório de trabalho
 WORKDIR /app
@@ -44,46 +67,8 @@ RUN dos2unix ./download.sh ./build.sh && chmod +x ./download.sh ./build.sh
 # Baixa as dependências do projeto
 RUN ./download.sh
 
-# Instala dependências Python
-RUN pip3 install tqdm
+ENV LAZBUILD_CMD="/root/development/lazarus/lazbuild"
+ENV LAZARUS_DIR="/root/development/lazarus/"
 
 # Executa o script de build
 RUN ./build.sh
-
-# =========================================================================
-# ESTÁGIO 2: FINAL - A imagem final, leve e pronta para produção
-# =========================================================================
-FROM ubuntu:22.04
-
-# Instala as dependências MÍNIMAS e o dos2unix para garantir a compatibilidade de scripts
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgtk2.0-0 \
-    xvfb \
-    dos2unix && \
-    rm -rf /var/lib/apt/lists/*
-
-# Cria um usuário não-root para a aplicação (boa prática de segurança)
-RUN groupadd -r appuser && useradd --no-log-init -r -g appuser appuser
-
-# Define o diretório de trabalho
-WORKDIR /app
-
-# Copia o script de entrypoint e corrige o formato de linha e permissões
-COPY --chown=appuser:appuser entrypoint.sh .
-RUN dos2unix ./entrypoint.sh && chmod +x ./entrypoint.sh
-
-# Copia o executável do estágio builder e garante a permissão de execução
-COPY --from=builder --chown=appuser:appuser /app/bin/ACBRWebService-x86_64-linux .
-RUN chmod +x ./ACBRWebService-x86_64-linux
-
-# Muda para o usuário não-root
-USER appuser
-
-# Expõe a porta da aplicação
-EXPOSE 9000
-
-# Define o entrypoint para executar nosso script de inicialização
-ENTRYPOINT ["./entrypoint.sh"]
-
-# Define o comando padrão que o entrypoint irá executar
-CMD ["./ACBRWebService-x86_64-linux"]

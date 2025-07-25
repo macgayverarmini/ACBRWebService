@@ -3,63 +3,7 @@
 # Encerra o script imediatamente se qualquer comando falhar, e trata erros em pipelines
 set -eo pipefail
 
-# --- PARÂMETROS DE LINHA DE COMANDO ---
-TARGET_OS="linux"
-TARGET_CPU="x86_64"
-
-# Processa argumentos da linha de comando
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        --os=*)
-            TARGET_OS="${1#*=}"
-            shift
-            ;;
-        --cpu=*)
-            TARGET_CPU="${1#*=}"
-            shift
-            ;;
-        *)
-            echo "Parâmetro desconhecido: $1"
-            echo "Uso: $0 [--os=linux|win32|win64|darwin] [--cpu=x86_64|i386|aarch64]"
-            exit 1
-            ;;
-    esac
-done
-
-# --- FUNÇÕES AUXILIARES ---
-
-# Função para imprimir um cabeçalho formatado
-print_header() {
-    echo ""
-    echo "========================================================================"
-    echo "  $1"
-    echo "========================================================================"
-}
-
-# --- DETECÇÃO DO LAZARUS ---
-
-print_header "Procurando pelo diretório do Lazarus..."
-
-LAZARUS_DIR=""
-if [ -d "/usr/lib/lazarus/2.2.0" ]; then
-    LAZARUS_DIR="/usr/lib/lazarus/2.2.0"
-elif [ -f "./lazbuild" ]; then
-    LAZARUS_DIR=$(pwd)
-elif [ -f "$HOME/lazarus/lazbuild" ]; then
-    LAZARUS_DIR="$HOME/lazarus"
-elif [ -f "$HOME/fpcupdeluxe/lazarus/lazbuild" ]; then
-    LAZARUS_DIR="$HOME/fpcupdeluxe/lazarus"
-elif command -v lazbuild &> /dev/null; then
-    LAZARUS_DIR=$(dirname "$(command -v lazbuild)")
-else
-    echo "ERRO CRÍTICO: O executável 'lazbuild' não foi encontrado."
-    exit 1
-fi
-LAZBUILD_CMD="$LAZARUS_DIR/lazbuild"
-echo "OK: Lazarus encontrado em: $LAZARUS_DIR"
-
 # --- VERIFICAÇÃO DE DEPENDÊNCIAS ---
-print_header "Verificando dependências..."
 if [ ! -f "acbrlist.txt" ]; then
     echo "ERRO: O arquivo 'acbrlist.txt' não foi encontrado."
     echo "Este arquivo é necessário para saber quais pacotes instalar."
@@ -68,17 +12,8 @@ fi
 echo "OK: acbrlist.txt encontrado."
 
 
-# --- LIMPEZA FORÇADA ---
-print_header "PASSO 1: Limpando configurações antigas do Lazarus (incluindo o diretório .lazarus)"
-rm -rf "$HOME/.lazarus"
-mkdir -p "$HOME/.lazarus"
-echo "AVISO: O diretório de configuração do Lazarus ($HOME/.lazarus) foi removido para garantir uma limpeza completa."
-echo "OK: Configurações antigas removidas."
-
 
 # --- INSTALAÇÃO DOS PACOTES ---
-
-print_header "PASSO 2: Registrando pacotes na IDE Lazarus"
 
 # Adiciona LazReport primeiro, que é uma dependência para outros pacotes
 echo "Adicionando link para o pacote LazReport..."
@@ -91,11 +26,6 @@ echo "Adicionando link para o pacote PowerPDF..."
 # Adiciona o pacote FortesReport CE (frce), que é uma dependência de alguns pacotes ACBr
 echo "Adicionando link para o pacote FortesReport CE (frce)..."
 "$LAZBUILD_CMD" --add-package-link "../fortesreport-ce4/Packages/frce.lpk"
-
-# Adiciona o pacote Horse
-
-
-
 
 
 # Adiciona os pacotes do ACBr listados em acbrlist.txt
@@ -120,17 +50,15 @@ echo "OK: Registro de pacotes concluído."
 
 # --- RECOMPILAÇÃO DA IDE ---
 
-print_header "PASSO 3: Recompilando a IDE do Lazarus com os novos pacotes"
+
 echo "Este processo pode levar vários minutos. Por favor, aguarde..."
 "$LAZBUILD_CMD" --build-ide=
 echo "OK: IDE recompilada com sucesso!"
 
 
-
 # --- SCRIPT PÓS-BUILD ---
 
-if [ -f "script_altera_acbr.py" ]; then
-    print_header "PASSO 4: Executando script de alteração do ACBr"
+if [ -f "script_altera_acbr.py" ]; then    
     python3 script_altera_acbr.py <<EOF
 ../acbr/Fontes/ACBrDFe/
 s
@@ -140,19 +68,37 @@ EOF
 fi
 
 if [ -f "compile_resources.py" ]; then
-    print_header "PASSO 5: Compilando recursos do ACBr"
+    
     python3 compile_resources.py --lazarus-path "$LAZARUS_DIR" --acbr-path "../acbr/Fontes/"
     echo "OK: Recursos do ACBr compilados."
 fi
 
 # --- COMPILAÇÃO FINAL ---
 
-print_header "PASSO 6: Compilando o projeto final (ACBRWebService.lpi)"
-echo "Compilando para: $TARGET_OS ($TARGET_CPU)"
+
 
 if [ -f "ACBRWebService.lpi" ]; then
     # Compila com os parâmetros de plataforma específicos
-    "$LAZBUILD_CMD" -B --os="$TARGET_OS" --cpu="$TARGET_CPU" ACBRWebService.lpi
+    "$LAZBUILD_CMD" -B --os="linux" --cpu="x86_64" ACBRWebService.lpi
+    echo "OK: Projeto compilado com sucesso!"
+else
+    echo "ERRO: Arquivo de projeto 'ACBRWebService.lpi' não encontrado."
+    exit 1
+fi
+
+
+if [ -f "ACBRWebService.lpi" ]; then
+    # Compila com os parâmetros de plataforma específicos
+    "$LAZBUILD_CMD" -B --os="win64" --cpu="x86_64" ACBRWebService.lpi
+    echo "OK: Projeto compilado com sucesso!"
+else
+    echo "ERRO: Arquivo de projeto 'ACBRWebService.lpi' não encontrado."
+    exit 1
+fi
+
+if [ -f "ACBRWebService.lpi" ]; then
+    # Compila com os parâmetros de plataforma específicos
+    "$LAZBUILD_CMD" -B --os="win32" --cpu="i386" ACBRWebService.lpi
     echo "OK: Projeto compilado com sucesso!"
 else
     echo "ERRO: Arquivo de projeto 'ACBRWebService.lpi' não encontrado."
@@ -161,5 +107,4 @@ fi
 
 # --- CONCLUSÃO ---
 
-print_header "Build concluído com sucesso!"
 echo "O executável deve estar disponível no diretório do seu projeto."

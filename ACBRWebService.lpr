@@ -2,7 +2,9 @@ program ACBRWebService;
 
 {$mode Delphi}
 uses
+  {$ifdef unix}
   cthreads,
+  {$endif}
   Interfaces,
   SysUtils,
   Horse,
