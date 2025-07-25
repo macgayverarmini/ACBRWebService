@@ -10,7 +10,6 @@ on:
 
 jobs:
   # JOB ÚNICO: Prepara o ambiente, compila todas as plataformas e empacota os resultados.
-  # A estratégia de matriz foi removida, pois o build.sh compila todos os alvos de uma vez.
   build-and-package:
     name: Build All Platforms
     runs-on: ubuntu-22.04
@@ -21,7 +20,6 @@ jobs:
         uses: actions/checkout@v4
 
       # 2. Cache do ambiente Lazarus/FPC para acelerar execuções futuras.
-      # Se o diretório ~/development já existir de um build anterior, ele é restaurado.
       - name: Cache Lazarus Environment
         id: cache-lazarus
         uses: actions/cache@v4
@@ -30,50 +28,45 @@ jobs:
           key: ubuntu-22.04-laz-fixes-4.0-fpc-fixes-3.2-cross-all-v3
 
       # 3. Instalação completa de todas as dependências do sistema.
-      # Este passo só é executado se o cache do Lazarus não for encontrado.
       - name: Install System Dependencies
         if: steps.cache-lazarus.outputs.cache-hit != 'true'
         run: |
-          apt-get update
-          # Adiciona suporte para arquitetura 32-bit, essencial para o alvo i386.
-          dpkg --add-architecture i386
-          apt-get update
-          # Instala a lista exata e otimizada de pacotes necessários, baseada no Dockerfile funcional.
-          apt-get install -y --no-install-recommends \
+          # Todos os comandos de gerenciamento de pacotes precisam de sudo.
+          sudo apt-get update
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
             build-essential git python3 python3-pip python3-tqdm dos2unix wget unzip zip \
             subversion clang gdb binutils-mingw-w64-x86-64 libx11-dev libgtk2.0-dev \
             libgdk-pixbuf2.0-dev libcairo2-dev libpango1.0-dev gcc-multilib libgtk2.0-dev:i386
-          # Comando de robustez para corrigir pacotes quebrados, caso ocorra algum problema.
-          apt-get --fix-broken install -y
+          sudo apt-get --fix-broken install -y
 
-      # 4. Cria o link simbólico para o windres, um workaround necessário.
+      # 4. Cria o link simbólico em um diretório de sistema, o que exige sudo.
       - name: Create windres symlink
         if: steps.cache-lazarus.outputs.cache-hit != 'true'
-        run: ln -s /usr/bin/x86_64-w64-mingw32-windres /usr/bin/windres
+        run: sudo ln -s /usr/bin/x86_64-w64-mingw32-windres /usr/bin/windres
 
-      # 5. Baixa e instala a ferramenta fpclazup.
+      # 5. Baixa e instala a ferramenta em um diretório de sistema (/usr/local/bin).
       - name: Install fpclazup
         if: steps.cache-lazarus.outputs.cache-hit != 'true'
         run: |
-          wget https://github.com/LongDirtyAnimAlf/Reiniero-fpcup/releases/download/v2.4.0f/fpclazup-x86_64-linux -O /usr/local/bin/fpclazup
-          chmod +x /usr/local/bin/fpclazup
+          # O wget precisa de sudo para escrever em /usr/local/bin.
+          sudo wget https://github.com/LongDirtyAnimAlf/Reiniero-fpcup/releases/download/v2.4.0f/fpclazup-x86_64-linux -O /usr/local/bin/fpclazup
+          sudo chmod +x /usr/local/bin/fpclazup
 
-      # 6. Instala o FPC/Lazarus e os Cross-Compilers na ordem correta e exata.
+      # 6. Instala o FPC/Lazarus. Não precisa de sudo pois instala no diretório home do usuário ($HOME).
       - name: Install Lazarus, FPC, and Cross-Compilers
         if: steps.cache-lazarus.outputs.cache-hit != 'true'
         run: |
-          # 1º: Instalação Nativa (Linux) com as versões do GitLab.
           fpclazup --noconfirm lazVersion=fixes-4.0.gitlab fpcVersion=fixes-3.2.gitlab --installdir=$HOME/development
-          # 2º: Adiciona o cross-compiler para Win32.
           fpclazup --installdir=$HOME/development --cputarget=i386 --ostarget=win32 --autotools --noconfirm
-          # 3º: Adiciona o cross-compiler para Win64.
           fpclazup --installdir=$HOME/development --cputarget=x86_64 --ostarget=win64 --autotools --noconfirm
 
-      # 7. Adiciona o diretório do Lazarus ao PATH do sistema para que 'lazbuild' seja encontrado.
+      # 7. Adiciona o diretório do Lazarus ao PATH do sistema.
       - name: Add Lazarus to PATH
         run: echo "$HOME/development/lazarus" >> $GITHUB_PATH
 
-      # 8. Cache das dependências do projeto (ACBr, etc.) para acelerar execuções.
+      # 8. Cache das dependências do projeto.
       - name: Cache Project Dependencies
         id: cache-project-deps
         uses: actions/cache@v4
@@ -82,19 +75,17 @@ jobs:
             ../acbr
             ../powerpdf
             ../fortesreport-ce4
-            # Adicione outros diretórios de dependência aqui se necessário
           key: ${{ runner.os }}-project-deps-v2-${{ hashFiles('download.sh') }}
 
-      # 9. Baixa as dependências do projeto se o cache não for encontrado.
+      # 9. Baixa as dependências do projeto.
       - name: Download Project Dependencies
         if: steps.cache-project-deps.outputs.cache-hit != 'true'
         run: |
           chmod +x ./download.sh
           ./download.sh
 
-      # 10. Executa o script de build, que compila todas as 3 plataformas.
+      # 10. Executa o script de build.
       - name: Run Build Script
-        # Define as variáveis de ambiente que o build.sh espera encontrar.
         env:
           LAZBUILD_CMD: "$HOME/development/lazarus/lazbuild"
           LAZARUS_DIR: "$HOME/development/lazarus/"
@@ -105,11 +96,10 @@ jobs:
           chmod +x build.sh
           ./build.sh
 
-      # 11. Empacota os 3 binários gerados em arquivos .zip separados.
+      # 11. Empacota os 3 binários gerados.
       - name: Package All Artifacts
         run: |
           mkdir -p release
-          # Lista de alvos para empacotar (formato: NOME_DO_ZIP,NOME_DO_EXECUTAVEL)
           targets=(
             "Linux-x86_64,ACBRWebService-x86_64-linux"
             "Windows-x86_64,ACBRWebService-x86_64-win64.exe"
@@ -129,29 +119,27 @@ jobs:
             fi
           done
 
-      # 12. Faz o upload de TODOS os arquivos .zip como um único artefato.
+      # 12. Faz o upload dos artefatos.
       - name: Upload Release Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: release-assets
           path: release/*.zip
 
-  # JOB 2: Publica o release no GitHub com os 3 arquivos .zip
+  # JOB 2: Publica o release no GitHub.
   release:
     name: Create GitHub Release
-    needs: build-and-package # Depende do sucesso do job único de build
+    needs: build-and-package
     runs-on: ubuntu-22.04
     permissions:
       contents: write
     steps:
-      # 1. Baixa o artefato único que contém todos os zips.
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           name: release-assets
           path: release-assets/
 
-      # 2. Cria o release e anexa todos os arquivos .zip.
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
