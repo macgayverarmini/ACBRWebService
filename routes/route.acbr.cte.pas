@@ -19,7 +19,8 @@ procedure GetModeloConsulta(Req: THorseRequest; Res: THorseResponse; Next: TNext
 procedure GetModeloInutilizacao(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure GetModeloCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure GetModeloCancelamento(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
-procedure GetModeloXMLToJSON(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloCTeFromXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloCTeToXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
 procedure PostEventosCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostStatusServico(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
@@ -29,7 +30,8 @@ procedure PostDistCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostDACTE(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostCancelamento(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
-procedure PostXMLToJSON(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostCTeFromXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostCTeToXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
 
 
@@ -245,13 +247,25 @@ begin
   end;
 end;
 
-procedure GetModeloXMLToJSON(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloCTeFromXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   Ac: TACBRModelosJSONCTe;
 begin
   Ac := TACBRModelosJSONCTe.Create(RSEmptyString);
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelXMLToJSON.AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelCTeFromXML.AsJSON);
+  finally
+    Ac.Free;
+  end;
+end;
+
+procedure GetModeloCTeToXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  Ac: TACBRModelosJSONCTe;
+begin
+  Ac := TACBRModelosJSONCTe.Create(RSEmptyString);
+  try
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelCTeToXML.AsJSON);
   finally
     Ac.Free;
   end;
@@ -272,7 +286,7 @@ begin
   end;
 end;
 
-procedure PostXMLToJSON(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostCTeFromXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   O: TJSONObject;
   Ac: TACBRBridgeCTe;
@@ -280,7 +294,22 @@ begin
   O := GetJSON(Req.Body) as TJSONObject;
   Ac := TACBRBridgeCTe.Create(O.Extract(RSConfigField).AsJSON);
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.XMLToJSON(O).AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.CTeFromXML(O).AsJSON);
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
+procedure PostCTeToXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O: TJSONObject;
+  Ac: TACBRBridgeCTe;
+begin
+  O := GetJSON(Req.Body) as TJSONObject;
+  Ac := TACBRBridgeCTe.Create(O.Extract(RSConfigField).AsJSON);
+  try
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.CTeToXML(O).AsJSON);
   finally
     O.Free;
     Ac.Free;
@@ -298,7 +327,8 @@ begin
   THorse.Get(RSModeloCTeInutilizacaoRoute, GetModeloInutilizacao);
   THorse.Get(RSModeloCTeCTeRoute, GetModeloCTe);
   THorse.Get(RSModeloCTeCancelamentoRoute, GetModeloCancelamento);
-  THorse.Get(RSModeloCTeXMLToJSONRoute, GetModeloXMLToJSON);
+  THorse.Get(RSModeloCTeCTeFromXMLRoute, GetModeloCTeFromXML);
+  THorse.Get(RSModeloCTeCTeToXMLRoute, GetModeloCTeToXML);
 
   THorse.Post(RSCTeEventosRoute, PostEventosCTe);
   THorse.Post(RSCTeStatusRoute, PostStatusServico);
@@ -308,7 +338,8 @@ begin
   THorse.Post(RSCTeDANFeRoute, PostDACTE);
   THorse.Post(RSCTeNFeRoute, PostCTe);
   THorse.Post(RSCTeCancelamentoRoute, PostCancelamento);
-  THorse.Post(RSCTeXMLToJSONRoute, PostXMLToJSON);
+  THorse.Post(RSCTeCTeFromXMLRoute, PostCTeFromXML);
+  THorse.Post(RSCTeCTeToXMLRoute, PostCTeToXML);
 
 end;
 

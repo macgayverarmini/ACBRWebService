@@ -55,7 +55,8 @@ type
     function Inutilizacao(const jInutilizacao: TJSONObject): TJSONObject;
     function CTe(const jCTe: TJSONObject): TJSONObject;
     function Cancelamento(const jCancelamento: TJSONObject): TJSONObject;
-    function XMLToJSON(const jXML: TJSONObject): TJSONObject;
+    function CTeFromXML(const jXML: TJSONObject): TJSONObject;
+    function CTeToXML(const jCTe: TJSONObject): TJSONObject;
     function DACTE(const xmlData: TJSONObject): TJSONObject;
 
     function TesteConfig: boolean;
@@ -74,7 +75,8 @@ type
     function ModelDistribuicao: string;
     function ModelCTe: TJSONObject;
     function ModelCancelamento: TJSONObject;
-    function ModelXMLToJSON: TJSONObject;
+    function ModelCTeFromXML: TJSONObject;
+    function ModelCTeToXML: TJSONObject;
   end;
 
 implementation
@@ -172,10 +174,16 @@ begin
   facbr.EventoCTe.Evento.Clear;
 end;
 
-function TACBRModelosJSONCTe.ModelXMLToJSON: TJSONObject;
+function TACBRModelosJSONCTe.ModelCTeFromXML: TJSONObject;
 begin
   Result := TJSONObject.Create;
-  Result.Add('xml', 'XML em Base64');
+  Result.Add('xml', 'XML do CTe em Base64 — retorna o CTe como JSON');
+end;
+
+function TACBRModelosJSONCTe.ModelCTeToXML: TJSONObject;
+begin
+  Result := ModelCTe;
+  // O modelo é o mesmo do CTe — envie o JSON do CTe e receba o XML gerado
 end;
 
 function TACBRModelosJSONCTe.ModelCTe: TJSONObject;
@@ -539,7 +547,7 @@ begin
   end;
 end;
 
-function TACBRBridgeCTe.XMLToJSON(const jXML: TJSONObject): TJSONObject;
+function TACBRBridgeCTe.CTeFromXML(const jXML: TJSONObject): TJSONObject;
 var
   xmlBase64: string;
 begin
@@ -572,6 +580,45 @@ begin
     end;
   end;
   facbr.Conhecimentos.Clear;
+end;
+
+function TACBRBridgeCTe.CTeToXML(const jCTe: TJSONObject): TJSONObject;
+var
+  ConhecimentoCTe: TCTe;
+  xmlString: string;
+begin
+  CarregaConfig;
+  Result := TJSONObject.Create;
+
+  try
+    ConhecimentoCTe := facbr.Conhecimentos.Add.CTe;
+    TJSONTools.JsonToObj(jCTe, ConhecimentoCTe);
+  except
+    on E: Exception do
+    begin
+      Result.Add('status', 'erro');
+      Result.Add('message', 'Erro na leitura do objeto JSON para CTe: ' + E.Message);
+      if Assigned(facbr.Conhecimentos) then facbr.Conhecimentos.Clear;
+      Exit;
+    end;
+  end;
+
+  try
+    facbr.Conhecimentos.GerarCTe;
+    xmlString := facbr.Conhecimentos.Items[0].XMLOriginal;
+    if xmlString = '' then
+      xmlString := facbr.Conhecimentos.Items[0].XML;
+
+    Result.Add('xml', EncodeStringBase64(xmlString));
+  except
+    on E: Exception do
+    begin
+      Result.Add('status', 'erro');
+      Result.Add('message', 'Erro ao gerar XML do CTe: ' + E.Message);
+    end;
+  end;
+
+  if Assigned(facbr.Conhecimentos) then facbr.Conhecimentos.Clear;
 end;
 
 function TACBRBridgeCTe.DACTE(const xmlData: TJSONObject): TJSONObject;

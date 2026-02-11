@@ -11,7 +11,9 @@ if not exist "%LAZBUILD_CMD%" (
 )
 
 echo Compiling ACBRWebService...
+cd src
 "%LAZBUILD_CMD%" -B --os=win64 --cpu=x86_64 ACBRWebService.lpi
+cd ..
 if %ERRORLEVEL% NEQ 0 (
     echo Compilation failed!
     exit /b 1

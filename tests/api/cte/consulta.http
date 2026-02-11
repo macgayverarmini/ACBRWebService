@@ -1,0 +1,27 @@
+### Variáveis de Ambiente
+# @baseUrl = {{baseUrl}}
+# @contentType = {{contentType}}
+
+# ----------------------------------------------------
+# CONSULTA CTE
+# ----------------------------------------------------
+
+### Consulta pela Chave (POST)
+# @name consultaChave
+POST {{baseUrl}}/cte/consulta
+Content-Type: {{contentType}}
+
+{
+  "config": {
+      "Webservices": {
+        "UF": "SP",
+        "Ambiente": "1"
+      }
+  },
+  "chave": "35230912345678000190570010000000011000000010"
+}
+
+### Modelo Consulta (GET)
+# @name getModeloConsulta
+GET {{baseUrl}}/modelo/cte/consulta
+Content-Type: {{contentType}}

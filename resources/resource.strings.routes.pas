@@ -24,7 +24,8 @@ resourcestring
   RSModeloCTeConsultaRoute = '/modelo/cte/consulta';
   RSModeloCTeInutilizacaoRoute = '/modelo/cte/inutilizacao';
   RSModeloCTeCancelamentoRoute = '/modelo/cte/cancelamento';
-  RSModeloCTeXMLToJSONRoute = '/modelo/cte/xml-to-json';
+  RSModeloCTeCTeFromXMLRoute = '/modelo/cte/cte-from-xml';
+  RSModeloCTeCTeToXMLRoute = '/modelo/cte/cte-to-xml';
   RSCTeEventosRoute = '/cte/eventos';
   RSCTeDistribuicaoRoute = '/cte/distribuicao';
   RSCTeDANFeRoute = '/cte/danfe';
@@ -33,7 +34,8 @@ resourcestring
   RSCTeConsultaRoute = '/cte/consulta';
   RSCTeInutilizacaoRoute = '/cte/inutilizacao';
   RSCTeCancelamentoRoute = '/cte/cancelamento';
-  RSCTeXMLToJSONRoute = '/cte/xml-to-json';
+  RSCTeCTeFromXMLRoute = '/cte/cte-from-xml';
+  RSCTeCTeToXMLRoute = '/cte/cte-to-xml';
   
   // Rotas - MDFe
   RSModeloMDFeConfigRoute = '/modelo/mdfe/config';
