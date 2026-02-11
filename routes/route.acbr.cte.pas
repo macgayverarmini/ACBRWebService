@@ -13,12 +13,25 @@ uses
 procedure GetModeloConfigCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure GetModeloEventoCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure GetModeloDistCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+
+procedure GetModeloStatusServico(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloConsulta(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloInutilizacao(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure GetModeloCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloCancelamento(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloXMLToJSON(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
 procedure PostEventosCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostStatusServico(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostConsulta(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostInutilizacao(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostDistCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostDACTE(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostCancelamento(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostXMLToJSON(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+
+
 
 procedure regRouter;
 
@@ -31,7 +44,7 @@ var
 begin
   AcC := TACBRModelosJSONCTe.Create(RSEmptyString);
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(AcC.ModelConfig);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(AcC.ModelConfig.AsJSON);
   finally
     AcC.Free;
   end;
@@ -43,19 +56,20 @@ var
 begin
   AcC := TACBRModelosJSONCTe.Create(RSEmptyString);
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(AcC.ModelEvento);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(AcC.ModelEvento.AsJSON);
   finally
     AcC.Free;
   end;
 end;
 
 procedure GetModeloCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+
 var
   AcC: TACBRModelosJSONCTe;
 begin
   AcC := TACBRModelosJSONCTe.Create(RSEmptyString);
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(AcC.ModelCTe);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(AcC.ModelCTe.AsJSON);
   finally
     AcC.Free;
   end;
@@ -86,7 +100,7 @@ begin
   Ac := TACBRBridgeCTe.Create(O.Extract(RSConfigField).AsJSON);
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
-      .Send<TJSONObject>(Ac.DACTE(O));
+      .Send(Ac.DACTE(O).AsJSON);
   finally
     O.Free;
     Ac.Free;
@@ -94,6 +108,7 @@ begin
 end;
 
 procedure PostCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+
 var
   O: TJSONObject;
   Ac: TACBRBridgeCTe;
@@ -101,7 +116,7 @@ begin
   O := GetJSON(Req.Body) as TJSONObject;
   Ac := TACBRBridgeCTe.Create(O.Extract(RSConfigField).AsJSON);
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(Ac.CTe(O));
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.CTe(O).AsJSON);
   finally
     O.Free;
     Ac.Free;
@@ -129,7 +144,88 @@ begin
   Ac := TACBRBridgeCTe.Create(O.Extract(RSConfigField).AsJSON);
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
-      .Send<TJSONObject>(Ac.Distribuicao(O));
+      .Send(Ac.Distribuicao(O).AsJSON);
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
+procedure GetModeloStatusServico(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  Ac: TACBRModelosJSONCTe;
+begin
+  Ac := TACBRModelosJSONCTe.Create(RSEmptyString);
+  try
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelStatusServico.AsJSON);
+  finally
+    Ac.Free;
+  end;
+end;
+
+procedure GetModeloConsulta(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  Ac: TACBRModelosJSONCTe;
+begin
+  Ac := TACBRModelosJSONCTe.Create(RSEmptyString);
+  try
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelConsulta.AsJSON);
+  finally
+    Ac.Free;
+  end;
+end;
+
+procedure GetModeloInutilizacao(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  Ac: TACBRModelosJSONCTe;
+begin
+  Ac := TACBRModelosJSONCTe.Create(RSEmptyString);
+  try
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelInutilizacao.AsJSON);
+  finally
+    Ac.Free;
+  end;
+end;
+
+procedure PostStatusServico(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O: TJSONObject;
+  Ac: TACBRBridgeCTe;
+begin
+  O := GetJSON(Req.Body) as TJSONObject;
+  Ac := TACBRBridgeCTe.Create(O.Extract(RSConfigField).AsJSON);
+  try
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.StatusServico(O).AsJSON);
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
+procedure PostConsulta(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O: TJSONObject;
+  Ac: TACBRBridgeCTe;
+begin
+  O := GetJSON(Req.Body) as TJSONObject;
+  Ac := TACBRBridgeCTe.Create(O.Extract(RSConfigField).AsJSON);
+  try
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.Consulta(O).AsJSON);
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
+procedure PostInutilizacao(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O: TJSONObject;
+  Ac: TACBRBridgeCTe;
+begin
+  O := GetJSON(Req.Body) as TJSONObject;
+  Ac := TACBRBridgeCTe.Create(O.Extract(RSConfigField).AsJSON);
+  try
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.Inutilizacao(O).AsJSON);
   finally
     O.Free;
     Ac.Free;
@@ -137,19 +233,84 @@ begin
 end;
 
 
+procedure GetModeloCancelamento(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  Ac: TACBRModelosJSONCTe;
+begin
+  Ac := TACBRModelosJSONCTe.Create(RSEmptyString);
+  try
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelCancelamento.AsJSON);
+  finally
+    Ac.Free;
+  end;
+end;
+
+procedure GetModeloXMLToJSON(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  Ac: TACBRModelosJSONCTe;
+begin
+  Ac := TACBRModelosJSONCTe.Create(RSEmptyString);
+  try
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelXMLToJSON.AsJSON);
+  finally
+    Ac.Free;
+  end;
+end;
+
+procedure PostCancelamento(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O: TJSONObject;
+  Ac: TACBRBridgeCTe;
+begin
+  O := GetJSON(Req.Body) as TJSONObject;
+  Ac := TACBRBridgeCTe.Create(O.Extract(RSConfigField).AsJSON);
+  try
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.Cancelamento(O).AsJSON);
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
+procedure PostXMLToJSON(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O: TJSONObject;
+  Ac: TACBRBridgeCTe;
+begin
+  O := GetJSON(Req.Body) as TJSONObject;
+  Ac := TACBRBridgeCTe.Create(O.Extract(RSConfigField).AsJSON);
+  try
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.XMLToJSON(O).AsJSON);
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
 procedure regRouter;
 begin
   // Endpoints de Modelos (GET)
   THorse.Get(RSModeloCTeConfigRoute, GetModeloConfigCTe);
   THorse.Get(RSModeloCTeEventoRoute, GetModeloEventoCTe);
   THorse.Get(RSModeloCTeDistribuicaoRoute, GetModeloDistCTe);
+  THorse.Get(RSModeloCTeStatusRoute, GetModeloStatusServico);
+  THorse.Get(RSModeloCTeConsultaRoute, GetModeloConsulta);
+  THorse.Get(RSModeloCTeInutilizacaoRoute, GetModeloInutilizacao);
   THorse.Get(RSModeloCTeCTeRoute, GetModeloCTe);
+  THorse.Get(RSModeloCTeCancelamentoRoute, GetModeloCancelamento);
+  THorse.Get(RSModeloCTeXMLToJSONRoute, GetModeloXMLToJSON);
 
   THorse.Post(RSCTeEventosRoute, PostEventosCTe);
+  THorse.Post(RSCTeStatusRoute, PostStatusServico);
+  THorse.Post(RSCTeConsultaRoute, PostConsulta);
+  THorse.Post(RSCTeInutilizacaoRoute, PostInutilizacao);
   THorse.Post(RSCTeDistribuicaoRoute, PostDistCTe);
   THorse.Post(RSCTeDANFeRoute, PostDACTE);
   THorse.Post(RSCTeNFeRoute, PostCTe);
+  THorse.Post(RSCTeCancelamentoRoute, PostCancelamento);
+  THorse.Post(RSCTeXMLToJSONRoute, PostXMLToJSON);
 
 end;
 
 end.
+

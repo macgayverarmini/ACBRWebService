@@ -20,10 +20,20 @@ resourcestring
   RSModeloCTeEventoRoute = '/modelo/cte/evento';
   RSModeloCTeDistribuicaoRoute = '/modelo/cte/distribuicao';
   RSModeloCTeCTeRoute = '/modelo/cte/cte';
+  RSModeloCTeStatusRoute = '/modelo/cte/status';
+  RSModeloCTeConsultaRoute = '/modelo/cte/consulta';
+  RSModeloCTeInutilizacaoRoute = '/modelo/cte/inutilizacao';
+  RSModeloCTeCancelamentoRoute = '/modelo/cte/cancelamento';
+  RSModeloCTeXMLToJSONRoute = '/modelo/cte/xml-to-json';
   RSCTeEventosRoute = '/cte/eventos';
   RSCTeDistribuicaoRoute = '/cte/distribuicao';
   RSCTeDANFeRoute = '/cte/danfe';
   RSCTeNFeRoute = '/cte/nfe';
+  RSCTeStatusRoute = '/cte/status';
+  RSCTeConsultaRoute = '/cte/consulta';
+  RSCTeInutilizacaoRoute = '/cte/inutilizacao';
+  RSCTeCancelamentoRoute = '/cte/cancelamento';
+  RSCTeXMLToJSONRoute = '/cte/xml-to-json';
   
   // Rotas - MDFe
   RSModeloMDFeConfigRoute = '/modelo/mdfe/config';
@@ -48,3 +58,6 @@ resourcestring
 implementation
 
 end.
+
+
+

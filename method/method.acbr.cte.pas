@@ -12,24 +12,24 @@ uses
   ACBrCTeConhecimentos,
   ACBrCTeDACTeRLClass, // Para o tipo TACBrCTeDACTeRL
   ACBrCTeWebServices,
-  // ACBrDFeDANFeReport, // Revisar se é realmente necessário
+  // ACBrDFeDANFeReport, // Revisar se  realmente necessrio
   ACBrMail,
   ACBrDFeSSL,
   ACBrDFeConfiguracoes,
   ACBrCTeConfiguracoes,
   ACBrCTe.Classes,
   pcnConversao,      // Geral
-  pcteConversaoCTe, // Específico de CTe
+  pcteConversaoCTe, // Especfico de CTe
   StrUtils,
   Variants,
-  Controls, // Provavelmente necessário por ACBrCTeDACTeRL
+  Controls, // Provavelmente necessrio por ACBrCTeDACTeRL
   fpjson,
   jsonconvert,
   Base64,
   jsonparser,
   Classes, SysUtils,
   streamtools,
-  ACBrCTeDACTeRL, // Para a instância fdacte
+  ACBrCTeDACTeRL, // Para a instncia fdacte
   ACBrUtil;       // Para GetTempFileName e possivelmente FileToStringBase64
 
 type
@@ -50,27 +50,37 @@ type
 
     function Evento(const jEventos: TJSONArray): string;
     function Distribuicao(const jDistribuicao: TJSONObject): TJSONObject;
+    function StatusServico(const jStatus: TJSONObject): TJSONObject;
+    function Consulta(const jConsulta: TJSONObject): TJSONObject;
+    function Inutilizacao(const jInutilizacao: TJSONObject): TJSONObject;
     function CTe(const jCTe: TJSONObject): TJSONObject;
+    function Cancelamento(const jCancelamento: TJSONObject): TJSONObject;
+    function XMLToJSON(const jXML: TJSONObject): TJSONObject;
     function DACTE(const xmlData: TJSONObject): TJSONObject;
 
     function TesteConfig: boolean;
   end;
 
-  { TACBRModelosJSONCTe - Salva os retornos de modelo de requisições CTe }
+  { TACBRModelosJSONCTe - Salva os retornos de modelo de requisies CTe }
 
   TACBRModelosJSONCTe = class(TACBRBridgeCTe)
   private
   public
     function ModelConfig: TJSONObject;
+    function ModelStatusServico: TJSONObject;
+    function ModelConsulta: TJSONObject;
+    function ModelInutilizacao: TJSONObject;
     function ModelEvento: TJSONObject;
     function ModelDistribuicao: string;
     function ModelCTe: TJSONObject;
+    function ModelCancelamento: TJSONObject;
+    function ModelXMLToJSON: TJSONObject;
   end;
 
 implementation
 
-// Se precisar de pcnAuxiliar ou outras units de conversão (UFtoCUF), adicione aqui.
-// Exemplo: pcnAuxiliar (para UFtoCUF, se não estiver em pcnConversao ou pcteConversaoCTe)
+// Se precisar de pcnAuxiliar ou outras units de converso (UFtoCUF), adicione aqui.
+// Exemplo: pcnAuxiliar (para UFtoCUF, se no estiver em pcnConversao ou pcteConversaoCTe)
 
 { TACBRModelosJSONCTe }
 
@@ -114,12 +124,58 @@ begin
   Result := TJSONTools.ObjToJson(facbr.Configuracoes);
 end;
 
+function TACBRModelosJSONCTe.ModelStatusServico: TJSONObject;
+begin
+  Result := TJSONObject.Create;
+end;
+
+function TACBRModelosJSONCTe.ModelConsulta: TJSONObject;
+begin
+  // A classe TCTeConsulta tem a propriedade CTeChave. Vamos usar ela.
+  facbr.WebServices.Consulta.CTeChave := 'Preencha com a Chave de Acesso do CTe';
+  Result := TJSONObject.Create;
+  Result.Add('CTeChave', facbr.WebServices.Consulta.CTeChave);
+end;
+
+function TACBRModelosJSONCTe.ModelInutilizacao: TJSONObject;
+begin
+  facbr.WebServices.Inutilizacao.CNPJ := '00000000000000';
+  facbr.WebServices.Inutilizacao.Justificativa := 'Justificativa da Inutilizacao';
+  facbr.WebServices.Inutilizacao.Ano := 2023;
+  facbr.WebServices.Inutilizacao.Serie := 1;
+  facbr.WebServices.Inutilizacao.NumeroInicial := 100;
+  facbr.WebServices.Inutilizacao.NumeroFinal := 100;
+  facbr.WebServices.Inutilizacao.Modelo := 57;
+  
+  Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.Inutilizacao));
+end;
+
 function TACBRModelosJSONCTe.ModelEvento: TJSONObject;
 begin
   facbr.EventoCTe.Evento.New;
-  // Preencher campos mínimos de exemplo se desejado
+  // Preencher campos mnimos de exemplo se desejado
   Result := TJSONTools.ObjToJson(facbr.EventoCTe);
   facbr.EventoCTe.Evento.Clear;
+end;
+
+function TACBRModelosJSONCTe.ModelCancelamento: TJSONObject;
+begin
+  facbr.EventoCTe.Evento.Clear;
+  with facbr.EventoCTe.Evento.New.InfEvento do
+  begin
+     tpEvento := teCancelamento;
+     chCTe := 'Preencha com a Chave de Acesso';
+     detEvento.nProt := 'Preencha com o Protocolo';
+     detEvento.xJust := 'Justificativa do Cancelamento (min 15 caracteres)';
+  end;
+  Result := TJSONObject(TJSONTools.ObjToJson(facbr.EventoCTe.Evento.Items[0]));
+  facbr.EventoCTe.Evento.Clear;
+end;
+
+function TACBRModelosJSONCTe.ModelXMLToJSON: TJSONObject;
+begin
+  Result := TJSONObject.Create;
+  Result.Add('xml', 'XML em Base64');
 end;
 
 function TACBRModelosJSONCTe.ModelCTe: TJSONObject;
@@ -130,21 +186,21 @@ begin
   with vConhecimento.CTe do
   begin
     infCTe.versao := 4.0;
-    Ide.cUF := UFtoCUF('ES'); // Certifique-se que UFtoCUF está acessível
+    Ide.cUF := UFtoCUF('ES'); // Certifique-se que UFtoCUF est acessvel
     Ide.CFOP := 5353;
     Ide.natOp := 'PRESTACAO SERVICO';
     ide.forPag := fpAPagar;
     Ide.modelo := 57;
     Ide.serie := 1;
     Ide.nCT := 1;
-    Ide.cCT := 1; // Atenção: deve ser aleatório
+    Ide.cCT := 1; // Ateno: deve ser aleatrio
     Ide.dhEmi := Now;
     Ide.tpImp := tiRetrato;
     Ide.tpEmis := teNormal;
     Ide.tpAmb := taHomologacao;
     Ide.tpCTe := tcNormal;
     Ide.procEmi := peAplicativoContribuinte;
-    Ide.verProc := '4.0'; // Ou sua versão
+    Ide.verProc := '4.0'; // Ou sua verso
     Ide.cMunEnv := StrToInt('3203205'); // Exemplo Linhares/ES
     Ide.xMunEnv := 'LINHARES';
     Ide.UFEnv := 'ES';
@@ -154,18 +210,18 @@ begin
     Ide.cMunIni := 3119401; // Exemplo Coronel Fabriciano/MG
     Ide.xMunIni := 'CORONEL FABRICIANO';
     Ide.UFIni := 'MG';
-    Ide.cMunFim := 2900207; // Exemplo Abaré/BA
+    Ide.cMunFim := 2900207; // Exemplo Abar/BA
     Ide.xMunFim := 'ABARE';
     Ide.UFFim := 'BA';
     Ide.retira := rtSim;
     ide.indGlobalizado := TIndicador.tiSim; // boolean
 
-    // Adicione mais campos conforme o modelo extenso que você tinha
+    // Adicione mais campos conforme o modelo extenso que voc tinha
     // ...
 
     Emit.CRT := crtRegimeNormal;
-    Emit.CNPJ := '11222333000144'; // CNPJ fictício
-    Emit.IE := '001000000000';    // IE fictícia
+    Emit.CNPJ := '11222333000144'; // CNPJ fictcio
+    Emit.IE := '001000000000';    // IE fictcia
     Emit.xNome := 'Empresa Ficticia de Transportes Ltda';
     Emit.enderEmit.xLgr := 'Avenida das Flores';
     Emit.enderEmit.nro := '1234';
@@ -229,17 +285,17 @@ var
   xmlBase64: string;
 begin
   if not jsonData.Find('xml', xmlBase64JSON) then
-    raise Exception.Create('Parâmetro "xml" (string Base64) não encontrado no JSON.');
+    raise Exception.Create('Parmetro "xml" (string Base64) no encontrado no JSON.');
 
   xmlBase64 := xmlBase64JSON.AsString;
   if xmlBase64 = '' then
-    raise Exception.Create('Parâmetro "xml" está vazio no JSON.');
+    raise Exception.Create('Parmetro "xml" est vazio no JSON.');
 
   try
-    Result := DecodeStringBase64(xmlBase64); // Função de Classes ou Base64 unit
+    Result := DecodeStringBase64(xmlBase64); // Funo de Classes ou Base64 unit
   except
     on E: Exception do
-      raise Exception.Create('A string XML em base64 é inválida: ' + E.Message);
+      raise Exception.Create('A string XML em base64  invlida: ' + E.Message);
   end;
 end;
 
@@ -341,7 +397,7 @@ begin
   begin
     if not MatchStr(UF.ToString, CodigosIBGE) then
     begin
-      Result.Add('error', 'Código de UF inválido');
+      Result.Add('error', 'Cdigo de UF invlido');
       Exit;
     end;
     objDistribuicao.cUFAutor := StrToInt(UF.ToString);
@@ -377,6 +433,147 @@ begin
 end;
 
 
+
+function TACBRBridgeCTe.StatusServico(const jStatus: TJSONObject): TJSONObject;
+begin
+  CarregaConfig;
+  Result := TJSONObject.Create;
+  try
+    facbr.WebServices.StatusServico.Executar;
+    Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.StatusServico));
+  except
+    on E: Exception do
+    begin
+      Result.Add('status', 'erro');
+      Result.Add('message', 'Erro ao consultar status: ' + E.Message);
+    end;
+  end;
+end;
+
+function TACBRBridgeCTe.Consulta(const jConsulta: TJSONObject): TJSONObject;
+var
+  Chave: TJSONData;
+begin
+  CarregaConfig;
+  Result := TJSONObject.Create;
+
+  if jConsulta.Find('CTeChave', Chave) then
+  begin
+    try
+      facbr.WebServices.Consulta.CTeChave := Chave.AsString;
+      facbr.WebServices.Consulta.Executar;
+      Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.Consulta));
+    except
+      on E: Exception do
+      begin
+        Result.Add('status', 'erro');
+        Result.Add('message', 'Erro na consulta: ' + E.Message);
+      end;
+    end;
+  end
+  else
+  begin
+    Result.Add('status', 'erro');
+    Result.Add('message', 'Chave nao informada para consulta.');
+  end;
+end;
+
+function TACBRBridgeCTe.Inutilizacao(const jInutilizacao: TJSONObject): TJSONObject;
+begin
+  CarregaConfig;
+  Result := TJSONObject.Create;
+  
+  try
+    TJSONTools.JsonToObj(jInutilizacao, facbr.WebServices.Inutilizacao);
+    facbr.WebServices.Inutilizacao.Executar;
+    Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.Inutilizacao));
+  except
+    on E: Exception do
+    begin
+      Result.Add('status', 'erro');
+      Result.Add('message', 'Erro na inutilizacao: ' + E.Message);
+    end;
+  end;
+end;
+
+
+function TACBRBridgeCTe.Cancelamento(const jCancelamento: TJSONObject): TJSONObject;
+var
+  idLote: Integer;
+begin
+  CarregaConfig;
+  Result := TJSONObject.Create;
+  idLote := 1;
+  facbr.EventoCTe.Evento.Clear;
+  facbr.EventoCTe.idLote := idLote;
+
+  try
+    // Popula o objeto evento diretamente do JSON
+    TJSONTools.JsonToObj(jCancelamento, facbr.EventoCTe.Evento.New);
+  except
+     on E: Exception do
+     begin
+       Result.Add('status', 'erro');
+       Result.Add('message', 'Erro ao converter JSON para Evento: ' + E.Message);
+       Exit;
+     end;
+  end;
+
+  // Garante tipo de evento cancelamento e data se falhar
+  with facbr.EventoCTe.Evento.Items[0].InfEvento do
+  begin
+     if tpEvento <> teCancelamento then tpEvento := teCancelamento;
+     if dhEvento = 0 then dhEvento := Now;
+     if CNPJ = '' then CNPJ := Copy(chCTe, 7, 14);
+  end;
+
+  try
+    facbr.EnviarEvento(idLote);
+    Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.EnvEvento.EventoRetorno.retEvento));
+  except
+    on E: Exception do
+    begin
+      Result.Add('status', 'erro');
+      Result.Add('message', 'Erro ao enviar evento de cancelamento: ' + E.Message);
+    end;
+  end;
+end;
+
+function TACBRBridgeCTe.XMLToJSON(const jXML: TJSONObject): TJSONObject;
+var
+  xmlBase64: string;
+begin
+  CarregaConfig;
+  Result := TJSONObject.Create;
+  try
+    xmlBase64 := ReadXMLFromJSON(jXML);
+    facbr.Conhecimentos.LoadFromString(xmlBase64);
+    if facbr.Conhecimentos.Count > 0 then
+    begin
+      Result := TJSONObject(TJSONTools.ObjToJson(facbr.Conhecimentos.Items[0].CTe));
+      // Limpeza opcional de campos internos
+      Result.Delete('XML');
+      Result.Delete('XMLOriginal');
+      Result.Delete('NomeArq');
+      Result.Delete('Protocolo');
+      Result.Delete('DigVal');
+      Result.Delete('infCTeSupl');
+    end
+    else
+    begin
+       Result.Add('status', 'erro');
+       Result.Add('message', 'Nenhum CTe carregado do XML.');
+    end;
+  except
+    on E: Exception do
+    begin
+      Result.Add('status', 'erro');
+      Result.Add('message', 'Erro na conversao XML para JSON: ' + E.Message);
+    end;
+  end;
+  facbr.Conhecimentos.Clear;
+end;
+
 function TACBRBridgeCTe.DACTE(const xmlData: TJSONObject): TJSONObject;
 var
   arquivofinal: string;
@@ -409,7 +606,7 @@ begin
     end;
   end;
 
-  // Esvazia a string para liberar da memória logo o xml
+  // Esvazia a string para liberar da memria logo o xml
   stringXml := '';
   // O acesso a propriedade TipoDanfe se faz somente diretamente pelo objeto.
   if facbr.Conhecimentos.Items[0].CTe.Ide.tpImp <> TpcnTipoImpressao.tiPaisagem then
@@ -417,12 +614,12 @@ begin
   else
     fdacte.TipoDACTE := tiPaisagem;
 
-  // Como é um aplicativo console, jamais a propriedade MostraStatus deve ser true.
+  // Como  um aplicativo console, jamais a propriedade MostraStatus deve ser true.
   fdacte.MostraPreview := False;
   fdacte.MostraStatus := False;
   fdacte.MostraSetup := False;
 
-  //Gerando arquivo temporário
+  //Gerando arquivo temporrio
   fileName := GetTempFileName;
   // Realiza o processo de transformar o XML em PDF (Danfe)
   try
@@ -447,13 +644,13 @@ begin
     end;
   end;
 
-  // Converte a stream do relatório para base64
+  // Converte a stream do relatrio para base64
   Result.Add('pdf', arquivofinal);
   // Chave de Acesso da NF-e
   Result.Add('chave', facbr.Conhecimentos.Items[0].CTe.infCTe.ID);
   // Tamanho em Bytes
   Result.Add('tamanho', tamanho.ToString);
-  // Adiciona o identificador único se ele existir
+  // Adiciona o identificador nico se ele existir
   if xmlData.Find('id', id) then
     Result.Add('id', id);
 
@@ -471,7 +668,7 @@ begin
   end;
 end;
 
-// Implementação de FileToStringBase64 (se não estiver em streamtools ou ACBrUtil de forma acessível)
+// Implementao de FileToStringBase64 (se no estiver em streamtools ou ACBrUtil de forma acessvel)
 // Exemplo:
 // function FileToStringBase64(const AFileName: string; DeleteFileAfter: Boolean; out ASize: Integer): string;
 // var
@@ -492,7 +689,7 @@ end;
 //       MemStream.Position := 0;
 //       Base64Stream := TStringStream.Create('');
 //       try
-//         EnBase64(MemStream, Base64Stream); // Função da unit Base64 do FPC
+//         EnBase64(MemStream, Base64Stream); // Funo da unit Base64 do FPC
 //         Result := Base64Stream.DataString;
 //       finally
 //         Base64Stream.Free;
@@ -508,18 +705,18 @@ end;
 //     System.DeleteFile(AFileName); // ou SysUtils.DeleteFile
 // end;
 
-// Certifique-se que UFtoCUF esteja implementada ou em units acessíveis.
-// Geralmente está em pcnAuxiliar do ACBr. Se não, uma implementação simples:
+// Certifique-se que UFtoCUF esteja implementada ou em units acessveis.
+// Geralmente est em pcnAuxiliar do ACBr. Se no, uma implementao simples:
 // function UFtoCUF(const AUF: string): Integer;
 // begin
-//   // Implementação de conversão de Sigla UF para Código IBGE
+//   // Implementao de converso de Sigla UF para Cdigo IBGE
 //   // Exemplo: if AUF = 'SP' then Result := 35 else ...
-//   // O ACBr geralmente tem essa função em ACBrUtil ou pcnAuxiliar.
-//   // Se você usa o componente ACBr, ele mesmo pode fazer essa conversão
+//   // O ACBr geralmente tem essa funo em ACBrUtil ou pcnAuxiliar.
+//   // Se voc usa o componente ACBr, ele mesmo pode fazer essa converso
 //   // ao atribuir facbr.Configuracoes.WebServices.UF := 'SP'; e depois usar
 //   // facbr.Configuracoes.WebServices.UF ????????? StrToInteger(pcnCodUFIBGE[UF]);
-//   // Para o CTe.Ide.cUF, você precisará do código IBGE numérico.
-//   Result := TACBrDFe.StrUFToCodIBGE(AUF); // Use a função do ACBr se disponível
+//   // Para o CTe.Ide.cUF, voc precisar do cdigo IBGE numrico.
+//   Result := TACBrDFe.StrUFToCodIBGE(AUF); // Use a funo do ACBr se disponvel
 // end;
 
 end.
