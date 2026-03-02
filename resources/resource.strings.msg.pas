@@ -12,6 +12,7 @@ resourcestring
   RSInitializingRoutes = 'Inicializando as rotas...';
   RSACBRNFeRoutesMapped = '  Rotas ACBR NFe mapeadas.';
   RSACBRCTeRoutesMapped = '  Rotas ACBR CTe mapeadas.';
+  RSACBRNFSeRoutesMapped = '  Rotas ACBR NFSe mapeadas.';
   RSACBRMDFeRoutesMapped = '  Rotas ACBR MDFe mapeadas.';
   RSACBRDiversosExtensoRoutesMapped = '  Rotas ACBR Diversos Extenso mapeadas.';
   RSACBRDiversosValidadorRoutesMapped = '  Rotas ACBR Diversos Validador mapeadas.';

@@ -11,6 +11,7 @@ uses
   Horse.Jhonson,
   Horse.HandleException,
   route.acbr.nfe,
+  route.acbr.nfse,
   route.acbr.diversos.extenso,
   route.acbr.diversos.validador,
   route.acbr.certificados,
@@ -55,6 +56,10 @@ begin
   LogRouteMapping('route.acbr.nfe');
   route.acbr.nfe.regRouter;
   LogInfo(RSACBRNFeRoutesMapped);
+
+  LogRouteMapping('route.acbr.nfse');
+  route.acbr.nfse.regRouter;
+  LogInfo(RSACBRNFSeRoutesMapped);
 
   LogRouteMapping('route.acbr.cte');
   route.acbr.cte.regrouter;

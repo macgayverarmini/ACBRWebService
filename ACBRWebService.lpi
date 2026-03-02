@@ -20,7 +20,7 @@
     <VersionInfo>
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
-      <BuildNr Value="14"/>
+      <BuildNr Value="15"/>
       <Language Value="0416"/>
       <Attributes pvaDebug="True"/>
     </VersionInfo>
@@ -35,6 +35,12 @@
       <FormatVersion Value="2"/>
     </RunParams>
     <RequiredPackages>
+      <Item>
+        <PackageName Value="ACBr_NFSeXDanfseFPDF"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBr_NFSeX"/>
+      </Item>
       <Item>
         <PackageName Value="ACBr_MDFe_DAMDFeRL"/>
       </Item>
@@ -134,6 +140,14 @@
       </Unit>
       <Unit>
         <Filename Value="resources/resource.strings.routes.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.nfse.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.nfse.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
     </Units>

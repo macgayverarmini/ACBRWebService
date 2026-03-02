@@ -139,6 +139,16 @@
         <CursorPos X="4" Y="29"/>
         <UsageCount Value="74"/>
       </Unit>
+      <Unit>
+        <Filename Value="method\method.acbr.nfse.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes\route.acbr.nfse.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UsageCount Value="20"/>
+      </Unit>
     </Units>
     <Debugger>
       <Backend Value="{514D45D2-1BEC-49C6-B1C1-7EF5FBE5597E}"/>

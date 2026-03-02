@@ -22,8 +22,8 @@ Docs/
 # === Ferramentas e IDE ===
 .aider*
 .vscode
-deps
-bin
-exe
+.deps
+.bin
+.exe
 *.pot
 cteValidoDemo.xml

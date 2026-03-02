@@ -60,6 +60,22 @@ Type
       Function Danfe(Const xmlData: TJSONObject): TJSONObject;
       // Envia uma NFE
       Function NFe(Const jNFe: TJSONObject): TJSONObject;
+      // Status do Serviço
+      Function StatusServico(Const jStatus: TJSONObject): TJSONObject;
+      // Consulta por chave
+      Function Consulta(Const jConsulta: TJSONObject): TJSONObject;
+      // Inutilização de numeração
+      Function Inutilizacao(Const jInutilizacao: TJSONObject): TJSONObject;
+      // Cancelamento (atalho)
+      Function Cancelamento(Const jCancelamento: TJSONObject): TJSONObject;
+      // XML para JSON
+      Function NFeFromXML(Const jXML: TJSONObject): TJSONObject;
+      // JSON para XML
+      Function NFeToXML(Const jNFe: TJSONObject): TJSONObject;
+      // Validar regras (offline)
+      Function ValidarRegras(Const jNFe: TJSONObject): TJSONObject;
+      // PDF de Evento
+      Function DanfeEvento(Const xmlEvento: TJSONObject): TJSONObject;
 
       // Teste a configuração passada em JSON
       Function TesteConfig: boolean;
@@ -77,6 +93,12 @@ Type
       Function ModelEvento: TJSONObject;
       Function ModelDistribuicao: string;
       Function ModelNFe: TJSONObject;
+      Function ModelStatusServico: TJSONObject;
+      Function ModelConsulta: TJSONObject;
+      Function ModelInutilizacao: TJSONObject;
+      Function ModelCancelamento: TJSONObject;
+      Function ModelNFeFromXML: TJSONObject;
+      Function ModelNFeToXML: TJSONObject;
   End;
 
 Implementation
@@ -171,6 +193,55 @@ Begin
   //  Evento := facbr.WebServices.DistribuicaoDFe.new;
   Result := TJSONTools.ObjToJsonString(facbr.WebServices.DistribuicaoDFe);
   //  facbr.EventoNFe.Evento.Clear;
+End;
+
+Function TACBRModelosJSON.ModelStatusServico: TJSONObject;
+Begin
+  Result := TJSONObject.Create;
+End;
+
+Function TACBRModelosJSON.ModelConsulta: TJSONObject;
+Begin
+  Result := TJSONObject.Create;
+  Result.Add('NFe_Chave', 'Preencha com a Chave de Acesso da NF-e');
+End;
+
+Function TACBRModelosJSON.ModelInutilizacao: TJSONObject;
+Begin
+  facbr.WebServices.Inutilizacao.CNPJ := '00000000000000';
+  facbr.WebServices.Inutilizacao.Justificativa := 'Justificativa da Inutilizacao';
+  facbr.WebServices.Inutilizacao.Ano := 2023;
+  facbr.WebServices.Inutilizacao.Serie := 1;
+  facbr.WebServices.Inutilizacao.NumeroInicial := 100;
+  facbr.WebServices.Inutilizacao.NumeroFinal := 100;
+  facbr.WebServices.Inutilizacao.Modelo := 55;
+  Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.Inutilizacao));
+End;
+
+Function TACBRModelosJSON.ModelCancelamento: TJSONObject;
+Begin
+  facbr.EventoNFe.Evento.Clear;
+  with facbr.EventoNFe.Evento.New.InfEvento do
+  begin
+    tpEvento := teCancelamento;
+    chNFe := 'Preencha com a Chave de Acesso';
+    detEvento.nProt := 'Preencha com o Protocolo';
+    detEvento.xJust := 'Justificativa do Cancelamento (min 15 caracteres)';
+  end;
+  Result := TJSONObject(TJSONTools.ObjToJson(facbr.EventoNFe.Evento.Items[0]));
+  facbr.EventoNFe.Evento.Clear;
+End;
+
+Function TACBRModelosJSON.ModelNFeFromXML: TJSONObject;
+Begin
+  Result := TJSONObject.Create;
+  Result.Add('xml', 'XML da NF-e em Base64 — retorna a NF-e como JSON');
+End;
+
+Function TACBRModelosJSON.ModelNFeToXML: TJSONObject;
+Begin
+  Result := ModelNFe;
+  // O modelo é o mesmo da NF-e — envie o JSON da NF-e e receba o XML gerado
 End;
 
 { TACBRBridgeNFe }
@@ -461,6 +532,274 @@ Begin
   Except
     Result := False;
 End;
+End;
+
+Function TACBRBridgeNFe.StatusServico(Const jStatus: TJSONObject): TJSONObject;
+Begin
+  CarregaConfig;
+  Result := TJSONObject.Create;
+  Try
+    facbr.WebServices.StatusServico.Executar;
+    Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.StatusServico));
+  Except
+    on E: Exception Do
+    Begin
+      Result.Add(RSStatusField, RSStatusErro);
+      Result.Add(RSMessageField, 'Erro ao consultar status: ' + E.Message);
+    End;
+  End;
+End;
+
+Function TACBRBridgeNFe.Consulta(Const jConsulta: TJSONObject): TJSONObject;
+Var
+  Chave: TJSONData;
+Begin
+  CarregaConfig;
+  Result := TJSONObject.Create;
+
+  If jConsulta.Find('NFe_Chave', Chave) Then
+  Begin
+    Try
+      facbr.WebServices.Consulta.NFeChave := Chave.AsString;
+      facbr.WebServices.Consulta.Executar;
+      Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.Consulta));
+    Except
+      on E: Exception Do
+      Begin
+        Result.Add(RSStatusField, RSStatusErro);
+        Result.Add(RSMessageField, 'Erro na consulta: ' + E.Message);
+      End;
+    End;
+  End
+  Else
+  Begin
+    Result.Add(RSStatusField, RSStatusErro);
+    Result.Add(RSMessageField, 'Chave nao informada para consulta.');
+  End;
+End;
+
+Function TACBRBridgeNFe.Inutilizacao(Const jInutilizacao: TJSONObject): TJSONObject;
+Begin
+  CarregaConfig;
+  Result := TJSONObject.Create;
+
+  Try
+    TJSONTools.JsonToObj(jInutilizacao, facbr.WebServices.Inutilizacao);
+    facbr.WebServices.Inutilizacao.Executar;
+    Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.Inutilizacao));
+  Except
+    on E: Exception Do
+    Begin
+      Result.Add(RSStatusField, RSStatusErro);
+      Result.Add(RSMessageField, 'Erro na inutilizacao: ' + E.Message);
+    End;
+  End;
+End;
+
+Function TACBRBridgeNFe.Cancelamento(Const jCancelamento: TJSONObject): TJSONObject;
+Var
+  idLote: Integer;
+Begin
+  CarregaConfig;
+  Result := TJSONObject.Create;
+  idLote := 1;
+  facbr.EventoNFe.Evento.Clear;
+  facbr.EventoNFe.idLote := idLote;
+
+  Try
+    TJSONTools.JsonToObj(jCancelamento, facbr.EventoNFe.Evento.New);
+  Except
+    on E: Exception Do
+    Begin
+      Result.Add(RSStatusField, RSStatusErro);
+      Result.Add(RSMessageField, 'Erro ao converter JSON para Evento: ' + E.Message);
+      Exit;
+    End;
+  End;
+
+  // Garante tipo de evento cancelamento e data se faltar
+  with facbr.EventoNFe.Evento.Items[0].InfEvento do
+  begin
+    if tpEvento <> teCancelamento then tpEvento := teCancelamento;
+    if dhEvento = 0 then dhEvento := Now;
+    if CNPJ = '' then CNPJ := Copy(chNFe, 7, 14);
+  end;
+
+  Try
+    facbr.EnviarEvento(idLote);
+    Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.EnvEvento.EventoRetorno.retEvento));
+  Except
+    on E: Exception Do
+    Begin
+      Result.Add(RSStatusField, RSStatusErro);
+      Result.Add(RSMessageField, 'Erro ao enviar evento de cancelamento: ' + E.Message);
+    End;
+  End;
+End;
+
+Function TACBRBridgeNFe.NFeFromXML(Const jXML: TJSONObject): TJSONObject;
+Var
+  xmlBase64: string;
+Begin
+  CarregaConfig;
+  Result := TJSONObject.Create;
+  Try
+    xmlBase64 := ReadXMLFromJSON(jXML);
+    facbr.NotasFiscais.LoadFromString(xmlBase64);
+    If facbr.NotasFiscais.Count > 0 Then
+    Begin
+      Result := TJSONObject(TJSONTools.ObjToJson(facbr.NotasFiscais.Items[0].NFe));
+      Result.Delete(RSXMLField);
+      Result.Delete(RSXMLOriginalField);
+      Result.Delete(RSNomeArqField);
+      Result.Delete(RSErroValidacaoCompletoField);
+      Result.Delete(RSErroValidacaoField);
+      Result.Delete(RSErroRegrasdeNegociosField);
+      Result.Delete(RSAlertasField);
+    End
+    Else
+    Begin
+      Result.Add(RSStatusField, RSStatusErro);
+      Result.Add(RSMessageField, 'Nenhuma NF-e carregada do XML.');
+    End;
+  Except
+    on E: Exception Do
+    Begin
+      Result.Add(RSStatusField, RSStatusErro);
+      Result.Add(RSMessageField, 'Erro na conversao XML para JSON: ' + E.Message);
+    End;
+  End;
+  facbr.NotasFiscais.Clear;
+End;
+
+Function TACBRBridgeNFe.NFeToXML(Const jNFe: TJSONObject): TJSONObject;
+Var
+  Nota: NotaFiscal;
+  xmlString: string;
+Begin
+  CarregaConfig;
+  Result := TJSONObject.Create;
+
+  Try
+    Nota := facbr.NotasFiscais.Add;
+    TJSONTools.JsonToObj(jNFe, Nota);
+  Except
+    on E: Exception Do
+    Begin
+      Result.Add(RSStatusField, RSStatusErro);
+      Result.Add(RSMessageField, RSErrorReadingJSON + E.Message);
+      facbr.NotasFiscais.Clear;
+      Exit;
+    End;
+  End;
+
+  Try
+    facbr.NotasFiscais.GerarNFe;
+    xmlString := facbr.NotasFiscais.Items[0].XMLOriginal;
+    If xmlString = '' Then
+      xmlString := facbr.NotasFiscais.Items[0].XML;
+
+    Result.Add('xml', EncodeStringBase64(xmlString));
+  Except
+    on E: Exception Do
+    Begin
+      Result.Add(RSStatusField, RSStatusErro);
+      Result.Add(RSMessageField, 'Erro ao gerar XML da NF-e: ' + E.Message);
+    End;
+  End;
+
+  facbr.NotasFiscais.Clear;
+End;
+
+Function TACBRBridgeNFe.ValidarRegras(Const jNFe: TJSONObject): TJSONObject;
+Var
+  Nota: NotaFiscal;
+Begin
+  CarregaConfig;
+  Result := TJSONObject.Create;
+
+  Try
+    facbr.NotasFiscais.Clear;
+    Nota := facbr.NotasFiscais.Add;
+
+    Try
+      TJSONTools.JsonToObj(jNFe, Nota);
+    Except
+      on E: Exception Do
+      Begin
+        Result.Add(RSStatusField, 'erro_parse');
+        Result.Add(RSMessageField, 'Erro na conversao JSON para Objeto: ' + E.Message);
+        Exit;
+      End;
+    End;
+
+    Try
+      facbr.NotasFiscais.Items[0].Assinar;
+      facbr.NotasFiscais.Items[0].Validar;
+
+      Result.Add(RSStatusField, 'sucesso');
+      Result.Add(RSMessageField, 'XML Valido e Assinado');
+      Result.Add('xml_assinado', EncodeStringBase64(facbr.NotasFiscais.Items[0].XML));
+    Except
+      on E: Exception Do
+      Begin
+        Result.Add(RSStatusField, 'erro_validacao');
+        Result.Add(RSMessageField, E.Message);
+        If facbr.NotasFiscais.Items[0].ErroValidacao <> '' Then
+          Result.Add('detalhes', facbr.NotasFiscais.Items[0].ErroValidacao);
+      End;
+    End;
+
+  Finally
+    facbr.NotasFiscais.Clear;
+  End;
+End;
+
+Function TACBRBridgeNFe.DanfeEvento(Const xmlEvento: TJSONObject): TJSONObject;
+Var
+  arquivofinal: string;
+  stringXml, fileName: string;
+  tamanho: integer;
+Begin
+  CarregaConfig;
+  Result := TJSONObject.Create;
+
+  Try
+    stringXml := ReadXMLFromJSON(xmlEvento);
+  Except
+    on E: Exception Do
+    Begin
+      Result.Add(RSStatusField, RSStatusErro);
+      Result.Add(RSMessageField, E.Message);
+      Exit;
+    End;
+  End;
+
+  Try
+    facbr.EventoNFe.Evento.Clear;
+    facbr.EventoNFe.LerXMLFromString(stringXml);
+
+    fdanfe.MostraPreview := False;
+    fdanfe.MostraStatus := False;
+
+    fileName := GetTempFileName;
+    fdanfe.PathPDF := fileName;
+
+    facbr.ImprimirEventoPDF;
+    fileName := fdanfe.ArquivoPDF;
+
+    arquivofinal := FileToStringBase64(fileName, True, tamanho);
+
+    Result.Add(RSPDFField, arquivofinal);
+    Result.Add(RSTamanhoField, tamanho.ToString);
+    Result.Add(RSStatusField, 'sucesso');
+  Except
+    on E: Exception Do
+    Begin
+      Result.Add(RSStatusField, RSStatusErro);
+      Result.Add(RSMessageField, 'Erro ao gerar PDF do Evento: ' + E.Message);
+    End;
+  End;
 End;
 
 

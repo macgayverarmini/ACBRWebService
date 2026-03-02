@@ -58,6 +58,8 @@ type
     function CTeFromXML(const jXML: TJSONObject): TJSONObject;
     function CTeToXML(const jCTe: TJSONObject): TJSONObject;
     function DACTE(const xmlData: TJSONObject): TJSONObject;
+    function ValidarRegras(const jCTe: TJSONObject): TJSONObject;
+    function DACTEEvento(const xmlEvento: TJSONObject): TJSONObject;
 
     function TesteConfig: boolean;
   end;
@@ -77,6 +79,8 @@ type
     function ModelCancelamento: TJSONObject;
     function ModelCTeFromXML: TJSONObject;
     function ModelCTeToXML: TJSONObject;
+    function ModelValidarRegras: TJSONObject;
+    function ModelDACTEEvento: TJSONObject;
   end;
 
 implementation
@@ -261,6 +265,18 @@ begin
   //  Evento := facbr.WebServices.DistribuicaoDFe.new;
   Result := TJSONTools.ObjToJsonString(facbr.WebServices.DistribuicaoDFe);
   //  facbr.EventoNFe.Evento.Clear;
+end;
+
+function TACBRModelosJSONCTe.ModelValidarRegras: TJSONObject;
+begin
+  Result := ModelCTe;
+  // O modelo é o mesmo do CTe — envie o JSON do CTe para validação offline
+end;
+
+function TACBRModelosJSONCTe.ModelDACTEEvento: TJSONObject;
+begin
+  Result := TJSONObject.Create;
+  Result.Add('xml', 'XML do ProcEventoCTe em Base64 — retorna o PDF do evento');
 end;
 
 
@@ -704,6 +720,110 @@ begin
 end;
 
 // function TACBRBridgeCTe.ConsultaSituacaoServico removida
+
+{ Valida o XML contra o Schema sem enviar para a SEFAZ }
+function TACBRBridgeCTe.ValidarRegras(const jCTe: TJSONObject): TJSONObject;
+var
+  ConhecimentoCTe: TCTe;
+begin
+  CarregaConfig;
+  Result := TJSONObject.Create;
+
+  try
+    // Limpa conhecimentos anteriores
+    facbr.Conhecimentos.Clear;
+    ConhecimentoCTe := facbr.Conhecimentos.Add.CTe;
+
+    // Converte JSON para CTe
+    try
+      TJSONTools.JsonToObj(jCTe, ConhecimentoCTe);
+    except
+      on E: Exception do
+      begin
+        Result.Add('status', 'erro_parse');
+        Result.Add('message', 'Erro na conversao JSON para Objeto: ' + E.Message);
+        Exit;
+      end;
+    end;
+
+    // Tenta Validar (Assina automaticamente se necessário para validar digest value)
+    try
+      facbr.Conhecimentos.Items[0].Assinar;
+      facbr.Conhecimentos.Items[0].Validar;
+
+      Result.Add('status', 'sucesso');
+      Result.Add('message', 'XML Valido e Assinado');
+      // Retorna o XML assinado caso o cliente queira salvar
+      Result.Add('xml_assinado', EncodeStringBase64(facbr.Conhecimentos.Items[0].XML));
+    except
+      on E: Exception do
+      begin
+        Result.Add('status', 'erro_validacao');
+        Result.Add('message', E.Message);
+        // O ACBr costuma popular a lista de erros de validação
+        if facbr.Conhecimentos.Items[0].ErroValidacao <> '' then
+           Result.Add('detalhes', facbr.Conhecimentos.Items[0].ErroValidacao);
+      end;
+    end;
+
+  finally
+    facbr.Conhecimentos.Clear;
+  end;
+end;
+
+{ Gera PDF de Evento (Cancelamento ou CCe) }
+function TACBRBridgeCTe.DACTEEvento(const xmlEvento: TJSONObject): TJSONObject;
+var
+  arquivofinal: string;
+  stringXml, fileName: string;
+  tamanho: integer;
+begin
+  CarregaConfig;
+  Result := TJSONObject.Create;
+
+  // 1. Carregar o XML do Evento (ProcEventoCTe)
+  try
+    stringXml := ReadXMLFromJSON(xmlEvento);
+  except
+    on E: Exception do
+    begin
+      Result.Add('status', 'erro');
+      Result.Add('message', E.Message);
+      Exit;
+    end;
+  end;
+
+  try
+    // Carrega o XML do evento no componente
+    facbr.EventoCTe.Evento.Clear;
+    facbr.EventoCTe.LerXMLFromString(stringXml);
+
+    // Configurações visuais básicas
+    fdacte.MostraPreview := False;
+    fdacte.MostraStatus := False;
+
+    fileName := GetTempFileName;
+    fdacte.PathPDF := fileName;
+
+    // Chama a impressão do evento
+    facbr.ImprimirEventoPDF;
+    fileName := fdacte.ArquivoPDF;
+
+    // Converte para Base64
+    arquivofinal := FileToStringBase64(fileName, True, tamanho);
+
+    Result.Add('pdf', arquivofinal);
+    Result.Add('tamanho', tamanho.ToString);
+    Result.Add('status', 'sucesso');
+
+  except
+    on E: Exception do
+    begin
+      Result.Add('status', 'erro');
+      Result.Add('message', 'Erro ao gerar PDF do Evento: ' + E.Message);
+    end;
+  end;
+end;
 
 function TACBRBridgeCTe.TesteConfig: boolean;
 begin

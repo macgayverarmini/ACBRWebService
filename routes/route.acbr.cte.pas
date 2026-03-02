@@ -32,6 +32,11 @@ procedure PostCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostCancelamento(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostCTeFromXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostCTeToXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostValidarRegrasCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostDACTEEvento(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+
+procedure GetModeloValidarRegrasCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloDACTEEvento(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
 
 
@@ -316,6 +321,60 @@ begin
   end;
 end;
 
+procedure PostValidarRegrasCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O: TJSONObject;
+  Ac: TACBRBridgeCTe;
+begin
+  O := GetJSON(Req.Body) as TJSONObject;
+  Ac := TACBRBridgeCTe.Create(O.Extract(RSConfigField).AsJSON);
+  try
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ValidarRegras(O).AsJSON);
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
+procedure PostDACTEEvento(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O: TJSONObject;
+  Ac: TACBRBridgeCTe;
+begin
+  O := GetJSON(Req.Body) as TJSONObject;
+  Ac := TACBRBridgeCTe.Create(O.Extract(RSConfigField).AsJSON);
+  try
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.DACTEEvento(O).AsJSON);
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
+procedure GetModeloValidarRegrasCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  Ac: TACBRModelosJSONCTe;
+begin
+  Ac := TACBRModelosJSONCTe.Create(RSEmptyString);
+  try
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelValidarRegras.AsJSON);
+  finally
+    Ac.Free;
+  end;
+end;
+
+procedure GetModeloDACTEEvento(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  Ac: TACBRModelosJSONCTe;
+begin
+  Ac := TACBRModelosJSONCTe.Create(RSEmptyString);
+  try
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelDACTEEvento.AsJSON);
+  finally
+    Ac.Free;
+  end;
+end;
+
 procedure regRouter;
 begin
   // Endpoints de Modelos (GET)
@@ -340,6 +399,11 @@ begin
   THorse.Post(RSCTeCancelamentoRoute, PostCancelamento);
   THorse.Post(RSCTeCTeFromXMLRoute, PostCTeFromXML);
   THorse.Post(RSCTeCTeToXMLRoute, PostCTeToXML);
+  THorse.Post(RSCTeValidarRegrasRoute, PostValidarRegrasCTe);
+  THorse.Post(RSCTeDACTEEventoRoute, PostDACTEEvento);
+
+  THorse.Get(RSModeloCTeValidarRegrasRoute, GetModeloValidarRegrasCTe);
+  THorse.Get(RSModeloCTeDACTEEventoRoute, GetModeloDACTEEvento);
 
 end;
 
