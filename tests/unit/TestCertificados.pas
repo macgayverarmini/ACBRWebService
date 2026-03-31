@@ -21,17 +21,8 @@ implementation
 { TTestCertificados }
 
 procedure TTestCertificados.TestGetModeloUpload;
-var
-  Client: TFPHTTPClient;
-  Response: String;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Response := Client.Get(FBaseUrl + '/certificados/upload');
-    CheckResponse(Response, 200, Client.ResponseStatusCode);
-  finally
-    Client.Free;
-  end;
+  ExecuteGetTest('/certificados/upload');
 end;
 
 procedure TTestCertificados.TestPostUpload;

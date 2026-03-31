@@ -22,17 +22,8 @@ implementation
 { TTestDiversos }
 
 procedure TTestDiversos.TestGetModeloExtenso;
-var
-  Client: TFPHTTPClient;
-  Response: String;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Response := Client.Get(FBaseUrl + '/modelo/diversos/extenso');
-    CheckResponse(Response, 200, Client.ResponseStatusCode);
-  finally
-    Client.Free;
-  end;
+  ExecuteGetTest('/modelo/diversos/extenso');
 end;
 
 procedure TTestDiversos.TestGetTraduzValor;
@@ -63,17 +54,8 @@ begin
 end;
 
 procedure TTestDiversos.TestGetModeloValidador;
-var
-  Client: TFPHTTPClient;
-  Response: String;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Response := Client.Get(FBaseUrl + '/modelo/diversos/validador');
-    CheckResponse(Response, 200, Client.ResponseStatusCode);
-  finally
-    Client.Free;
-  end;
+  ExecuteGetTest('/modelo/diversos/validador');
 end;
 
 procedure TTestDiversos.TestGetValidar;

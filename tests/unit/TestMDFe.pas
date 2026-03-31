@@ -31,59 +31,23 @@ implementation
 // --- GET Tests ---
 
 procedure TTestMDFe.TestGetModeloConfig;
-var
-  Client: TFPHTTPClient;
-  Response: String;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Response := Client.Get(FBaseUrl + '/modelo/mdfe/config');
-    CheckResponse(Response, 200, Client.ResponseStatusCode);
-  finally
-    Client.Free;
-  end;
+  ExecuteGetTest('/modelo/mdfe/config');
 end;
 
 procedure TTestMDFe.TestGetModeloEvento;
-var
-  Client: TFPHTTPClient;
-  Response: String;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Response := Client.Get(FBaseUrl + '/modelo/mdfe/evento');
-    CheckResponse(Response, 200, Client.ResponseStatusCode);
-  finally
-    Client.Free;
-  end;
+  ExecuteGetTest('/modelo/mdfe/evento');
 end;
 
 procedure TTestMDFe.TestGetModeloMDFe;
-var
-  Client: TFPHTTPClient;
-  Response: String;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Response := Client.Get(FBaseUrl + '/modelo/mdfe/mdfe');
-    CheckResponse(Response, 200, Client.ResponseStatusCode);
-  finally
-    Client.Free;
-  end;
+  ExecuteGetTest('/modelo/mdfe/mdfe');
 end;
 
 procedure TTestMDFe.TestGetModeloDistribuicao;
-var
-  Client: TFPHTTPClient;
-  Response: String;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Response := Client.Get(FBaseUrl + '/modelo/mdfe/distribuicao');
-    CheckResponse(Response, 200, Client.ResponseStatusCode);
-  finally
-    Client.Free;
-  end;
+  ExecuteGetTest('/modelo/mdfe/distribuicao');
 end;
 
 // --- POST Tests ---
@@ -116,81 +80,18 @@ begin
 end;
 
 procedure TTestMDFe.TestPostEventos;
-var
-  Client: TFPHTTPClient;
-  Response: String;
-  Json: TJSONObject;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Client.AddHeader('Content-Type', 'application/json');
-    Json := TJSONObject.Create;
-    try
-       Json.Add('config', CreateConfigJSON);
-       Client.RequestBody := TStringStream.Create(Json.AsJSON);
-       Response := Client.Post(FBaseUrl + '/mdfe/eventos');
-       if Client.ResponseStatusCode >= 400 then
-         CheckResponse(Response, Client.ResponseStatusCode, Client.ResponseStatusCode)       
-       else
-         CheckResponse(Response, 200, Client.ResponseStatusCode);
-    finally
-       Json.Free;
-    end;
-  finally
-     Client.Free;
-  end;
+  ExecutePostTest('/mdfe/eventos', nil, 500);
 end;
 
 procedure TTestMDFe.TestPostDACTE;
-var
-  Client: TFPHTTPClient;
-  Response: String;
-  Json: TJSONObject;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Client.AddHeader('Content-Type', 'application/json');
-    Json := TJSONObject.Create;
-    try
-       Json.Add('config', CreateConfigJSON);
-       Client.RequestBody := TStringStream.Create(Json.AsJSON);
-       Response := Client.Post(FBaseUrl + '/mdfe/damdfe');
-       if Client.ResponseStatusCode >= 400 then
-         CheckResponse(Response, Client.ResponseStatusCode, Client.ResponseStatusCode)       
-       else
-         CheckResponse(Response, 200, Client.ResponseStatusCode);
-    finally
-       Json.Free;
-    end;
-  finally
-     Client.Free;
-  end;
+  ExecutePostTest('/mdfe/damdfe');
 end;
 
 procedure TTestMDFe.TestPostDistribuicao;
-var
-  Client: TFPHTTPClient;
-  Response: String;
-  Json: TJSONObject;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Client.AddHeader('Content-Type', 'application/json');
-    Json := TJSONObject.Create;
-    try
-       Json.Add('config', CreateConfigJSON);
-       Client.RequestBody := TStringStream.Create(Json.AsJSON);
-       Response := Client.Post(FBaseUrl + '/mdfe/distribuicao');
-       if Client.ResponseStatusCode >= 400 then
-         CheckResponse(Response, Client.ResponseStatusCode, Client.ResponseStatusCode)       
-       else
-         CheckResponse(Response, 200, Client.ResponseStatusCode);
-    finally
-       Json.Free;
-    end;
-  finally
-     Client.Free;
-  end;
+  ExecutePostTest('/mdfe/distribuicao');
 end;
 
 initialization

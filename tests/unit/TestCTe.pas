@@ -50,59 +50,23 @@ implementation
 // --- GET Tests ---
 
 procedure TTestCTe.TestGetModeloConfig;
-var
-  Client: TFPHTTPClient;
-  Response: String;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Response := Client.Get(FBaseUrl + '/modelo/cte/config');
-    CheckResponse(Response, 200, Client.ResponseStatusCode);
-  finally
-    Client.Free;
-  end;
+  ExecuteGetTest('/modelo/cte/config');
 end;
 
 procedure TTestCTe.TestGetModeloEvento;
-var
-  Client: TFPHTTPClient;
-  Response: String;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Response := Client.Get(FBaseUrl + '/modelo/cte/evento');
-    CheckResponse(Response, 200, Client.ResponseStatusCode);
-  finally
-    Client.Free;
-  end;
+  ExecuteGetTest('/modelo/cte/evento');
 end;
 
 procedure TTestCTe.TestGetModeloDistribuicao;
-var
-  Client: TFPHTTPClient;
-  Response: String;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Response := Client.Get(FBaseUrl + '/modelo/cte/distribuicao');
-    CheckResponse(Response, 200, Client.ResponseStatusCode);
-  finally
-    Client.Free;
-  end;
+  ExecuteGetTest('/modelo/cte/distribuicao');
 end;
 
 procedure TTestCTe.TestGetModeloStatusServico;
-var
-  Client: TFPHTTPClient;
-  Response: String;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Response := Client.Get(FBaseUrl + '/modelo/cte/status');
-    CheckResponse(Response, 200, Client.ResponseStatusCode);
-  finally
-    Client.Free;
-  end;
+  ExecuteGetTest('/modelo/cte/status');
 end;
 
 procedure TTestCTe.TestGetModeloConsulta;
@@ -133,73 +97,28 @@ begin
 end;
 
 procedure TTestCTe.TestGetModeloInutilizacao;
-var
-  Client: TFPHTTPClient;
-  Response: String;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Response := Client.Get(FBaseUrl + '/modelo/cte/inutilizacao');
-    CheckResponse(Response, 200, Client.ResponseStatusCode);
-  finally
-    Client.Free;
-  end;
+  ExecuteGetTest('/modelo/cte/inutilizacao');
 end;
 
 procedure TTestCTe.TestGetModeloCTe;
-var
-  Client: TFPHTTPClient;
-  Response: String;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Response := Client.Get(FBaseUrl + '/modelo/cte/cte');
-    CheckResponse(Response, 200, Client.ResponseStatusCode);
-  finally
-    Client.Free;
-  end;
+  ExecuteGetTest('/modelo/cte/cte');
 end;
 
 procedure TTestCTe.TestGetModeloCancelamento;
-var
-  Client: TFPHTTPClient;
-  Response: String;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Response := Client.Get(FBaseUrl + '/modelo/cte/cancelamento');
-    CheckResponse(Response, 200, Client.ResponseStatusCode);
-  finally
-    Client.Free;
-  end;
+  ExecuteGetTest('/modelo/cte/cancelamento');
 end;
 
 procedure TTestCTe.TestGetModeloCTeFromXML;
-var
-  Client: TFPHTTPClient;
-  Response: String;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Response := Client.Get(FBaseUrl + '/modelo/cte/cte-from-xml');
-    CheckResponse(Response, 200, Client.ResponseStatusCode);
-  finally
-    Client.Free;
-  end;
+  ExecuteGetTest('/modelo/cte/cte-from-xml');
 end;
 
 procedure TTestCTe.TestGetModeloCTeToXML;
-var
-  Client: TFPHTTPClient;
-  Response: String;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Response := Client.Get(FBaseUrl + '/modelo/cte/cte-to-xml');
-    CheckResponse(Response, 200, Client.ResponseStatusCode);
-  finally
-    Client.Free;
-  end;
+  ExecuteGetTest('/modelo/cte/cte-to-xml');
 end;
 
 // --- POST Tests ---
@@ -328,133 +247,28 @@ begin
 end;
 
 procedure TTestCTe.TestPostEventos;
-var
-  Client: TFPHTTPClient;
-  Response: String;
-  Json: TJSONObject;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Client.AddHeader('Content-Type', 'application/json');
-    Json := TJSONObject.Create;
-    try
-       Json.Add('config', CreateConfigJSON);
-       Client.RequestBody := TStringStream.Create(Json.AsJSON);
-       Response := Client.Post(FBaseUrl + '/cte/eventos');
-       if Client.ResponseStatusCode >= 400 then
-         CheckResponse(Response, Client.ResponseStatusCode, Client.ResponseStatusCode)       
-       else
-         CheckResponse(Response, 200, Client.ResponseStatusCode);
-    finally
-       Json.Free;
-    end;
-  finally
-     Client.Free;
-  end;
+  ExecutePostTest('/cte/eventos', nil, 500);
 end;
 
 procedure TTestCTe.TestPostDACTE;
-var
-  Client: TFPHTTPClient;
-  Response: String;
-  Json: TJSONObject;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Client.AddHeader('Content-Type', 'application/json');
-    Json := TJSONObject.Create;
-    try
-       Json.Add('config', CreateConfigJSON);
-       Client.RequestBody := TStringStream.Create(Json.AsJSON);
-       Response := Client.Post(FBaseUrl + '/cte/dacte');
-       if Client.ResponseStatusCode >= 400 then
-         CheckResponse(Response, Client.ResponseStatusCode, Client.ResponseStatusCode)       
-       else
-         CheckResponse(Response, 200, Client.ResponseStatusCode);
-    finally
-       Json.Free;
-    end;
-  finally
-     Client.Free;
-  end;
+  ExecutePostTest('/cte/dacte', nil, 500);
 end;
 
 procedure TTestCTe.TestPostCancelamento;
-var
-  Client: TFPHTTPClient;
-  Response: String;
-  Json: TJSONObject;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Client.AddHeader('Content-Type', 'application/json');
-    Json := TJSONObject.Create;
-    try
-       Json.Add('config', CreateConfigJSON);
-       Client.RequestBody := TStringStream.Create(Json.AsJSON);
-       Response := Client.Post(FBaseUrl + '/cte/cancelamento');
-       if Client.ResponseStatusCode >= 400 then
-         CheckResponse(Response, Client.ResponseStatusCode, Client.ResponseStatusCode)       
-       else
-         CheckResponse(Response, 200, Client.ResponseStatusCode);
-    finally
-       Json.Free;
-    end;
-  finally
-     Client.Free;
-  end;
+  ExecutePostTest('/cte/cancelamento');
 end;
 
 procedure TTestCTe.TestPostCTeFromXML;
-var
-  Client: TFPHTTPClient;
-  Response: String;
-  Json: TJSONObject;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Client.AddHeader('Content-Type', 'application/json');
-    Json := TJSONObject.Create;
-    try
-       Json.Add('config', CreateConfigJSON);
-       Client.RequestBody := TStringStream.Create(Json.AsJSON);
-       Response := Client.Post(FBaseUrl + '/cte/cte-from-xml');
-       if Client.ResponseStatusCode >= 400 then
-         CheckResponse(Response, Client.ResponseStatusCode, Client.ResponseStatusCode)       
-       else
-         CheckResponse(Response, 200, Client.ResponseStatusCode);
-    finally
-       Json.Free;
-    end;
-  finally
-     Client.Free;
-  end;
+  ExecutePostTest('/cte/cte-from-xml');
 end;
 
 procedure TTestCTe.TestPostCTeToXML;
-var
-  Client: TFPHTTPClient;
-  Response: String;
-  Json: TJSONObject;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Client.AddHeader('Content-Type', 'application/json');
-    Json := TJSONObject.Create;
-    try
-       Json.Add('config', CreateConfigJSON);
-       Client.RequestBody := TStringStream.Create(Json.AsJSON);
-       Response := Client.Post(FBaseUrl + '/cte/cte-to-xml');
-       if Client.ResponseStatusCode >= 400 then
-         CheckResponse(Response, Client.ResponseStatusCode, Client.ResponseStatusCode)
-       else
-         CheckResponse(Response, 200, Client.ResponseStatusCode);
-    finally
-       Json.Free;
-    end;
-  finally
-     Client.Free;
-  end;
+  ExecutePostTest('/cte/cte-to-xml');
 end;
 
 // --- XML-based Tests ---

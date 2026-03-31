@@ -22,6 +22,8 @@ type
     procedure SetUp; override;
     procedure TearDown; override;
     procedure CheckResponse(Response: String; ExpectedCode: Integer = 200; ActualCode: Integer = 200);
+    procedure ExecuteGetTest(const Endpoint: String; ExpectedCode: Integer = 200);
+    procedure ExecutePostTest(const Endpoint: String; Payload: TJSONObject = nil; ExpectedCode: Integer = 200);
     function CreateConfigJSON(UF: String = 'SP'; Ambiente: String = '1'): TJSONObject;
     function GetTestResourcePath: String;
     function LoadTestXMLAsBase64(const FileName: String): String;
@@ -31,6 +33,69 @@ type
 implementation
 
 { TTestBase }
+
+procedure TTestBase.ExecuteGetTest(const Endpoint: String; ExpectedCode: Integer);
+var
+  Client: TFPHTTPClient;
+  Response: String;
+begin
+  Client := TFPHTTPClient.Create(nil);
+  try
+    try
+      Response := Client.Get(FBaseUrl + Endpoint);
+    except
+      on E: EHTTPClient do
+      begin
+        // Catch HTTP error status codes that raise exceptions in TFPHTTPClient
+        Response := Client.ResponseHeaders.Text; // or anything else to indicate we handled it
+      end;
+    end;
+    CheckResponse(Response, ExpectedCode, Client.ResponseStatusCode);
+  finally
+    Client.Free;
+  end;
+end;
+
+procedure TTestBase.ExecutePostTest(const Endpoint: String; Payload: TJSONObject; ExpectedCode: Integer);
+var
+  Client: TFPHTTPClient;
+  Response: String;
+  Json: TJSONObject;
+  OwnsPayload: Boolean;
+begin
+  Client := TFPHTTPClient.Create(nil);
+  OwnsPayload := False;
+  if Payload = nil then
+  begin
+    Json := TJSONObject.Create;
+    Json.Add('config', CreateConfigJSON);
+    Payload := Json;
+    OwnsPayload := True;
+  end;
+
+  try
+    Client.AddHeader('Content-Type', 'application/json');
+    Client.RequestBody := TStringStream.Create(Payload.AsJSON);
+    try
+      try
+        Response := Client.Post(FBaseUrl + Endpoint);
+      except
+        on E: EHTTPClient do
+        begin
+          // Catch HTTP errors
+          Response := Client.ResponseHeaders.Text;
+        end;
+      end;
+      CheckResponse(Response, ExpectedCode, Client.ResponseStatusCode);
+    finally
+      Client.RequestBody.Free;
+    end;
+  finally
+    if OwnsPayload then
+      Payload.Free;
+    Client.Free;
+  end;
+end;
 
 procedure TTestBase.SetUp;
 begin

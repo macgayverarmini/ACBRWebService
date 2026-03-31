@@ -16,12 +16,28 @@ type
     procedure TestGetModeloEvento;
     procedure TestGetModeloDistribuicao;
     procedure TestGetModeloNFe;
+    procedure TestGetModeloStatusServicoNFe;
+    procedure TestGetModeloConsultaNFe;
+    procedure TestGetModeloInutilizacaoNFe;
+    procedure TestGetModeloCancelamentoNFe;
+    procedure TestGetModeloNFeFromXML;
+    procedure TestGetModeloNFeToXML;
+    procedure TestGetModeloValidarRegrasNFe;
+    procedure TestGetModeloDanfeEvento;
 
     // POST
     procedure TestPostEventos;
     procedure TestPostDistribuicao;
     procedure TestPostDANFe;
     procedure TestPostNFe;
+    procedure TestPostStatusServicoNFe;
+    procedure TestPostConsultaNFe;
+    procedure TestPostInutilizacaoNFe;
+    procedure TestPostCancelamentoNFe;
+    procedure TestPostNFeFromXML;
+    procedure TestPostNFeToXML;
+    procedure TestPostValidarRegrasNFe;
+    procedure TestPostDanfeEvento;
   end;
 
 implementation
@@ -31,165 +47,125 @@ implementation
 // --- GET Tests ---
 
 procedure TTestNFe.TestGetModeloConfig;
-var
-  Client: TFPHTTPClient;
-  Response: String;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Response := Client.Get(FBaseUrl + '/modelo/nfe/config');
-    CheckResponse(Response, 200, Client.ResponseStatusCode);
-  finally
-    Client.Free;
-  end;
+  ExecuteGetTest('/modelo/nfe/config');
 end;
 
 procedure TTestNFe.TestGetModeloEvento;
-var
-  Client: TFPHTTPClient;
-  Response: String;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Response := Client.Get(FBaseUrl + '/modelo/nfe/evento');
-    CheckResponse(Response, 200, Client.ResponseStatusCode);
-  finally
-    Client.Free;
-  end;
+  ExecuteGetTest('/modelo/nfe/evento');
 end;
 
 procedure TTestNFe.TestGetModeloDistribuicao;
-var
-  Client: TFPHTTPClient;
-  Response: String;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Response := Client.Get(FBaseUrl + '/modelo/nfe/distribuicao');
-    CheckResponse(Response, 200, Client.ResponseStatusCode);
-  finally
-    Client.Free;
-  end;
+  ExecuteGetTest('/modelo/nfe/distribuicao');
 end;
 
 procedure TTestNFe.TestGetModeloNFe;
-var
-  Client: TFPHTTPClient;
-  Response: String;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Response := Client.Get(FBaseUrl + '/modelo/nfe/nfe');
-    CheckResponse(Response, 200, Client.ResponseStatusCode);
-  finally
-    Client.Free;
-  end;
+  ExecuteGetTest('/modelo/nfe/nfe');
+end;
+
+procedure TTestNFe.TestGetModeloStatusServicoNFe;
+begin
+  ExecuteGetTest('/modelo/nfe/status');
+end;
+
+procedure TTestNFe.TestGetModeloConsultaNFe;
+begin
+  ExecuteGetTest('/modelo/nfe/consulta');
+end;
+
+procedure TTestNFe.TestGetModeloInutilizacaoNFe;
+begin
+  ExecuteGetTest('/modelo/nfe/inutilizacao');
+end;
+
+procedure TTestNFe.TestGetModeloCancelamentoNFe;
+begin
+  ExecuteGetTest('/modelo/nfe/cancelamento');
+end;
+
+procedure TTestNFe.TestGetModeloNFeFromXML;
+begin
+  ExecuteGetTest('/modelo/nfe/nfe-from-xml');
+end;
+
+procedure TTestNFe.TestGetModeloNFeToXML;
+begin
+  ExecuteGetTest('/modelo/nfe/nfe-to-xml');
+end;
+
+procedure TTestNFe.TestGetModeloValidarRegrasNFe;
+begin
+  ExecuteGetTest('/modelo/nfe/validar-regras');
+end;
+
+procedure TTestNFe.TestGetModeloDanfeEvento;
+begin
+  ExecuteGetTest('/modelo/nfe/danfe-evento');
 end;
 
 // --- POST Tests ---
 
 procedure TTestNFe.TestPostEventos;
-var
-  Client: TFPHTTPClient;
-  Response: String;
-  Json: TJSONObject;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Client.AddHeader('Content-Type', 'application/json');
-    Json := TJSONObject.Create;
-    try
-       Json.Add('config', CreateConfigJSON);
-       Client.RequestBody := TStringStream.Create(Json.AsJSON);
-       Response := Client.Post(FBaseUrl + '/nfe/eventos');
-       if Client.ResponseStatusCode >= 400 then
-         CheckResponse(Response, Client.ResponseStatusCode, Client.ResponseStatusCode)       
-       else
-         CheckResponse(Response, 200, Client.ResponseStatusCode);
-    finally
-       Json.Free;
-    end;
-  finally
-     Client.Free;
-  end;
+  ExecutePostTest('/nfe/eventos', nil, 500);
 end;
 
 procedure TTestNFe.TestPostDistribuicao;
-var
-  Client: TFPHTTPClient;
-  Response: String;
-  Json: TJSONObject;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Client.AddHeader('Content-Type', 'application/json');
-    Json := TJSONObject.Create;
-    try
-       Json.Add('config', CreateConfigJSON);
-       Client.RequestBody := TStringStream.Create(Json.AsJSON);
-       Response := Client.Post(FBaseUrl + '/nfe/distribuicao');
-       if Client.ResponseStatusCode >= 400 then
-         CheckResponse(Response, Client.ResponseStatusCode, Client.ResponseStatusCode)       
-       else
-         CheckResponse(Response, 200, Client.ResponseStatusCode);
-    finally
-       Json.Free;
-    end;
-  finally
-     Client.Free;
-  end;
+  ExecutePostTest('/nfe/distribuicao');
 end;
 
 procedure TTestNFe.TestPostDANFe;
-var
-  Client: TFPHTTPClient;
-  Response: String;
-  Json: TJSONObject;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Client.AddHeader('Content-Type', 'application/json');
-    Json := TJSONObject.Create;
-    try
-       Json.Add('config', CreateConfigJSON);
-       Client.RequestBody := TStringStream.Create(Json.AsJSON);
-       Response := Client.Post(FBaseUrl + '/nfe/danfe');
-       if Client.ResponseStatusCode >= 400 then
-         CheckResponse(Response, Client.ResponseStatusCode, Client.ResponseStatusCode)       
-       else
-         CheckResponse(Response, 200, Client.ResponseStatusCode);
-    finally
-       Json.Free;
-    end;
-  finally
-     Client.Free;
-  end;
+  ExecutePostTest('/nfe/danfe');
 end;
 
 procedure TTestNFe.TestPostNFe;
-var
-  Client: TFPHTTPClient;
-  Response: String;
-  Json: TJSONObject;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Client.AddHeader('Content-Type', 'application/json');
-    Json := TJSONObject.Create;
-    try
-       Json.Add('config', CreateConfigJSON);
-       Client.RequestBody := TStringStream.Create(Json.AsJSON);
-       Response := Client.Post(FBaseUrl + '/nfe/nfe');
-       if Client.ResponseStatusCode >= 400 then
-         CheckResponse(Response, Client.ResponseStatusCode, Client.ResponseStatusCode)       
-       else
-         CheckResponse(Response, 200, Client.ResponseStatusCode);
-    finally
-       Json.Free;
-    end;
-  finally
-     Client.Free;
-  end;
+  ExecutePostTest('/nfe/nfe', nil, 500);
+end;
+
+procedure TTestNFe.TestPostStatusServicoNFe;
+begin
+  ExecutePostTest('/nfe/status');
+end;
+
+procedure TTestNFe.TestPostConsultaNFe;
+begin
+  ExecutePostTest('/nfe/consulta');
+end;
+
+procedure TTestNFe.TestPostInutilizacaoNFe;
+begin
+  ExecutePostTest('/nfe/inutilizacao');
+end;
+
+procedure TTestNFe.TestPostCancelamentoNFe;
+begin
+  ExecutePostTest('/nfe/cancelamento');
+end;
+
+procedure TTestNFe.TestPostNFeFromXML;
+begin
+  ExecutePostTest('/nfe/nfe-from-xml');
+end;
+
+procedure TTestNFe.TestPostNFeToXML;
+begin
+  ExecutePostTest('/nfe/nfe-to-xml');
+end;
+
+procedure TTestNFe.TestPostValidarRegrasNFe;
+begin
+  ExecutePostTest('/nfe/validar-regras');
+end;
+
+procedure TTestNFe.TestPostDanfeEvento;
+begin
+  ExecutePostTest('/nfe/danfe-evento');
 end;
 
 initialization
