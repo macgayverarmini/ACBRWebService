@@ -1,0 +1,1569 @@
+openapi: 3.0.3
+info:
+  title: ACBRWebService API
+  description: API REST para integração com a biblioteca ACBR via HTTP.
+  version: 1.0.0
+tags:
+- name: NFe
+  description: Nota Fiscal Eletrônica (NF-e)
+- name: CTe
+  description: Conhecimento de Transporte Eletrônico (CT-e)
+- name: NFSe
+  description: Nota Fiscal de Serviços Eletrônica (NFS-e)
+- name: MDFe
+  description: Manifesto de Documentos Fiscais Eletrônicos (MDF-e)
+- name: Certificados
+  description: Manipulação de Certificados Digitais
+- name: Diversos
+  description: Rotinas Diversas (Validador, Extenso)
+paths:
+  /certificados/ler-dados:
+    post:
+      tags:
+      - Certificados
+      summary: Operação Ler Dados
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /certificados/upload:
+    get:
+      tags:
+      - Certificados
+      summary: Modelo para Upload
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+    post:
+      tags:
+      - Certificados
+      summary: Operação Upload
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /cte/cancelamento:
+    post:
+      tags:
+      - CTe
+      summary: Operação Cancelamento
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /cte/consulta:
+    post:
+      tags:
+      - CTe
+      summary: Operação Consulta
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /cte/cte-from-xml:
+    post:
+      tags:
+      - CTe
+      summary: Operação Cte From Xml
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /cte/cte-to-xml:
+    post:
+      tags:
+      - CTe
+      summary: Operação Cte To Xml
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /cte/dacte-evento:
+    post:
+      tags:
+      - CTe
+      summary: Operação Dacte Evento
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /cte/danfe:
+    post:
+      tags:
+      - CTe
+      summary: Operação Danfe
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /cte/distribuicao:
+    post:
+      tags:
+      - CTe
+      summary: Operação Distribuicao
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /cte/eventos:
+    post:
+      tags:
+      - CTe
+      summary: Operação Eventos
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /cte/inutilizacao:
+    post:
+      tags:
+      - CTe
+      summary: Operação Inutilizacao
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /cte/nfe:
+    post:
+      tags:
+      - CTe
+      summary: Operação Nfe
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /cte/status:
+    post:
+      tags:
+      - CTe
+      summary: Operação Status
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /cte/validar-regras:
+    post:
+      tags:
+      - CTe
+      summary: Operação Validar Regras
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /diversos/extenso:
+    get:
+      tags:
+      - Diversos
+      summary: Modelo para Extenso
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /diversos/validador:
+    get:
+      tags:
+      - Diversos
+      summary: Modelo para Validador
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /mdfe/damdfe:
+    post:
+      tags:
+      - MDFe
+      summary: Operação Damdfe
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /mdfe/distribuicao:
+    post:
+      tags:
+      - MDFe
+      summary: Operação Distribuicao
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /mdfe/enviar:
+    post:
+      tags:
+      - MDFe
+      summary: Operação Enviar
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /mdfe/eventos:
+    post:
+      tags:
+      - MDFe
+      summary: Operação Eventos
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /modelo/cte/cancelamento:
+    get:
+      tags:
+      - CTe
+      summary: Modelo para Cancelamento
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/cte/config:
+    get:
+      tags:
+      - CTe
+      summary: Modelo para Config
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/cte/consulta:
+    get:
+      tags:
+      - CTe
+      summary: Modelo para Consulta
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/cte/cte:
+    get:
+      tags:
+      - CTe
+      summary: Modelo para Cte
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/cte/cte-from-xml:
+    get:
+      tags:
+      - CTe
+      summary: Modelo para Cte From Xml
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/cte/cte-to-xml:
+    get:
+      tags:
+      - CTe
+      summary: Modelo para Cte To Xml
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/cte/dacte-evento:
+    get:
+      tags:
+      - CTe
+      summary: Modelo para Dacte Evento
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/cte/distribuicao:
+    get:
+      tags:
+      - CTe
+      summary: Modelo para Distribuicao
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/cte/evento:
+    get:
+      tags:
+      - CTe
+      summary: Modelo para Evento
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/cte/inutilizacao:
+    get:
+      tags:
+      - CTe
+      summary: Modelo para Inutilizacao
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/cte/status:
+    get:
+      tags:
+      - CTe
+      summary: Modelo para Status
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/cte/validar-regras:
+    get:
+      tags:
+      - CTe
+      summary: Modelo para Validar Regras
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/diversos/extenso:
+    get:
+      tags:
+      - Diversos
+      summary: Modelo para Extenso
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/diversos/validador:
+    get:
+      tags:
+      - Diversos
+      summary: Modelo para Validador
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/mdfe/config:
+    get:
+      tags:
+      - MDFe
+      summary: Modelo para Config
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/mdfe/distribuicao:
+    get:
+      tags:
+      - MDFe
+      summary: Modelo para Distribuicao
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/mdfe/evento:
+    get:
+      tags:
+      - MDFe
+      summary: Modelo para Evento
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/mdfe/mdfe:
+    get:
+      tags:
+      - MDFe
+      summary: Modelo para Mdfe
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/nfe/cancelamento:
+    get:
+      tags:
+      - NFe
+      summary: Modelo para Cancelamento
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/nfe/config:
+    get:
+      tags:
+      - NFe
+      summary: Modelo para Config
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/nfe/consulta:
+    get:
+      tags:
+      - NFe
+      summary: Modelo para Consulta
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/nfe/danfe-evento:
+    get:
+      tags:
+      - NFe
+      summary: Modelo para Danfe Evento
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/nfe/distribuicao:
+    get:
+      tags:
+      - NFe
+      summary: Modelo para Distribuicao
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/nfe/evento:
+    get:
+      tags:
+      - NFe
+      summary: Modelo para Evento
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/nfe/inutilizacao:
+    get:
+      tags:
+      - NFe
+      summary: Modelo para Inutilizacao
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/nfe/nfe:
+    get:
+      tags:
+      - NFe
+      summary: Modelo para Nfe
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/nfe/nfe-from-xml:
+    get:
+      tags:
+      - NFe
+      summary: Modelo para Nfe From Xml
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/nfe/nfe-to-xml:
+    get:
+      tags:
+      - NFe
+      summary: Modelo para Nfe To Xml
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/nfe/status:
+    get:
+      tags:
+      - NFe
+      summary: Modelo para Status
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/nfe/validar-regras:
+    get:
+      tags:
+      - NFe
+      summary: Modelo para Validar Regras
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/nfse/cancelar:
+    get:
+      tags:
+      - NFSe
+      summary: Modelo para Cancelar
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/nfse/config:
+    get:
+      tags:
+      - NFSe
+      summary: Modelo para Config
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/nfse/consultarlote:
+    get:
+      tags:
+      - NFSe
+      summary: Modelo para Consultarlote
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/nfse/consultarnfse:
+    get:
+      tags:
+      - NFSe
+      summary: Modelo para Consultarnfse
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/nfse/consultarnfseporrps:
+    get:
+      tags:
+      - NFSe
+      summary: Modelo para Consultarnfseporrps
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/nfse/consultarsituacao:
+    get:
+      tags:
+      - NFSe
+      summary: Modelo para Consultarsituacao
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/nfse/emitir:
+    get:
+      tags:
+      - NFSe
+      summary: Modelo para Emitir
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /modelo/nfse/substituir:
+    get:
+      tags:
+      - NFSe
+      summary: Modelo para Substituir
+      description: Obtém o modelo JSON para esta operação.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+  /nfe/cancelamento:
+    post:
+      tags:
+      - NFe
+      summary: Operação Cancelamento
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /nfe/consulta:
+    post:
+      tags:
+      - NFe
+      summary: Operação Consulta
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /nfe/danfe:
+    post:
+      tags:
+      - NFe
+      summary: Operação Danfe
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /nfe/danfe-evento:
+    post:
+      tags:
+      - NFe
+      summary: Operação Danfe Evento
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /nfe/distribuicao:
+    post:
+      tags:
+      - NFe
+      summary: Operação Distribuicao
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /nfe/eventos:
+    post:
+      tags:
+      - NFe
+      summary: Operação Eventos
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /nfe/inutilizacao:
+    post:
+      tags:
+      - NFe
+      summary: Operação Inutilizacao
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /nfe/nfe:
+    post:
+      tags:
+      - NFe
+      summary: Operação Nfe
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /nfe/nfe-from-xml:
+    post:
+      tags:
+      - NFe
+      summary: Operação Nfe From Xml
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /nfe/nfe-to-xml:
+    post:
+      tags:
+      - NFe
+      summary: Operação Nfe To Xml
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /nfe/status:
+    post:
+      tags:
+      - NFe
+      summary: Operação Status
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /nfe/validar-regras:
+    post:
+      tags:
+      - NFe
+      summary: Operação Validar Regras
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /nfse/cancelar:
+    post:
+      tags:
+      - NFSe
+      summary: Operação Cancelar
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /nfse/consultarlote:
+    post:
+      tags:
+      - NFSe
+      summary: Operação Consultarlote
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /nfse/consultarnfse:
+    post:
+      tags:
+      - NFSe
+      summary: Operação Consultarnfse
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /nfse/consultarnfseporrps:
+    post:
+      tags:
+      - NFSe
+      summary: Operação Consultarnfseporrps
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /nfse/consultarsituacao:
+    post:
+      tags:
+      - NFSe
+      summary: Operação Consultarsituacao
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /nfse/danfse:
+    post:
+      tags:
+      - NFSe
+      summary: Operação Danfse
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /nfse/emitir:
+    post:
+      tags:
+      - NFSe
+      summary: Operação Emitir
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /nfse/gerar:
+    post:
+      tags:
+      - NFSe
+      summary: Operação Gerar
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
+  /nfse/substituir:
+    post:
+      tags:
+      - NFSe
+      summary: Operação Substituir
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
