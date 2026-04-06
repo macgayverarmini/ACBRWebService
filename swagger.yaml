@@ -127,6 +127,30 @@ paths:
               type: object
               description: Para saber o formato exato, chame o endpoint GET correspondente
                 (se disponível) para obter o modelo JSON.
+  /cte/cte:
+    post:
+      tags:
+      - CTe
+      summary: Operação Cte
+      description: Executa a operação usando o payload JSON.
+      responses:
+        '200':
+          description: Sucesso
+          content:
+            application/json: {}
+        '400':
+          description: 'Erro na requisição (ex: JSON inválido)'
+          content:
+            application/json: {}
+      requestBody:
+        description: Payload em formato JSON
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Para saber o formato exato, chame o endpoint GET correspondente
+                (se disponível) para obter o modelo JSON.
   /cte/cte-from-xml:
     post:
       tags:
@@ -175,11 +199,11 @@ paths:
               type: object
               description: Para saber o formato exato, chame o endpoint GET correspondente
                 (se disponível) para obter o modelo JSON.
-  /cte/dacte-evento:
+  /cte/dacte:
     post:
       tags:
       - CTe
-      summary: Operação Dacte Evento
+      summary: Operação Dacte
       description: Executa a operação usando o payload JSON.
       responses:
         '200':
@@ -199,11 +223,11 @@ paths:
               type: object
               description: Para saber o formato exato, chame o endpoint GET correspondente
                 (se disponível) para obter o modelo JSON.
-  /cte/danfe:
+  /cte/dacte-evento:
     post:
       tags:
       - CTe
-      summary: Operação Danfe
+      summary: Operação Dacte Evento
       description: Executa a operação usando o payload JSON.
       responses:
         '200':
@@ -276,30 +300,6 @@ paths:
       tags:
       - CTe
       summary: Operação Inutilizacao
-      description: Executa a operação usando o payload JSON.
-      responses:
-        '200':
-          description: Sucesso
-          content:
-            application/json: {}
-        '400':
-          description: 'Erro na requisição (ex: JSON inválido)'
-          content:
-            application/json: {}
-      requestBody:
-        description: Payload em formato JSON
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              description: Para saber o formato exato, chame o endpoint GET correspondente
-                (se disponível) para obter o modelo JSON.
-  /cte/nfe:
-    post:
-      tags:
-      - CTe
-      summary: Operação Nfe
       description: Executa a operação usando o payload JSON.
       responses:
         '200':
@@ -445,11 +445,11 @@ paths:
               type: object
               description: Para saber o formato exato, chame o endpoint GET correspondente
                 (se disponível) para obter o modelo JSON.
-  /mdfe/enviar:
+  /mdfe/eventos:
     post:
       tags:
       - MDFe
-      summary: Operação Enviar
+      summary: Operação Eventos
       description: Executa a operação usando o payload JSON.
       responses:
         '200':
@@ -469,11 +469,11 @@ paths:
               type: object
               description: Para saber o formato exato, chame o endpoint GET correspondente
                 (se disponível) para obter o modelo JSON.
-  /mdfe/eventos:
+  /mdfe/mdfe:
     post:
       tags:
       - MDFe
-      summary: Operação Eventos
+      summary: Operação Mdfe
       description: Executa a operação usando o payload JSON.
       responses:
         '200':

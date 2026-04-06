@@ -44,8 +44,8 @@ resourcestring
   RSModeloCTeCTeToXMLRoute = '/modelo/cte/cte-to-xml';
   RSCTeEventosRoute = '/cte/eventos';
   RSCTeDistribuicaoRoute = '/cte/distribuicao';
-  RSCTeDANFeRoute = '/cte/danfe';
-  RSCTeNFeRoute = '/cte/nfe';
+  RSCTeDACTERoute = '/cte/dacte';
+  RSCTeCTeRoute = '/cte/cte';
   RSCTeStatusRoute = '/cte/status';
   RSCTeConsultaRoute = '/cte/consulta';
   RSCTeInutilizacaoRoute = '/cte/inutilizacao';
@@ -80,7 +80,7 @@ resourcestring
   RSModeloMDFeEventoRoute = '/modelo/mdfe/evento';
   RSModeloMDFeMDFeRoute = '/modelo/mdfe/mdfe';
   RSModeloMDFeDistribuicaoRoute = '/modelo/mdfe/distribuicao';
-  RSMDFeEnviarRoute = '/mdfe/enviar';
+  RSMDFeMDFeRoute = '/mdfe/mdfe';
   RSMDFeEventosRoute = '/mdfe/eventos';
   RSMDFeDAMDFeRoute = '/mdfe/damdfe';
   RSMDFeDistribuicaoRoute = '/mdfe/distribuicao';

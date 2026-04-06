@@ -394,8 +394,8 @@ begin
   THorse.Post(RSCTeConsultaRoute, PostConsulta);
   THorse.Post(RSCTeInutilizacaoRoute, PostInutilizacao);
   THorse.Post(RSCTeDistribuicaoRoute, PostDistCTe);
-  THorse.Post(RSCTeDANFeRoute, PostDACTE);
-  THorse.Post(RSCTeNFeRoute, PostCTe);
+  THorse.Post(RSCTeDACTERoute, PostDACTE);
+  THorse.Post(RSCTeCTeRoute, PostCTe);
   THorse.Post(RSCTeCancelamentoRoute, PostCancelamento);
   THorse.Post(RSCTeCTeFromXMLRoute, PostCTeFromXML);
   THorse.Post(RSCTeCTeToXMLRoute, PostCTeToXML);
