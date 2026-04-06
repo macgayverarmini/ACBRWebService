@@ -8,7 +8,8 @@ uses
   // Unit com a lógica de negócio do MDF-e
   method.acbr.mdfe,
   // Units do Horse e JSON
-  fpjson, Horse, Horse.Commons, Classes, SysUtils;
+  fpjson, Horse, Horse.Commons, Classes, SysUtils,
+  resource.strings.routes;
 
 // --- Handlers para Endpoints de Modelos (GET) ---
 procedure GetModeloConfigMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
@@ -181,16 +182,16 @@ end;
 procedure regRouter;
 begin
   // Endpoints de Modelos (GET)
-  THorse.Get('/modelo/mdfe/config', GetModeloConfigMDFe);
-  THorse.Get('/modelo/mdfe/evento', GetModeloEventoMDFe);
-  THorse.Get('/modelo/mdfe/mdfe', GetModeloMDFe);
-  THorse.Get('/modelo/mdfe/distribuicao', GetModeloDistribuicaoMDFe);
+  THorse.Get(RSModeloMDFeConfigRoute, GetModeloConfigMDFe);
+  THorse.Get(RSModeloMDFeEventoRoute, GetModeloEventoMDFe);
+  THorse.Get(RSModeloMDFeMDFeRoute, GetModeloMDFe);
+  THorse.Get(RSModeloMDFeDistribuicaoRoute, GetModeloDistribuicaoMDFe);
 
   // Endpoints de Operações (POST)
-  THorse.Post('/mdfe/enviar', PostEnviarMDFe);
-  THorse.Post('/mdfe/eventos', PostEventosMDFe);
-  THorse.Post('/mdfe/damdfe', PostDamdfeMDFe);
-  THorse.Post('/mdfe/distribuicao', PostDistribuicaoMDFe);
+  THorse.Post(RSMDFeMDFeRoute, PostEnviarMDFe);
+  THorse.Post(RSMDFeEventosRoute, PostEventosMDFe);
+  THorse.Post(RSMDFeDAMDFeRoute, PostDamdfeMDFe);
+  THorse.Post(RSMDFeDistribuicaoRoute, PostDistribuicaoMDFe);
 end;
 
 end.

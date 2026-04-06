@@ -232,7 +232,7 @@ begin
        Json.Add('config', CreateConfigJSON);
        // Needs 'cte' object usually
        Client.RequestBody := TStringStream.Create(Json.AsJSON);
-       Response := Client.Post(FBaseUrl + '/cte/enviar');
+       Response := Client.Post(FBaseUrl + '/cte/cte');
        // Expecting 200 or 400 (validation error), but valid JSON
        if Client.ResponseStatusCode >= 400 then
          CheckResponse(Response, Client.ResponseStatusCode, Client.ResponseStatusCode)       
@@ -350,7 +350,7 @@ begin
       Json.Add('xml', XmlBase64);
       Client.RequestBody := TStringStream.Create(Json.AsJSON);
       try
-        Response := Client.Post(FBaseUrl + '/cte/enviar');
+        Response := Client.Post(FBaseUrl + '/cte/cte');
       except
         on E: EHTTPClient do
         begin

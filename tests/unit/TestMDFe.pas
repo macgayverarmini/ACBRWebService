@@ -66,7 +66,7 @@ begin
        Json.Add('config', CreateConfigJSON);
        // Add 'mdfe' object if required for stricter validation, but 400 with message is also a valid response from server for partial data
        Client.RequestBody := TStringStream.Create(Json.AsJSON);
-       Response := Client.Post(FBaseUrl + '/mdfe/enviar');
+       Response := Client.Post(FBaseUrl + '/mdfe/mdfe');
        if Client.ResponseStatusCode >= 400 then
          CheckResponse(Response, Client.ResponseStatusCode, Client.ResponseStatusCode)       
        else
