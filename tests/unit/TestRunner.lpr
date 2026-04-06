@@ -3,7 +3,7 @@ program TestRunner;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, consoletestrunner, TestCTe, TestNFe, TestMDFe, TestDiversos, TestCertificados, TestNFSe;
+  Classes, consoletestrunner, TestCTe, TestNFe, TestMDFe, TestDiversos, TestCertificados, TestNFSe, TestStreamTools;
 
 type
   TMyTestRunner = class(consoletestrunner.TTestRunner)
