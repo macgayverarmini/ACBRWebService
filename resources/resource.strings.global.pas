@@ -14,9 +14,6 @@ resourcestring
   RSDateFormat = 'yyyy-mm-dd';
   
   // Configurações padrão
-  RSDefaultUF = 'ES';
-  RSDefaultCertPath = 'C:\NFMonitor\src\exemplo.pfx';
-  RSDefaultCertPassword = '123';
   RSCertificadosDir = 'certificados';
   RSCertificadoDefault = 'certificado';
   
@@ -77,7 +74,13 @@ resourcestring
   RSTempValidaPrefix = 'temp_valida_';
   RSTempLerDadosPrefix = 'temp_lerdados_';
   RSPfxExtension = '.pfx';
-  
+
+var
+  RSDefaultUF: string;
+  RSDefaultCertPath: string;
+  RSDefaultCertPassword: string;
+
+resourcestring
   // Códigos IBGE para UF
   RSCodigoIBGE_AC = '12';
   RSCodigoIBGE_AL = '17';
@@ -108,5 +111,15 @@ resourcestring
   RSCodigoIBGE_TO = '27';
 
 implementation
+
+uses SysUtils;
+
+initialization
+  RSDefaultUF := GetEnvironmentVariable('ACBR_DEFAULT_UF');
+  if RSDefaultUF = '' then
+    RSDefaultUF := 'ES';
+
+  RSDefaultCertPath := GetEnvironmentVariable('ACBR_DEFAULT_CERT_PATH');
+  RSDefaultCertPassword := GetEnvironmentVariable('ACBR_DEFAULT_CERT_PASSWORD');
 
 end.
