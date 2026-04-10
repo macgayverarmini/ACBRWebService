@@ -5,6 +5,7 @@ unit method.acbr.cte;
 interface
 
 uses
+  resource.strings.msg,
   RTTI,
   ACBrCTe,
   ACBrCTe.EnvEvento,
@@ -319,7 +320,7 @@ begin
     Result := DecodeStringBase64(xmlBase64); // Funo de Classes ou Base64 unit
   except
     on E: Exception do
-      raise Exception.Create('A string XML em base64  invlida: ' + E.Message);
+      raise Exception.Create(RSInvalidBase64XML + E.Message);
   end;
 end;
 
