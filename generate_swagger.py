@@ -1,163 +1,124 @@
 import os
 import re
-import yaml
+import json
 
-# Constants for tags and descriptions
-TAGS = {
-    'NFe': 'Nota Fiscal Eletrônica (NF-e)',
-    'CTe': 'Conhecimento de Transporte Eletrônico (CT-e)',
-    'NFSe': 'Nota Fiscal de Serviços Eletrônica (NFS-e)',
-    'MDFe': 'Manifesto de Documentos Fiscais Eletrônicos (MDF-e)',
-    'Certificados': 'Manipulação de Certificados Digitais',
-    'Diversos': 'Rotinas Diversas (Validador, Extenso)'
-}
-
-def get_routes_from_strings_pas(filepath):
-    routes_vars = {}
-    with open(filepath, 'r', encoding='utf-8') as f:
-        content = f.read()
-
-    resourcestring_block = re.search(r'resourcestring(.*?)(implementation|end\.)', content, re.DOTALL | re.IGNORECASE)
-    if not resourcestring_block:
-        return routes_vars
-
-    lines = resourcestring_block.group(1).split('\n')
-    for line in lines:
-        match = re.match(r'\s*(\w+)\s*=\s*\'([^\']+)\'\s*;', line)
-        if match:
-            var_name, path = match.groups()
-            routes_vars[var_name] = path
-
-    return routes_vars
-
-def parse_routes_file(filepath, strings_dict):
-    routes = []
-    with open(filepath, 'r', encoding='utf-8') as f:
-        content = f.read()
-
-    # Determine module tag based on filename
-    filename = os.path.basename(filepath)
-    tag = 'Diversos'
-    if 'nfe' in filename:
-        tag = 'NFe'
-    elif 'nfse' in filename:
-        tag = 'NFSe'
-    elif 'cte' in filename:
-        tag = 'CTe'
-    elif 'mdfe' in filename:
-        tag = 'MDFe'
-    elif 'certificados' in filename:
-        tag = 'Certificados'
-
-    # Extract all THorse route definitions
-    # Match THorse.Get, THorse.Post, etc.
-    # Handle both direct string literals and constants from resource strings
-    route_matches = re.finditer(r'THorse\.(Get|Post)\(\s*([^,]+)\s*,', content, re.IGNORECASE)
-    for match in route_matches:
-        method = match.group(1).lower()
-        path_arg = match.group(2).strip()
-
-        path = ""
-        if path_arg.startswith("'") and path_arg.endswith("'"):
-            path = path_arg[1:-1]
-        elif path_arg in strings_dict:
-            path = strings_dict[path_arg]
-        else:
-            continue # Unknown path constant
-
-        description = "Obtém o modelo JSON para esta operação." if method == 'get' else "Executa a operação usando o payload JSON."
-        summary_base = path.split('/')[-1].replace('-', ' ').title()
-
-        if method == 'get':
-            summary = f"Modelo para {summary_base}"
-        else:
-            summary = f"Operação {summary_base}"
-
-        routes.append({
-            'path': path,
-            'method': method,
-            'tag': tag,
-            'summary': summary,
-            'description': description
-        })
-
-    return routes
-
-def generate_openapi():
-    # Parse resource strings
-    strings_dict = get_routes_from_strings_pas('resources/resource.strings.routes.pas')
-
-    routes_dir = 'routes'
-    all_routes = []
-
+def parse_routes(routes_dir):
+    paths = {}
+    
+    # Regex para identificar THorse.Get('rota', metodo) e THorse.Post('rota', metodo)
+    route_pattern = re.compile(r'THorse\.(Get|Post|Put|Delete)\s*\(\s*([^,]+)\s*,\s*([^\)]+)\s*\)', re.IGNORECASE)
+    
     for filename in os.listdir(routes_dir):
-        if filename.startswith('route.') and filename.endswith('.pas'):
-            filepath = os.path.join(routes_dir, filename)
-            all_routes.extend(parse_routes_file(filepath, strings_dict))
-
-    # Remove duplicates
-    unique_routes = {}
-    for r in all_routes:
-        key = (r['path'], r['method'])
-        if key not in unique_routes:
-            unique_routes[key] = r
-
-    # Build OpenAPI dict
-    openapi = {
-        'openapi': '3.0.3',
-        'info': {
-            'title': 'ACBRWebService API',
-            'description': 'API REST para integração com a biblioteca ACBR via HTTP.',
-            'version': '1.0.0'
-        },
-        'tags': [{'name': k, 'description': v} for k, v in TAGS.items()],
-        'paths': {}
-    }
-
-    for (path, method), r in sorted(unique_routes.items()):
-        if path not in openapi['paths']:
-            openapi['paths'][path] = {}
-
-        operation = {
-            'tags': [r['tag']],
-            'summary': r['summary'],
-            'description': r['description'],
-            'responses': {
-                '200': {
-                    'description': 'Sucesso',
-                    'content': {
-                        'application/json': {}
-                    }
-                },
-                '400': {
-                    'description': 'Erro na requisição (ex: JSON inválido)',
-                    'content': {
-                        'application/json': {}
+        if not filename.endswith('.pas'):
+            continue
+            
+        module_tag = filename.replace('route.acbr.', '').replace('.pas', '').upper()
+            
+        filepath = os.path.join(routes_dir, filename)
+        with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
+            content = f.read()
+            
+        # Tentar ler as strings das rotas se elas forem constantes (ex: RSNFeStatusRoute)
+        # O ideal aqui é ler o resource.strings.routes.pas, mas como fallback podemos usar a string literal
+        
+        matches = route_pattern.findall(content)
+        for method, route_str, handler in matches:
+            method = method.lower()
+            
+            # Se a rota for uma constante (ex: RSNFeNFeRoute), vamos apenas usar o nome da constante por enquanto
+            # Em uma versao mais robusta, leríamos o resource.strings.routes.pas
+            route_path = route_str.replace("'", "")
+            
+            if route_path not in paths:
+                paths[route_path] = {}
+                
+            paths[route_path][method] = {
+                "tags": [module_tag],
+                "summary": f"{method.upper()} {handler.strip()}",
+                "description": f"Endpoint handled by {handler.strip()}",
+                "responses": {
+                    "200": {
+                        "description": "Sucesso"
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor"
                     }
                 }
             }
-        }
-
-        if method in ['post', 'put', 'patch']:
-            operation['requestBody'] = {
-                'description': 'Payload em formato JSON',
-                'required': True,
-                'content': {
-                    'application/json': {
-                        'schema': {
-                            'type': 'object',
-                            'description': 'Para saber o formato exato, chame o endpoint GET correspondente (se disponível) para obter o modelo JSON.'
+            
+            # Se for POST, adicionar um body generico
+            if method in ['post', 'put']:
+                paths[route_path][method]["requestBody"] = {
+                    "description": "Payload com as configurações do ACBr e dados do documento",
+                    "required": True,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "config": {
+                                        "type": "object",
+                                        "description": "Configurações do ACBr (Certificado, Arquivos, etc)"
+                                    },
+                                    "dados": {
+                                        "type": "string",
+                                        "description": "XML ou dados estruturados em Base64 ou Texto"
+                                    }
+                                }
+                            }
                         }
                     }
                 }
-            }
+                
+    return paths
 
-        openapi['paths'][path][method] = operation
+def resolve_constants(paths, strings_file):
+    with open(strings_file, 'r', encoding='utf-8', errors='ignore') as f:
+        content = f.read()
+        
+    constants = {}
+    # Busca consts: RSNFeRoute = '/nfe/enviar';
+    const_pattern = re.compile(r'([A-Za-z0-9_]+)\s*=\s*\'([^\']+)\'')
+    for match in const_pattern.findall(content):
+        constants[match[0]] = match[1]
+        
+    resolved_paths = {}
+    for route, data in paths.items():
+        if route in constants:
+            real_route = constants[route]
+            resolved_paths[real_route] = data
+        else:
+            resolved_paths[route] = data
+            
+    return resolved_paths
 
-    with open('swagger.yaml', 'w', encoding='utf-8') as f:
-        yaml.dump(openapi, f, allow_unicode=True, sort_keys=False)
+def generate_swagger():
+    src_dir = os.path.dirname(os.path.abspath(__file__))
+    routes_dir = os.path.join(src_dir, 'routes')
+    strings_file = os.path.join(src_dir, 'resources', 'resource.strings.routes.pas')
+    output_file = os.path.join(src_dir, 'resources', 'swagger.json')
+    
+    print("Analisando rotas...")
+    raw_paths = parse_routes(routes_dir)
+    
+    print("Resolvendo constantes de rota...")
+    paths = resolve_constants(raw_paths, strings_file)
+    
+    swagger = {
+        "openapi": "3.0.0",
+        "info": {
+            "title": "ACBRWebService API",
+            "description": "API REST gerada automaticamente para os componentes ACBr.",
+            "version": "1.0.0"
+        },
+        "paths": paths
+    }
+    
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
+    with open(output_file, 'w', encoding='utf-8') as f:
+        json.dump(swagger, f, indent=2, ensure_ascii=False)
+        
+    print(f"Swagger JSON gerado com sucesso em: {output_file}")
 
-    print("swagger.yaml gerado com sucesso.")
-
-if __name__ == '__main__':
-    generate_openapi()
+if __name__ == "__main__":
+    generate_swagger()
