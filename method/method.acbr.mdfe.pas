@@ -24,7 +24,8 @@ uses
   Base64, jsonparser,
   ACBrDFeConfiguracoes,
   ACBrMDFeConfiguracoes,
-  Classes, SysUtils;
+  Classes, SysUtils,
+  resource.strings.global;
 
 type
 
@@ -238,7 +239,7 @@ end;
 
 function TACBRModelosJSONMDFe.ModelDistribuicao: string;
 begin
-  Result := TJSONTools.ObjToJsonString(facbr.WebServices.DistribuicaoDFe);
+  Result := TJSONTools.SafeObjToJsonString(facbr.WebServices.DistribuicaoDFe);
 end;
 
 { TACBRBridgeMDFe }

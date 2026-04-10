@@ -191,7 +191,7 @@ End;
 Function TACBRModelosJSON.ModelDistribuicao: string;
 Begin
   //  Evento := facbr.WebServices.DistribuicaoDFe.new;
-  Result := TJSONTools.ObjToJsonString(facbr.WebServices.DistribuicaoDFe);
+  Result := TJSONTools.SafeObjToJsonString(facbr.WebServices.DistribuicaoDFe);
   //  facbr.EventoNFe.Evento.Clear;
 End;
 
@@ -256,7 +256,6 @@ Var
 Begin
   CarregaConfig;
 
-  Result := TJSONObject.Create;
   //Gera objeto TNotaFiscal da unit ACBrNFeNotasFiscais
   Nota := facbr.NotasFiscais.Add;
   // Inicia o número do lote do envio da NFe
@@ -267,9 +266,7 @@ Begin
   Except
     on E: Exception Do
           Begin
-            Result.Add(RSStatusField, RSStatusErro);
-            Result.Add(RSMessageField, RSErrorReadingJSON + E.Message
-            );
+            Result := TJSONTools.SafeObjToJson(nil, RSErrorReadingJSON + E.Message);
             Exit;
           End;
 End;
@@ -277,11 +274,10 @@ End;
 Try
   // Pede a ACBR para transmitir os dados
   facbr.WebServices.Envia(Lote, True, False);
+  Result := TJSONTools.SafeObjToJson(facbr.WebServices.Retorno, 'Erro ao enviar NFe');
 Finally
-  Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.Retorno));
+  facbr.NotasFiscais.Clear;
 End;
-
-facbr.NotasFiscais.Clear;
 End;
 
 
@@ -537,16 +533,12 @@ End;
 Function TACBRBridgeNFe.StatusServico(Const jStatus: TJSONObject): TJSONObject;
 Begin
   CarregaConfig;
-  Result := TJSONObject.Create;
   Try
     facbr.WebServices.StatusServico.Executar;
-    Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.StatusServico));
+    Result := TJSONTools.SafeObjToJson(facbr.WebServices.StatusServico, 'Erro ao consultar status');
   Except
     on E: Exception Do
-    Begin
-      Result.Add(RSStatusField, RSStatusErro);
-      Result.Add(RSMessageField, 'Erro ao consultar status: ' + E.Message);
-    End;
+      Result := TJSONTools.SafeObjToJson(nil, 'Erro ao consultar status: ' + E.Message);
   End;
 End;
 
@@ -555,44 +547,33 @@ Var
   Chave: TJSONData;
 Begin
   CarregaConfig;
-  Result := TJSONObject.Create;
 
   If jConsulta.Find('NFe_Chave', Chave) Then
   Begin
     Try
       facbr.WebServices.Consulta.NFeChave := Chave.AsString;
       facbr.WebServices.Consulta.Executar;
-      Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.Consulta));
+      Result := TJSONTools.SafeObjToJson(facbr.WebServices.Consulta, 'Erro na consulta');
     Except
       on E: Exception Do
-      Begin
-        Result.Add(RSStatusField, RSStatusErro);
-        Result.Add(RSMessageField, 'Erro na consulta: ' + E.Message);
-      End;
+        Result := TJSONTools.SafeObjToJson(nil, 'Erro na consulta: ' + E.Message);
     End;
   End
   Else
-  Begin
-    Result.Add(RSStatusField, RSStatusErro);
-    Result.Add(RSMessageField, 'Chave nao informada para consulta.');
-  End;
+    Result := TJSONTools.SafeObjToJson(nil, 'Chave nao informada para consulta.');
 End;
 
 Function TACBRBridgeNFe.Inutilizacao(Const jInutilizacao: TJSONObject): TJSONObject;
 Begin
   CarregaConfig;
-  Result := TJSONObject.Create;
 
   Try
     TJSONTools.JsonToObj(jInutilizacao, facbr.WebServices.Inutilizacao);
     facbr.WebServices.Inutilizacao.Executar;
-    Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.Inutilizacao));
+    Result := TJSONTools.SafeObjToJson(facbr.WebServices.Inutilizacao, 'Erro na inutilizacao');
   Except
     on E: Exception Do
-    Begin
-      Result.Add(RSStatusField, RSStatusErro);
-      Result.Add(RSMessageField, 'Erro na inutilizacao: ' + E.Message);
-    End;
+      Result := TJSONTools.SafeObjToJson(nil, 'Erro na inutilizacao: ' + E.Message);
   End;
 End;
 
@@ -627,13 +608,10 @@ Begin
 
   Try
     facbr.EnviarEvento(idLote);
-    Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.EnvEvento.EventoRetorno.retEvento));
+    Result := TJSONTools.SafeObjToJson(facbr.WebServices.EnvEvento.EventoRetorno.retEvento, 'Erro ao enviar evento de cancelamento');
   Except
     on E: Exception Do
-    Begin
-      Result.Add(RSStatusField, RSStatusErro);
-      Result.Add(RSMessageField, 'Erro ao enviar evento de cancelamento: ' + E.Message);
-    End;
+      Result := TJSONTools.SafeObjToJson(nil, 'Erro ao enviar evento de cancelamento: ' + E.Message);
   End;
 End;
 
@@ -642,32 +620,28 @@ Var
   xmlBase64: string;
 Begin
   CarregaConfig;
-  Result := TJSONObject.Create;
   Try
     xmlBase64 := ReadXMLFromJSON(jXML);
     facbr.NotasFiscais.LoadFromString(xmlBase64);
     If facbr.NotasFiscais.Count > 0 Then
     Begin
-      Result := TJSONObject(TJSONTools.ObjToJson(facbr.NotasFiscais.Items[0].NFe));
-      Result.Delete(RSXMLField);
-      Result.Delete(RSXMLOriginalField);
-      Result.Delete(RSNomeArqField);
-      Result.Delete(RSErroValidacaoCompletoField);
-      Result.Delete(RSErroValidacaoField);
-      Result.Delete(RSErroRegrasdeNegociosField);
-      Result.Delete(RSAlertasField);
+      Result := TJSONTools.SafeObjToJson(facbr.NotasFiscais.Items[0].NFe, 'Erro na conversao XML para JSON');
+      if Result.Find(RSStatusField) = nil then
+      begin
+        Result.Delete(RSXMLField);
+        Result.Delete(RSXMLOriginalField);
+        Result.Delete(RSNomeArqField);
+        Result.Delete(RSErroValidacaoCompletoField);
+        Result.Delete(RSErroValidacaoField);
+        Result.Delete(RSErroRegrasdeNegociosField);
+        Result.Delete(RSAlertasField);
+      end;
     End
     Else
-    Begin
-      Result.Add(RSStatusField, RSStatusErro);
-      Result.Add(RSMessageField, 'Nenhuma NF-e carregada do XML.');
-    End;
+      Result := TJSONTools.SafeObjToJson(nil, 'Nenhuma NF-e carregada do XML.');
   Except
     on E: Exception Do
-    Begin
-      Result.Add(RSStatusField, RSStatusErro);
-      Result.Add(RSMessageField, 'Erro na conversao XML para JSON: ' + E.Message);
-    End;
+      Result := TJSONTools.SafeObjToJson(nil, 'Erro na conversao XML para JSON: ' + E.Message);
   End;
   facbr.NotasFiscais.Clear;
 End;
@@ -678,7 +652,6 @@ Var
   xmlString: string;
 Begin
   CarregaConfig;
-  Result := TJSONObject.Create;
 
   Try
     Nota := facbr.NotasFiscais.Add;
@@ -686,8 +659,7 @@ Begin
   Except
     on E: Exception Do
     Begin
-      Result.Add(RSStatusField, RSStatusErro);
-      Result.Add(RSMessageField, RSErrorReadingJSON + E.Message);
+      Result := TJSONTools.SafeObjToJson(nil, RSErrorReadingJSON + E.Message);
       facbr.NotasFiscais.Clear;
       Exit;
     End;
@@ -699,13 +671,11 @@ Begin
     If xmlString = '' Then
       xmlString := facbr.NotasFiscais.Items[0].XML;
 
+    Result := TJSONObject.Create;
     Result.Add('xml', EncodeStringBase64(xmlString));
   Except
     on E: Exception Do
-    Begin
-      Result.Add(RSStatusField, RSStatusErro);
-      Result.Add(RSMessageField, 'Erro ao gerar XML da NF-e: ' + E.Message);
-    End;
+      Result := TJSONTools.SafeObjToJson(nil, 'Erro ao gerar XML da NF-e: ' + E.Message);
   End;
 
   facbr.NotasFiscais.Clear;
@@ -737,14 +707,16 @@ Begin
       facbr.NotasFiscais.Items[0].Assinar;
       facbr.NotasFiscais.Items[0].Validar;
 
+      Result := TJSONObject.Create;
       Result.Add(RSStatusField, 'sucesso');
       Result.Add(RSMessageField, 'XML Valido e Assinado');
       Result.Add('xml_assinado', EncodeStringBase64(facbr.NotasFiscais.Items[0].XML));
     Except
       on E: Exception Do
       Begin
+        Result := TJSONTools.SafeObjToJson(nil, E.Message);
+        Result.Delete(RSStatusField);
         Result.Add(RSStatusField, 'erro_validacao');
-        Result.Add(RSMessageField, E.Message);
         If facbr.NotasFiscais.Items[0].ErroValidacao <> '' Then
           Result.Add('detalhes', facbr.NotasFiscais.Items[0].ErroValidacao);
       End;

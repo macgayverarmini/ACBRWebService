@@ -30,7 +30,8 @@ uses
   Classes, SysUtils,
   streamtools,
   ACBrCTeDACTeRL, // Para a instncia fdacte
-  ACBrUtil;       // Para GetTempFileName e possivelmente FileToStringBase64
+  ACBrUtil,       // Para GetTempFileName e possivelmente FileToStringBase64
+  resource.strings.global;
 
 type
 
@@ -263,7 +264,7 @@ end;
 function TACBRModelosJSONCTe.ModelDistribuicao: string;
 begin
   //  Evento := facbr.WebServices.DistribuicaoDFe.new;
-  Result := TJSONTools.ObjToJsonString(facbr.WebServices.DistribuicaoDFe);
+  Result := TJSONTools.SafeObjToJsonString(facbr.WebServices.DistribuicaoDFe);
   //  facbr.EventoNFe.Evento.Clear;
 end;
 
@@ -345,7 +346,6 @@ var
   Lote: integer;
 begin
   CarregaConfig;
-  Result := TJSONObject.Create;
 
   try
     ConhecimentoCTe := facbr.Conhecimentos.Add.CTe;
@@ -355,8 +355,7 @@ begin
   except
     on E: Exception do
     begin
-      Result.Add('status', 'erro');
-      Result.Add('message', 'Erro na leitura do objeto JSON para CTe: ' + E.Message);
+      Result := TJSONTools.SafeObjToJson(nil, 'Erro na leitura do objeto JSON para CTe: ' + E.Message);
       if Assigned(facbr.Conhecimentos) then facbr.Conhecimentos.Clear;
       Exit;
     end;
@@ -364,11 +363,10 @@ begin
 
   try
     facbr.WebServices.Envia(Lote, True); // True para Assinar
+    Result := TJSONTools.SafeObjToJson(facbr.WebServices.Retorno, 'Erro ao enviar CTe');
   finally
-    Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.Retorno));
+    if Assigned(facbr.Conhecimentos) then facbr.Conhecimentos.Clear;
   end;
-
-  if Assigned(facbr.Conhecimentos) then facbr.Conhecimentos.Clear;
 end;
 
 function TACBRBridgeCTe.Evento(const jEventos: TJSONArray): string;
@@ -461,16 +459,12 @@ end;
 function TACBRBridgeCTe.StatusServico(const jStatus: TJSONObject): TJSONObject;
 begin
   CarregaConfig;
-  Result := TJSONObject.Create;
   try
     facbr.WebServices.StatusServico.Executar;
-    Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.StatusServico));
+    Result := TJSONTools.SafeObjToJson(facbr.WebServices.StatusServico, 'Erro ao consultar status');
   except
     on E: Exception do
-    begin
-      Result.Add('status', 'erro');
-      Result.Add('message', 'Erro ao consultar status: ' + E.Message);
-    end;
+      Result := TJSONTools.SafeObjToJson(nil, 'Erro ao consultar status: ' + E.Message);
   end;
 end;
 
@@ -479,44 +473,33 @@ var
   Chave: TJSONData;
 begin
   CarregaConfig;
-  Result := TJSONObject.Create;
 
   if jConsulta.Find('CTeChave', Chave) then
   begin
     try
       facbr.WebServices.Consulta.CTeChave := Chave.AsString;
       facbr.WebServices.Consulta.Executar;
-      Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.Consulta));
+      Result := TJSONTools.SafeObjToJson(facbr.WebServices.Consulta, 'Erro na consulta');
     except
       on E: Exception do
-      begin
-        Result.Add('status', 'erro');
-        Result.Add('message', 'Erro na consulta: ' + E.Message);
-      end;
+        Result := TJSONTools.SafeObjToJson(nil, 'Erro na consulta: ' + E.Message);
     end;
   end
   else
-  begin
-    Result.Add('status', 'erro');
-    Result.Add('message', 'Chave nao informada para consulta.');
-  end;
+    Result := TJSONTools.SafeObjToJson(nil, 'Chave nao informada para consulta.');
 end;
 
 function TACBRBridgeCTe.Inutilizacao(const jInutilizacao: TJSONObject): TJSONObject;
 begin
   CarregaConfig;
-  Result := TJSONObject.Create;
   
   try
     TJSONTools.JsonToObj(jInutilizacao, facbr.WebServices.Inutilizacao);
     facbr.WebServices.Inutilizacao.Executar;
-    Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.Inutilizacao));
+    Result := TJSONTools.SafeObjToJson(facbr.WebServices.Inutilizacao, 'Erro na inutilizacao');
   except
     on E: Exception do
-    begin
-      Result.Add('status', 'erro');
-      Result.Add('message', 'Erro na inutilizacao: ' + E.Message);
-    end;
+      Result := TJSONTools.SafeObjToJson(nil, 'Erro na inutilizacao: ' + E.Message);
   end;
 end;
 
@@ -553,13 +536,10 @@ begin
 
   try
     facbr.EnviarEvento(idLote);
-    Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.EnvEvento.EventoRetorno.retEvento));
+    Result := TJSONTools.SafeObjToJson(facbr.WebServices.EnvEvento.EventoRetorno.retEvento, 'Erro ao enviar evento de cancelamento');
   except
     on E: Exception do
-    begin
-      Result.Add('status', 'erro');
-      Result.Add('message', 'Erro ao enviar evento de cancelamento: ' + E.Message);
-    end;
+      Result := TJSONTools.SafeObjToJson(nil, 'Erro ao enviar evento de cancelamento: ' + E.Message);
   end;
 end;
 
@@ -568,32 +548,28 @@ var
   xmlBase64: string;
 begin
   CarregaConfig;
-  Result := TJSONObject.Create;
   try
     xmlBase64 := ReadXMLFromJSON(jXML);
     facbr.Conhecimentos.LoadFromString(xmlBase64);
     if facbr.Conhecimentos.Count > 0 then
     begin
-      Result := TJSONObject(TJSONTools.ObjToJson(facbr.Conhecimentos.Items[0].CTe));
-      // Limpeza opcional de campos internos
-      Result.Delete('XML');
-      Result.Delete('XMLOriginal');
-      Result.Delete('NomeArq');
-      Result.Delete('Protocolo');
-      Result.Delete('DigVal');
-      Result.Delete('infCTeSupl');
+      Result := TJSONTools.SafeObjToJson(facbr.Conhecimentos.Items[0].CTe, 'Erro na conversao XML para JSON');
+      if Result.Find(RSStatusField) = nil then
+      begin
+        // Limpeza opcional de campos internos
+        Result.Delete('XML');
+        Result.Delete('XMLOriginal');
+        Result.Delete('NomeArq');
+        Result.Delete('Protocolo');
+        Result.Delete('DigVal');
+        Result.Delete('infCTeSupl');
+      end;
     end
     else
-    begin
-       Result.Add('status', 'erro');
-       Result.Add('message', 'Nenhum CTe carregado do XML.');
-    end;
+       Result := TJSONTools.SafeObjToJson(nil, 'Nenhum CTe carregado do XML.');
   except
     on E: Exception do
-    begin
-      Result.Add('status', 'erro');
-      Result.Add('message', 'Erro na conversao XML para JSON: ' + E.Message);
-    end;
+      Result := TJSONTools.SafeObjToJson(nil, 'Erro na conversao XML para JSON: ' + E.Message);
   end;
   facbr.Conhecimentos.Clear;
 end;
@@ -604,7 +580,6 @@ var
   xmlString: string;
 begin
   CarregaConfig;
-  Result := TJSONObject.Create;
 
   try
     ConhecimentoCTe := facbr.Conhecimentos.Add.CTe;
@@ -612,8 +587,7 @@ begin
   except
     on E: Exception do
     begin
-      Result.Add('status', 'erro');
-      Result.Add('message', 'Erro na leitura do objeto JSON para CTe: ' + E.Message);
+      Result := TJSONTools.SafeObjToJson(nil, 'Erro na leitura do objeto JSON para CTe: ' + E.Message);
       if Assigned(facbr.Conhecimentos) then facbr.Conhecimentos.Clear;
       Exit;
     end;
@@ -625,13 +599,11 @@ begin
     if xmlString = '' then
       xmlString := facbr.Conhecimentos.Items[0].XML;
 
+    Result := TJSONObject.Create;
     Result.Add('xml', EncodeStringBase64(xmlString));
   except
     on E: Exception do
-    begin
-      Result.Add('status', 'erro');
-      Result.Add('message', 'Erro ao gerar XML do CTe: ' + E.Message);
-    end;
+      Result := TJSONTools.SafeObjToJson(nil, 'Erro ao gerar XML do CTe: ' + E.Message);
   end;
 
   if Assigned(facbr.Conhecimentos) then facbr.Conhecimentos.Clear;
@@ -751,15 +723,17 @@ begin
       facbr.Conhecimentos.Items[0].Assinar;
       facbr.Conhecimentos.Items[0].Validar;
 
-      Result.Add('status', 'sucesso');
-      Result.Add('message', 'XML Valido e Assinado');
+      Result := TJSONObject.Create;
+      Result.Add(RSStatusField, 'sucesso');
+      Result.Add(RSMessageField, 'XML Valido e Assinado');
       // Retorna o XML assinado caso o cliente queira salvar
       Result.Add('xml_assinado', EncodeStringBase64(facbr.Conhecimentos.Items[0].XML));
     except
       on E: Exception do
       begin
-        Result.Add('status', 'erro_validacao');
-        Result.Add('message', E.Message);
+        Result := TJSONTools.SafeObjToJson(nil, E.Message);
+        Result.Delete(RSStatusField);
+        Result.Add(RSStatusField, 'erro_validacao');
         // O ACBr costuma popular a lista de erros de validação
         if facbr.Conhecimentos.Items[0].ErroValidacao <> '' then
            Result.Add('detalhes', facbr.Conhecimentos.Items[0].ErroValidacao);
