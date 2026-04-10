@@ -8,7 +8,8 @@ uses
   fpjson,
   Horse.HandleException, jsonparser,
   pcnConversaoNFe, pcnConversao,
-  Classes, SysUtils, fpjsonrtti;
+  Classes, SysUtils, fpjsonrtti,
+  resource.strings.global;
 
 type
 
@@ -19,6 +20,9 @@ type
     class function ObjToJsonString(const Obj: TObject): string;
     class function ObjToJson(const Obj: TObject): TJSONObject;
 
+    class function SafeObjToJson(const Obj: TObject; const ErrorMsg: string = ''): TJSONObject;
+    class function SafeObjToJsonString(const Obj: TObject; const ErrorMsg: string = ''): string;
+
     class procedure JsonStringToObj(const JsonString: string; const Obj: TObject);
     class procedure JsonToObj(const Json: TJSONObject; const Obj: TObject);
   end;
@@ -26,6 +30,45 @@ type
 implementation
 
 { TJSONTools }
+
+class function TJSONTools.SafeObjToJson(const Obj: TObject; const ErrorMsg: string): TJSONObject;
+begin
+  try
+    if Assigned(Obj) then
+      Result := ObjToJson(Obj)
+    else
+    begin
+      Result := TJSONObject.Create;
+      Result.Add(RSStatusField, RSStatusErro);
+      if ErrorMsg <> '' then
+        Result.Add(RSMessageField, ErrorMsg)
+      else
+        Result.Add(RSMessageField, 'Objeto não instanciado');
+    end;
+  except
+    on E: Exception do
+    begin
+      Result := TJSONObject.Create;
+      Result.Add(RSStatusField, RSStatusErro);
+      if ErrorMsg <> '' then
+        Result.Add(RSMessageField, ErrorMsg + ': ' + E.Message)
+      else
+        Result.Add(RSMessageField, E.Message);
+    end;
+  end;
+end;
+
+class function TJSONTools.SafeObjToJsonString(const Obj: TObject; const ErrorMsg: string): string;
+var
+  LJson: TJSONObject;
+begin
+  LJson := SafeObjToJson(Obj, ErrorMsg);
+  try
+    Result := LJson.AsJSON;
+  finally
+    LJson.Free;
+  end;
+end;
 
 class function TJSONTools.ObjToJsonString(const Obj: TObject): string;
 var
