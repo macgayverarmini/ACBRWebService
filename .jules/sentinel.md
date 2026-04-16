@@ -1,0 +1,4 @@
+## 2024-05-15 - Predictable temporary file names leading to race conditions
+**Vulnerability:** The application was using highly predictable temporary filenames based solely on a timestamp (`FormatDateTime('yyyymmddhhnnsszzz', Now)`) when creating temporary files for certificate validation and reading in `method.acbr.certificados.pas`.
+**Learning:** This approach causes critical race conditions if multiple requests attempt to validate or read certificates within the same millisecond or concurrently. One process might overwrite or read another's temporary file, leading to authentication bypasses, failed validations, or cross-contamination of sensitive data.
+**Prevention:** Always append a cryptographically secure random string or a GUID to temporary filenames, especially when these files are created in a shared directory (`FCertificadosDir`) for transient operations.
