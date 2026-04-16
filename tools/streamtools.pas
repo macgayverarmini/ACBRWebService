@@ -29,10 +29,14 @@ end;
 function StringToBase64Stream(AString: string): TMemoryStream;
 var
   LBytes: TBytes;
+  LBase64Str: string;
 begin
   LBytes := TEncoding.UTF8.GetBytes(AString);
   Result := TMemoryStream.Create;
-  Result.WriteBuffer(base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes))[1], Length(base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes))));
+  // Extract expensive encoding to local variable to prevent double evaluation
+  LBase64Str := base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes));
+  if Length(LBase64Str) > 0 then
+    Result.WriteBuffer(LBase64Str[1], Length(LBase64Str));
   Result.Position := 0;
 end;
 
