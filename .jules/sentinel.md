@@ -1,0 +1,4 @@
+## 2025-04-17 - Predictable Temporary File Names
+**Vulnerability:** The codebase generated temporary file names using only `FormatDateTime` (e.g., in `method/method.acbr.certificados.pas`). This is predictable and can lead to race conditions, file hijacking, or malicious overwrites.
+**Learning:** In multi-process or high-concurrency environments like web services, using time alone as an entropy source is insufficient and dangerous, especially when handling sensitive data like certificates.
+**Prevention:** Always append a cryptographically secure string or GUID (e.g., `TGuid.NewGuid.ToString` in Pascal) to temporary file names to ensure uniqueness and mitigate prediction attacks.
