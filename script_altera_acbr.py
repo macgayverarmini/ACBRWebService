@@ -142,9 +142,17 @@ def modify_file(file_path):
         elif "property " in line_to_process and start_monitor:
             property_line = original_line # Coleta a linha original, não a processada
 
-            if any(s in property_line for s in ["property Certificado: PCCERT_CONTEXT", 
-                                                "property Certificado: pX509", 
-                                                "property SaveOptions: TSaveOptions"]):
+            import re
+            m = re.search(r'property\s+\w+[\s]*:[\s]*([\w]+)', property_line, re.IGNORECASE)
+            prop_type = m.group(1) if m else ""
+            
+            # List of specific types that shouldn't be published
+            unpublishable_types = ["PCCERT_CONTEXT", "pX509", "TSaveOptions", "TFormatSettings", "TACBrTipoCampo"]
+            
+            # Heuristic to find pointers (usually P + capitalized letter, e.g. PCCERT_CONTEXT, PChar)
+            is_pointer = (len(prop_type) > 1 and prop_type.startswith('P') and prop_type[1].isupper())
+            
+            if is_pointer or prop_type in unpublishable_types:
                 i += 1
                 continue
             
@@ -238,9 +246,9 @@ def alter_files(path, search_subdirectories):
 # --- Bloco Principal ---
 if __name__ == "__main__":
     try:
-        path = input("Digite o caminho da pasta ACBR (ex: C:\\ACBr\\Fontes\\ACBrDFe\\): ")
+        path = input("Digite o caminho da pasta ACBR (ex: C:\\ACBr\\Fontes\\): ")
         if not path:
-            path = 'C:\\NFMonitor\\acbr\\Fontes\\ACBrDFe\\'
+            path = 'C:\\NFMonitor\\acbr\\Fontes\\'
             print(f"Usando caminho padrão: {path}")
 
         search_subdirectories = input("Deseja pesquisar em subdiretórios (s/n)? [s]: ") or 's'

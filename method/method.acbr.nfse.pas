@@ -20,7 +20,6 @@ ACBrDFeConfiguracoes,
 ACBrNFSeXConfiguracoes,
 StrUtils,
 Variants,
-Controls,
 fpjson, jsonconvert,
 Base64,
 jsonparser,
@@ -64,6 +63,8 @@ Type
       Function Cancelar(Const jCancelamento: TJSONObject): TJSONObject;
       // Substituir NFSe
       Function Substituir(Const jSubstituir: TJSONObject): TJSONObject;
+      // Distribuicao DFe (Nacional)
+      Function Distribuicao(Const jDistribuicao: TJSONObject): TJSONObject;
       
       // Teste a configuração passada em JSON
       Function TesteConfig: boolean;
@@ -473,6 +474,39 @@ Begin
   End;
 End;
 
+Function TACBRBridgeNFSe.Distribuicao(Const jDistribuicao: TJSONObject): TJSONObject;
+Var
+  CNPJ, Chave: TJSONData;
+  NSU: TJSONData;
+Begin
+  CarregaConfig;
+  Result := TJSONObject.Create;
+  Try
+    If jDistribuicao.Find('Chave', Chave) Then
+      facbr.ConsultarDFe(Chave.AsString)
+    Else If jDistribuicao.Find('NSU', NSU) Then
+    Begin
+      If jDistribuicao.Find('CNPJ', CNPJ) Then
+        facbr.ConsultarDFe(CNPJ.AsString, NSU.AsInteger)
+      Else
+        facbr.ConsultarDFe(NSU.AsInteger);
+    End
+    Else
+    Begin
+      Result.Add(RSStatusField, RSStatusErro);
+      Result.Add(RSMessageField, 'Parametros insuficientes para consultar DFe. Informe Chave ou NSU.');
+      Exit;
+    End;
+    
+    Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebService.ConsultarDFe));
+  Except
+    on E: Exception Do
+    Begin
+      Result.Add(RSStatusField, RSStatusErro);
+      Result.Add(RSMessageField, 'Erro na consulta de distribuicao (DFe): ' + E.Message);
+    End;
+  End;
+End;
 
 Function TACBRBridgeNFSe.Danfse(Const xmlData: TJSONObject): TJSONObject;
 Var 

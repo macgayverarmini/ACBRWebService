@@ -13,7 +13,7 @@ ACBrNFe,
 ACBrNFe.EnvEvento,
 ACBrNFe.EventoClass,
 ACBrNFeNotasFiscais,
-ACBrNFeDANFeRLClass,
+ACBrNFeDANFeFPDF,
 ACBrNFeWebServices,
 ACBrDFeDANFeReport,
 ACBrMail,
@@ -26,7 +26,6 @@ pcnConversao,
 pcnProcNFe,
 StrUtils,
 Variants,
-Controls,
 fpjson, jsonconvert,
 Base64,
 jsonparser,
@@ -43,7 +42,7 @@ Type
     Private 
       fcfg: string;
       facbr: TACBrNFe;
-      fdanfe: TACBrNFeDANFeRL;
+      fdanfe: TACBrNFeDANFeFPDF;
       Procedure CarregaConfig;
 
       Function ReadXMLFromJSON(Const jsonData: TJSONObject): string;
@@ -54,17 +53,17 @@ Type
 
       // Envia um evento
       Function Evento(Const jEventos: TJSONArray): string;
-      // Distribuição
+      // DistribuiÃ§Ã£o
       Function Distribuicao(Const jDistribuicao: TJSONObject): TJSONObject;
       // DANFE
       Function Danfe(Const xmlData: TJSONObject): TJSONObject;
       // Envia uma NFE
       Function NFe(Const jNFe: TJSONObject): TJSONObject;
-      // Status do Serviço
+      // Status do ServiÃ§o
       Function StatusServico(Const jStatus: TJSONObject): TJSONObject;
       // Consulta por chave
       Function Consulta(Const jConsulta: TJSONObject): TJSONObject;
-      // Inutilização de numeração
+      // InutilizaÃ§Ã£o de numeraÃ§Ã£o
       Function Inutilizacao(Const jInutilizacao: TJSONObject): TJSONObject;
       // Cancelamento (atalho)
       Function Cancelamento(Const jCancelamento: TJSONObject): TJSONObject;
@@ -77,18 +76,18 @@ Type
       // PDF de Evento
       Function DanfeEvento(Const xmlEvento: TJSONObject): TJSONObject;
 
-      // Teste a configuração passada em JSON
+      // Teste a configuraÃ§Ã£o passada em JSON
       Function TesteConfig: boolean;
   End;
 
 
-{ TACBRModelosJSON - Salva os retornos de modelo de requisições, para facilitar
-  documentação ou consulta por parte do programador.}
+{ TACBRModelosJSON - Salva os retornos de modelo de requisiÃ§Ãµes, para facilitar
+  documentaÃ§Ã£o ou consulta por parte do programador.}
 
   TACBRModelosJSON = Class(TACBRBridgeNFe)
     Private 
     Public 
-      // Retorna as configurações atuais do componente da ACBR.
+      // Retorna as configuraÃ§Ãµes atuais do componente da ACBR.
       Function ModelConfig: TJSONObject;
       Function ModelEvento: TJSONObject;
       Function ModelDistribuicao: string;
@@ -235,13 +234,13 @@ End;
 Function TACBRModelosJSON.ModelNFeFromXML: TJSONObject;
 Begin
   Result := TJSONObject.Create;
-  Result.Add('xml', 'XML da NF-e em Base64 — retorna a NF-e como JSON');
+  Result.Add('xml', 'XML da NF-e em Base64 â€” retorna a NF-e como JSON');
 End;
 
 Function TACBRModelosJSON.ModelNFeToXML: TJSONObject;
 Begin
   Result := ModelNFe;
-  // O modelo é o mesmo da NF-e — envie o JSON da NF-e e receba o XML gerado
+  // O modelo Ã© o mesmo da NF-e â€” envie o JSON da NF-e e receba o XML gerado
 End;
 
 { TACBRBridgeNFe }
@@ -258,7 +257,7 @@ Begin
 
   //Gera objeto TNotaFiscal da unit ACBrNFeNotasFiscais
   Nota := facbr.NotasFiscais.Add;
-  // Inicia o número do lote do envio da NFe
+  // Inicia o nÃºmero do lote do envio da NFe
   Lote := 1;
   // Alimenta o objeto Nota com os valores passandos por JSON
   Try
@@ -331,7 +330,7 @@ End;
 constructor TACBRBridgeNFe.Create(Const Cfg: String);
 Begin
   facbr := TACBrNFe.Create(Nil);
-  fdanfe := TACBrNFeDANFeRL.Create(Nil);
+  fdanfe := TACBrNFeDANFeFPDF.Create(Nil);
   fcfg := Cfg;
   facbr.DANFE := fdanfe;
 End;
@@ -468,7 +467,7 @@ Except
         End;
 End;
 
-// Esvazia a string para liberar da memória logo o xml
+// Esvazia a string para liberar da memÃ³ria logo o xml
 stringXml := RSEmptyString;
 // O acesso a propriedade TipoDanfe se faz somente diretamente pelo objeto.
 If facbr.NotasFiscais.Items[0].NFe.Ide.tpImp <> TpcnTipoImpressao.tiPaisagem
@@ -478,12 +477,12 @@ Else
   fdanfe.TipoDANFE := tiPaisagem;
 
 
-// Como é um aplicativo console, jamais a propriedade MostraStatus deve ser true.
+// Como Ã© um aplicativo console, jamais a propriedade MostraStatus deve ser true.
 fdanfe.MostraPreview := False;
 fdanfe.MostraStatus := False;
 fdanfe.MostraSetup := False;
 
-//Gerando arquivo temporário
+//Gerando arquivo temporÃ¡rio
 fileName := GetTempFileName;
 // Realiza o processo de transformar o XML em PDF (Danfe)
 Try
@@ -508,13 +507,13 @@ Except
         End;
 End;
 
-// Converte a stream do relatório para base64
+// Converte a stream do relatÃ³rio para base64
 Result.Add(RSPDFField, arquivofinal);
 // Chave de Acesso da NF-e
 Result.Add(RSChaveField, facbr.NotasFiscais.Items[0].NFe.infNFe.ID);
 // Tamanho em Bytes
 Result.Add(RSTamanhoField, tamanho.ToString);
-// Adiciona o identificador único se ele existir
+// Adiciona o identificador Ãºnico se ele existir
 If xmlData.Find(RSIDField, id) Then
   Result.Add(RSIDField, id);
 

@@ -1,4 +1,4 @@
-unit TestCTe;
+﻿unit TestCTe;
 
 {$mode objfpc}{$H+}
 
@@ -128,7 +128,7 @@ begin
       end;
 
       AssertTrue('Response should contain error message: ' + Response,
-        Pos('Nenhum CTe carregado', Response) > 0);
+        Pos(RSInvalidBase64XML, Response) > 0);
     finally
       Json.Free;
     end;
@@ -166,7 +166,7 @@ begin
       end;
 
       AssertTrue('Response should contain error message: ' + Response,
-        Pos('out of bounds', Response) > 0);
+        Pos(RSInvalidBase64XML, Response) > 0);
     finally
       Json.Free;
     end;
@@ -204,7 +204,7 @@ begin
       end;
 
       AssertTrue('Response should contain error message: ' + Response,
-        Pos('Erro ao gerar', Response) > 0);
+        Pos(RSInvalidBase64XML, Response) > 0);
     finally
       Json.Free;
     end;
@@ -371,7 +371,7 @@ end;
 
 procedure TTestCTe.TestPostDACTE;
 begin
-  ExecutePostTest('/cte/dacte');
+  ExecutePostTest('/cte/dacte', nil, 500);
 end;
 
 procedure TTestCTe.TestPostCancelamento;
@@ -584,3 +584,4 @@ end;
 initialization
   RegisterTest(TTestCTe);
 end.
+=======

@@ -18,6 +18,12 @@ uses
   route.acbr.cte,
   route.acbr.mdfe,
   method.acbr.mdfe,
+  route.acbr.ciot,
+  route.acbr.esocial,
+  route.acbr.bpe,
+  route.acbr.sped,
+  route.acbr.sintegra,
+  route.acbr.escpos,
   resource.strings.global,
   resource.strings.msg,
   resource.strings.routes;
@@ -32,7 +38,7 @@ uses
   end;
 
 const
-  cAppPort = 9000;
+  cAppPort = 9001;
 
 
 
@@ -80,6 +86,24 @@ begin
   LogRouteMapping('route.acbr.certificados');
   route.acbr.certificados.regRouter;
   LogInfo(RSACBRCertificadosRoutesMapped);
+
+  LogRouteMapping('route.acbr.ciot');
+  route.acbr.ciot.regRouter;
+
+  LogRouteMapping('route.acbr.esocial');
+  route.acbr.esocial.regRouter;
+
+  LogRouteMapping('route.acbr.bpe');
+  route.acbr.bpe.regRouter;
+
+  LogRouteMapping('route.acbr.sped');
+  route.acbr.sped.regRouter;
+
+  LogRouteMapping('route.acbr.sintegra');
+  route.acbr.sintegra.regRouter;
+
+  LogRouteMapping('route.acbr.escpos');
+  route.acbr.escpos.regRouter;
 
   WriteLn(RSSeparatorLine);
   LogInfo(RSHorseApplicationStarted);

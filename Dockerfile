@@ -8,36 +8,28 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Instala dependências de sistema essenciais (incluindo suporte para 32 bits)
 RUN apt-get update && \
-    # Adiciona arquitetura i386 para suporte a 32 bits
     apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
-    libpango1.0-dev \
     git \
     python3 \
     python3-pip \
     dos2unix \
-    libpango \
     wget \
     unzip \
     python3-tqdm \
     binutils-mingw-w64 \
-    libgtk2.0-dev \
     gcc-multilib \
     clang \
-    make \ 
-    binutils \ 
-    gdb \ 
+    make \
+    binutils \
+    gdb \
     subversion \
-    zip \
-    libx11-dev \ 
     libgtk2.0-dev \
-    libgdk-pixbuf2.0-dev \
-    libcairo2-dev \
-    libpango1.0-dev && \
+    libpango1.0-dev \
+    libxtst-dev \
+    zip && \
     rm -rf /var/lib/apt/lists/*
-RUN dpkg -i --force-overwrite /var/cache/apt/archives/libpango1.0-dev_1.52.1+ds-1build1_amd64.deb
-RUN apt --fix-broken install
 
 # Link simbólico para o windres
 RUN ln -s /usr/bin/x86_64-w64-mingw32-windres /usr/bin/windres
@@ -55,20 +47,8 @@ RUN fpclazup --cputarget=x86_64 --ostarget=win64 --autotools --noconfirm
 # Adiciona as ferramentas do Lazarus ao PATH
 ENV PATH="/root/development/lazarus:$PATH"
 
-# Define o diretório de trabalho
-WORKDIR /app
+# Define o diretório de trabalho padrão do container
+WORKDIR /workspace/src
 
-# Copia todos os arquivos do projeto
-COPY . .
-
-# Garante permissões e formato corretos
-RUN dos2unix ./download.sh ./build.sh && chmod +x ./download.sh ./build.sh
-
-# Baixa as dependências do projeto
-RUN ./download.sh
-
-ENV LAZBUILD_CMD="/root/development/lazarus/lazbuild"
-ENV LAZARUS_DIR="/root/development/lazarus/"
-
-# Executa o script de build
-RUN ./build.sh
+# O código fonte será montado aqui durante o 'docker run', não usando COPY para não pesar a imagem.
+# O ENTRYPOINT / CMD pode ser omitido; vamos executar e descartar o container facilmente.

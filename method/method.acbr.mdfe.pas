@@ -12,14 +12,13 @@ uses
   ACBrMDFe,
   ACBrMDFeManifestos,
   ACBrMDFe.Classes,
-  ACBrMDFeDAMDFeRLClass,
+  ACBrMDFeDAMDFeFPDF,
   ACBrMDFe.EnvEvento,
   ACBrDFeSSL,
   ACBrMDFeWebServices,
   pmdfeConversaoMDFe,
   pcnConversao,
   Variants,
-  Controls,
   fpjson, jsonconvert,
   Base64, jsonparser,
   ACBrDFeConfiguracoes,
@@ -35,7 +34,7 @@ type
   private
     fcfg: string;
     facbr: TACBrMDFe;
-    fdamdfe: TACBrMDFeDAMDFERL;
+    fdamdfe: TACBrMDFeDAMDFeFPDF;
     procedure CarregaConfig;
     function ReadXMLFromJSON(const jsonData: TJSONObject): string;
   public
@@ -117,12 +116,12 @@ begin
   // Cria um manifesto MDF-e vazio para gerar o modelo JSON
   MDFe := facbr.Manifestos.Add;
 
-  // Bloco de Identificação do MDF-e (ide)
+  // Bloco de IdentificaÃ§Ã£o do MDF-e (ide)
   with MDFe.MDFe.Ide do
   begin
     cUF := 35;
     tpAmb := taHomologacao;
-    // Padrão para modelo
+    // PadrÃ£o para modelo
     tpEmit := teTransportadora;
     modelo := '58';
     serie := 1;
@@ -158,12 +157,12 @@ begin
     end;
   end;
 
-  // Bloco Rodo (Modal Rodoviário)
+  // Bloco Rodo (Modal RodoviÃ¡rio)
   with MDFe.MDFe.rodo do
   begin
     RNTRC := '12345678';
 
-    // Veículo de Tração
+    // VeÃ­culo de TraÃ§Ã£o
     with veicTracao do
     begin
       placa := 'ABC1234';
@@ -177,9 +176,9 @@ begin
 
     // Condutor
     veicTracao.condutor.New;
-    // Veículo Reboque
+    // VeÃ­culo Reboque
     veicReboque.New;
-    // Vale Pedágio
+    // Vale PedÃ¡gio
     valePed.disp.New;
     // CIOT
     infANTT.infCIOT.New;
@@ -188,7 +187,7 @@ begin
   // Bloco de Documentos (infDoc)
   MunDescarga := MDFe.MDFe.infDoc.infMunDescarga.New;
 
-  // Informações do CT-e
+  // InformaÃ§Ãµes do CT-e
   infCTe := MunDescarga.infCTe.New;
   infCTe.chCTe := '35110803911545000148570010000001011000001018';
 
@@ -217,7 +216,7 @@ begin
   // Lacres
   MDFe.MDFe.lacres.New;
 
-  // Informações Adicionais
+  // InformaÃ§Ãµes Adicionais
   with MDFe.MDFe.infAdic do
   begin
     infCpl := 'INFORMACOES COMPLEMENTARES';
@@ -227,13 +226,13 @@ begin
   // Converte o objeto populado para JSON
   Result := TJSONTools.ObjToJson(MDFe);
 
-  // Remove campos internos desnecessários para o modelo
+  // Remove campos internos desnecessÃ¡rios para o modelo
   Result.Delete('XML');
   Result.Delete('XMLOriginal');
   Result.Delete('NomeArq');
   Result.Delete('Protocolo');
 
-  // Limpa o manifesto da memória do componente ACBr
+  // Limpa o manifesto da memÃ³ria do componente ACBr
   facbr.Manifestos.Clear;
 end;
 
@@ -268,25 +267,25 @@ begin
   Result := '';
   if not jsonData.Find('xml', oXML) then
     raise Exception.Create(
-      'Parâmetro "xml" (contendo o XML em Base64) não encontrado no JSON.');
+      'ParÃ¢metro "xml" (contendo o XML em Base64) nÃ£o encontrado no JSON.');
 
   xmlBase64 := oXML.AsString;
 
   if xmlBase64.IsEmpty then
-    raise Exception.Create('Parâmetro "xml" está vazio.');
+    raise Exception.Create('ParÃ¢metro "xml" estÃ¡ vazio.');
 
   try
     Result := DecodeStringBase64(xmlBase64);
   except
     on E: Exception do
-      raise Exception.Create('A string XML em base64 é inválida: ' + E.Message);
+      raise Exception.Create('A string XML em base64 Ã© invÃ¡lida: ' + E.Message);
   end;
 end;
 
 constructor TACBRBridgeMDFe.Create(const Cfg: string);
 begin
   facbr := TACBrMDFe.Create(nil);
-  fdamdfe := TACBrMDFeDAMDFERL.Create(nil);
+  fdamdfe := TACBrMDFeDAMDFeFPDF.Create(nil);
   fcfg := Cfg;
   facbr.DAMDFE := fdamdfe;
 end;
@@ -323,7 +322,7 @@ begin
   end;
 
   try
-    // Agrupa as chamadas de preparação e envio dentro do bloco try
+    // Agrupa as chamadas de preparaÃ§Ã£o e envio dentro do bloco try
     facbr.Manifestos.Assinar;
     facbr.Manifestos.Validar;
     facbr.Enviar(Lote);
@@ -467,13 +466,13 @@ begin
     end;
   end;
 
-  // Converte a stream do relatório para base64
+  // Converte a stream do relatÃ³rio para base64
   Result.Add('pdf', arquivofinal);
   // Chave de Acesso da NF-e
   Result.Add('chave', facbr.Manifestos.Items[0].MDFe.infMDFe.ID);
   // Tamanho em Bytes
   Result.Add('tamanho', tamanho.ToString);
-  // Adiciona o identificador único se ele existir
+  // Adiciona o identificador Ãºnico se ele existir
   if xmlData.Find('id', id) then
     Result.Add('id', id);
 

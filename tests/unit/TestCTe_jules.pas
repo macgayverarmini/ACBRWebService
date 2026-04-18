@@ -1,12 +1,11 @@
-unit TestCTe;
-
+﻿
 {$mode objfpc}{$H+}
 
 interface
 
 uses
   Classes, SysUtils, fpcunit, testutils, testregistry, fphttpclient, fpjson, jsonparser,
-  Base64, TestBase, resource.strings.msg;
+  Base64, TestBase;
 
 type
   { TTestCTe }
@@ -41,10 +40,6 @@ type
     procedure TestPostEnviarWithXML;
     procedure TestPostDACTEWithXML;
     procedure TestPostConsultaWithKey;
-
-    procedure TestPostCTeFromXMLWithInvalidBase64;
-    procedure TestPostDACTEWithInvalidBase64;
-    procedure TestPostDACTEEventoWithInvalidBase64;
   end;
 
 implementation
@@ -96,120 +91,6 @@ begin
        else
          CheckResponse(Response, 200, Client.ResponseStatusCode);
   finally
-    Client.Free;
-  end;
-end;
-
-procedure TTestCTe.TestPostCTeFromXMLWithInvalidBase64;
-var
-  Client: TFPHTTPClient;
-  Response: String;
-  Json: TJSONObject;
-  ResponseStream: TStringStream;
-begin
-  Client := TFPHTTPClient.Create(nil);
-  ResponseStream := TStringStream.Create('');
-  try
-    Client.AddHeader('Content-Type', 'application/json');
-    Json := TJSONObject.Create;
-    try
-      Json.Add('config', CreateConfigJSON);
-      Json.Add('xml', 'invalid-base64-!!!');
-      Client.RequestBody := TStringStream.Create(Json.AsJSON);
-      try
-        Client.Post(FBaseUrl + '/cte/cte-from-xml', ResponseStream);
-        Response := ResponseStream.DataString;
-      except
-        on E: EHTTPClient do
-        begin
-          Response := ResponseStream.DataString;
-          if Response = '' then Response := E.Message;
-        end;
-      end;
-
-      AssertTrue('Response should contain error message: ' + Response,
-        Pos('Nenhum CTe carregado', Response) > 0);
-    finally
-      Json.Free;
-    end;
-  finally
-    ResponseStream.Free;
-    Client.Free;
-  end;
-end;
-
-procedure TTestCTe.TestPostDACTEWithInvalidBase64;
-var
-  Client: TFPHTTPClient;
-  Response: String;
-  Json: TJSONObject;
-  ResponseStream: TStringStream;
-begin
-  Client := TFPHTTPClient.Create(nil);
-  ResponseStream := TStringStream.Create('');
-  try
-    Client.AddHeader('Content-Type', 'application/json');
-    Json := TJSONObject.Create;
-    try
-      Json.Add('config', CreateConfigJSON);
-      Json.Add('xml', 'invalid-base64-!!!');
-      Client.RequestBody := TStringStream.Create(Json.AsJSON);
-      try
-        Client.Post(FBaseUrl + '/cte/dacte', ResponseStream);
-        Response := ResponseStream.DataString;
-      except
-        on E: EHTTPClient do
-        begin
-          Response := ResponseStream.DataString;
-          if Response = '' then Response := E.Message;
-        end;
-      end;
-
-      AssertTrue('Response should contain error message: ' + Response,
-        Pos('out of bounds', Response) > 0);
-    finally
-      Json.Free;
-    end;
-  finally
-    ResponseStream.Free;
-    Client.Free;
-  end;
-end;
-
-procedure TTestCTe.TestPostDACTEEventoWithInvalidBase64;
-var
-  Client: TFPHTTPClient;
-  Response: String;
-  Json: TJSONObject;
-  ResponseStream: TStringStream;
-begin
-  Client := TFPHTTPClient.Create(nil);
-  ResponseStream := TStringStream.Create('');
-  try
-    Client.AddHeader('Content-Type', 'application/json');
-    Json := TJSONObject.Create;
-    try
-      Json.Add('config', CreateConfigJSON);
-      Json.Add('xml', 'invalid-base64-!!!');
-      Client.RequestBody := TStringStream.Create(Json.AsJSON);
-      try
-        Client.Post(FBaseUrl + '/cte/dacte-evento', ResponseStream);
-        Response := ResponseStream.DataString;
-      except
-        on E: EHTTPClient do
-        begin
-          Response := ResponseStream.DataString;
-          if Response = '' then Response := E.Message;
-        end;
-      end;
-
-      AssertTrue('Response should contain error message: ' + Response,
-        Pos('Erro ao gerar', Response) > 0);
-    finally
-      Json.Free;
-    end;
-  finally
-    ResponseStream.Free;
     Client.Free;
   end;
 end;
@@ -584,3 +465,4 @@ end;
 initialization
   RegisterTest(TTestCTe);
 end.
+>>>>>>> 5feef8c (Adcionando mais modulos)

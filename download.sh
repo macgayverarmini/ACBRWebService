@@ -62,30 +62,6 @@ update_acbr_repo
 update_git_repo "https://github.com/HashLoad/horse.git" "../horse-master"
 update_git_repo "https://github.com/HashLoad/handle-exception.git" "../handle-exception"
 update_git_repo "https://github.com/HashLoad/jhonson.git" "../jhonson"
-update_git_repo "https://github.com/fortesinformatica/fortesreport-ce.git" "../fortesreport-ce4"
-
-# --- LÓGICA DO POWERPDF RESTAURADA ---
-# Tratamento especial para o powerpdf, restaurado para o comportamento original.
-print_header "Baixando e extraindo PowerPDF"
-echo "Clonando opsi-org/lazarus e extraindo powerpdf..."
-if [ -d "../lazarus-temp" ]; then
-    echo "Atualizando repositório temporário lazarus..."
-    (cd "../lazarus-temp" && git pull)
-else
-    git clone "https://github.com/opsi-org/lazarus.git" "../lazarus-temp"
-fi
-
-# Remove o powerpdf existente para garantir uma cópia limpa
-if [ -d "../powerpdf" ]; then
-    echo "Removendo ../powerpdf existente..."
-    rm -rf "../powerpdf"
-fi
-
-echo "Movendo powerpdf para ../powerpdf..."
-mv "../lazarus-temp/external_libraries/powerpdf" "../powerpdf"
-
-echo "Limpando repositório temporário lazarus..."
-rm -rf "../lazarus-temp"
 
 echo "OK: Dependências baixadas/atualizadas."
 

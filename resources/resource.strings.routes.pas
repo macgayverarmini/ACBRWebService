@@ -75,6 +75,7 @@ resourcestring
   RSNFSeCancelarRoute = '/nfse/cancelar';
   RSNFSeSubstituirRoute = '/nfse/substituir';
   RSNFSeDANFSeRoute = '/nfse/danfse';
+  RSNFSeDistribuicaoRoute = '/nfse/distribuicao';
   // Rotas - MDFe
   RSModeloMDFeConfigRoute = '/modelo/mdfe/config';
   RSModeloMDFeEventoRoute = '/modelo/mdfe/evento';
@@ -95,9 +96,38 @@ resourcestring
   RSModeloDiversosExtensoRoute = '/modelo/diversos/extenso';
   RSDiversosExtensoRoute = '/diversos/extenso';
 
+  // Rotas - CIOT
+  RSModeloCIOTConfigRoute = '/modelo/ciot/config';
+  RSCIOTRoute = '/ciot/ciot';
+  RSCIOTEnviarRoute = '/ciot/enviar';
+
+  // Rotas - eSocial
+  RSModeloeSocialConfigRoute = '/modelo/esocial/config';
+  RSeSocialRoute = '/esocial/esocial';
+  RSeSocialEnviarRoute = '/esocial/enviar';
+
+  // Rotas - BPe
+  RSModeloBPeConfigRoute = '/modelo/bpe/config';
+  RSBPeRoute = '/bpe/bpe';
+  RSBPeEnviarRoute = '/bpe/enviar';
+
+  // Rotas - SPED
+  RSModeloSPEDConfigRoute = '/modelo/sped/config';
+  RSSPEDRoute = '/sped/sped';
+  RSSPEDGerarRoute = '/sped/gerar';
+
+  // Rotas - Sintegra
+  RSModeloSintegraConfigRoute = '/modelo/sintegra/config';
+  RSSintegraRoute = '/sintegra/sintegra';
+  RSSintegraGerarRoute = '/sintegra/gerar';
+
+  // Rotas - EscPos
+  RSModeloEscPosConfigRoute = '/modelo/escpos/config';
+  RSEscPosRoute = '/escpos/escpos';
+  RSEscPosPortasRoute = '/escpos/portas';
+
 implementation
 
 end.
-
 
 

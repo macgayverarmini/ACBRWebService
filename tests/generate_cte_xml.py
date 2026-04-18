@@ -4,7 +4,7 @@ import requests
 import os
 
 # Configuration
-API_URL = "http://localhost:9000"
+API_URL = "http://localhost:9001"
 RESOURCE_FILE = r"c:\NFMonitor\src\resources\cteTestData.xml"
 OUTPUT_FILE = r"c:\NFMonitor\src\tests\generated_cte.xml"
 

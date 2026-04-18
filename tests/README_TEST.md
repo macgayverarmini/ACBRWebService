@@ -6,7 +6,7 @@ Este diretório contém um script Python para testar a geração de XML do CTe u
 
 1. O projeto deve estar compilado e rodando.
    - Executável: `bin/ACBRWebService-x86_64-win64.exe`
-   - Porta: 9000
+   - Porta: 9001
    - Certifique-se de que as DLLs do LibXml2 (x64) estejam na pasta `bin` junto com o executável.
 
 2. Python instalado com a biblioteca `requests`.

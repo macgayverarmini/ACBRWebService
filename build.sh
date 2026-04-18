@@ -19,13 +19,6 @@ echo "OK: acbrlist.txt encontrado."
 echo "Adicionando link para o pacote LazReport..."
 "$LAZBUILD_CMD" --add-package-link "$LAZARUS_DIR/components/lazreport/source/lazreport.lpk"
 
-# Adiciona o pacote PowerPDF, que é uma dependência do LazReport e de outros pacotes ACBr
-echo "Adicionando link para o pacote PowerPDF..."
-"$LAZBUILD_CMD" --add-package-link "../powerpdf/pack_powerpdf.lpk"
-
-# Adiciona o pacote FortesReport CE (frce), que é uma dependência de alguns pacotes ACBr
-echo "Adicionando link para o pacote FortesReport CE (frce)..."
-"$LAZBUILD_CMD" --add-package-link "../fortesreport-ce4/Packages/frce.lpk"
 
 
 # Adiciona os pacotes do ACBr listados em acbrlist.txt
@@ -36,12 +29,14 @@ while IFS= read -r package_file || [[ -n "$package_file" ]]; do
     # Remove possíveis caracteres de retorno de carro do Windows (\r) e converte barras invertidas
     package_file=$(echo "$package_file" | tr -d '\r' | tr '\\' '/')
     if [ -n "$package_file" ]; then
-        pkg_path="$ACBR_PKG_DIR/$package_file"
-        if [ -f "$pkg_path" ]; then
-            echo "Adicionando link para o pacote: $package_file"
+        # Procura o arquivo .lpk ignorando case e pega o primeiro resultado
+        pkg_path=$(find "$ACBR_PKG_DIR" -ipath "$ACBR_PKG_DIR/$package_file" -print -quit)
+        
+        if [ -n "$pkg_path" ] && [ -f "$pkg_path" ]; then
+            echo "Adicionando link para o pacote: $pkg_path"
             "$LAZBUILD_CMD" --add-package-link "$pkg_path"
         else
-            echo "AVISO: Pacote não encontrado em '$pkg_path'. Pulando."
+            echo "AVISO: Pacote não encontrado em '$ACBR_PKG_DIR/$package_file'. Pulando."
         fi
     fi
 done < "acbrlist.txt"
@@ -60,7 +55,7 @@ echo "OK: IDE recompilada com sucesso!"
 
 if [ -f "script_altera_acbr.py" ]; then    
     python3 script_altera_acbr.py <<EOF
-../acbr/Fontes/ACBrDFe/
+../acbr/Fontes/
 s
 n
 EOF

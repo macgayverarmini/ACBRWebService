@@ -82,7 +82,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="..\..\method;..\..\routes;..\..\resources"/>
+      <OtherUnitFiles Value="..\..\method;..\..\routes;..\..\resources;..\..\tools"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <CodeGeneration>

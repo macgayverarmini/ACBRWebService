@@ -99,7 +99,7 @@ end;
 
 procedure TTestBase.SetUp;
 begin
-  FBaseUrl := 'http://localhost:9000';
+  FBaseUrl := 'http://localhost:9001';
 end;
 
 procedure TTestBase.TearDown;

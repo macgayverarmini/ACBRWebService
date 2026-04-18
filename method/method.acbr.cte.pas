@@ -11,7 +11,7 @@ uses
   ACBrCTe.EnvEvento,
   ACBrCTe.EventoClass,
   ACBrCTeConhecimentos,
-  ACBrCTeDACTeRLClass, // Para o tipo TACBrCTeDACTeRL
+  ACBrCTeDACTeFPDF, // Para o tipo TACBrCTeDACTeFPDF
   ACBrCTeWebServices,
   // ACBrDFeDANFeReport, // Revisar se  realmente necessrio
   ACBrMail,
@@ -23,14 +23,12 @@ uses
   pcteConversaoCTe, // Especfico de CTe
   StrUtils,
   Variants,
-  Controls, // Provavelmente necessrio por ACBrCTeDACTeRL
   fpjson,
   jsonconvert,
   Base64,
   jsonparser,
   Classes, SysUtils,
   streamtools,
-  ACBrCTeDACTeRL, // Para a instncia fdacte
   ACBrUtil,       // Para GetTempFileName e possivelmente FileToStringBase64
   resource.strings.global;
 
@@ -42,7 +40,7 @@ type
   private
     fcfg: string;
     facbr: TACBrCTe;
-    fdacte: TACBrCTeDACTeRL;
+    fdacte: TACBrCTeDACTeFPDF;
 
     procedure CarregaConfig;
     function ReadXMLFromJSON(const jsonData: TJSONObject): string;
@@ -183,13 +181,13 @@ end;
 function TACBRModelosJSONCTe.ModelCTeFromXML: TJSONObject;
 begin
   Result := TJSONObject.Create;
-  Result.Add('xml', 'XML do CTe em Base64 — retorna o CTe como JSON');
+  Result.Add('xml', 'XML do CTe em Base64 â€” retorna o CTe como JSON');
 end;
 
 function TACBRModelosJSONCTe.ModelCTeToXML: TJSONObject;
 begin
   Result := ModelCTe;
-  // O modelo é o mesmo do CTe — envie o JSON do CTe e receba o XML gerado
+  // O modelo Ã© o mesmo do CTe â€” envie o JSON do CTe e receba o XML gerado
 end;
 
 function TACBRModelosJSONCTe.ModelCTe: TJSONObject;
@@ -272,13 +270,13 @@ end;
 function TACBRModelosJSONCTe.ModelValidarRegras: TJSONObject;
 begin
   Result := ModelCTe;
-  // O modelo é o mesmo do CTe — envie o JSON do CTe para validação offline
+  // O modelo Ã© o mesmo do CTe â€” envie o JSON do CTe para validaÃ§Ã£o offline
 end;
 
 function TACBRModelosJSONCTe.ModelDACTEEvento: TJSONObject;
 begin
   Result := TJSONObject.Create;
-  Result.Add('xml', 'XML do ProcEventoCTe em Base64 — retorna o PDF do evento');
+  Result.Add('xml', 'XML do ProcEventoCTe em Base64 â€” retorna o PDF do evento');
 end;
 
 
@@ -329,7 +327,7 @@ constructor TACBRBridgeCTe.Create(const Cfg: string);
 begin
   inherited Create;
   facbr := TACBrCTe.Create(nil);
-  fdacte := TACBrCTeDACTeRL.Create(nil);
+  fdacte := TACBrCTeDACTeFPDF.Create(nil);
   fcfg := Cfg;
   facbr.DACTE := fdacte;
 end;
@@ -719,7 +717,7 @@ begin
       end;
     end;
 
-    // Tenta Validar (Assina automaticamente se necessário para validar digest value)
+    // Tenta Validar (Assina automaticamente se necessÃ¡rio para validar digest value)
     try
       facbr.Conhecimentos.Items[0].Assinar;
       facbr.Conhecimentos.Items[0].Validar;
@@ -735,7 +733,7 @@ begin
         Result := TJSONTools.SafeObjToJson(nil, E.Message);
         Result.Delete(RSStatusField);
         Result.Add(RSStatusField, 'erro_validacao');
-        // O ACBr costuma popular a lista de erros de validação
+        // O ACBr costuma popular a lista de erros de validaÃ§Ã£o
         if facbr.Conhecimentos.Items[0].ErroValidacao <> '' then
            Result.Add('detalhes', facbr.Conhecimentos.Items[0].ErroValidacao);
       end;
@@ -773,14 +771,14 @@ begin
     facbr.EventoCTe.Evento.Clear;
     facbr.EventoCTe.LerXMLFromString(stringXml);
 
-    // Configurações visuais básicas
+    // ConfiguraÃ§Ãµes visuais bÃ¡sicas
     fdacte.MostraPreview := False;
     fdacte.MostraStatus := False;
 
     fileName := GetTempFileName;
     fdacte.PathPDF := fileName;
 
-    // Chama a impressão do evento
+    // Chama a impressÃ£o do evento
     facbr.ImprimirEventoPDF;
     fileName := fdacte.ArquivoPDF;
 

@@ -20,7 +20,7 @@
     <VersionInfo>
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
-      <BuildNr Value="17"/>
+      <BuildNr Value="26"/>
       <Language Value="0416"/>
       <Attributes pvaDebug="True"/>
     </VersionInfo>
@@ -36,37 +36,46 @@
     </RunParams>
     <RequiredPackages>
       <Item>
+        <PackageName Value="ACBr_CIOT"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBre_Social"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBr_BPe"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBr_SPED"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBr_Sintegra"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBrSerial"/>
+      </Item>
+      <Item>
         <PackageName Value="ACBr_NFSeXDanfseFPDF"/>
       </Item>
       <Item>
         <PackageName Value="ACBr_NFSeX"/>
       </Item>
       <Item>
-        <PackageName Value="ACBr_MDFe_DAMDFeRL"/>
+        <PackageName Value="ACBr_MDFe_DAMDFeFPDF"/>
       </Item>
       <Item>
         <PackageName Value="ACBr_MDFe"/>
       </Item>
       <Item>
-        <PackageName Value="ACBr_CTe_DACTeRL"/>
+        <PackageName Value="ACBr_CTe_DACTeFPDF"/>
       </Item>
       <Item>
         <PackageName Value="ACBr_CTe"/>
       </Item>
       <Item>
-        <PackageName Value="ACBr_NFe_DanfeRL"/>
-      </Item>
-      <Item>
-        <PackageName Value="frce"/>
-      </Item>
-      <Item>
-        <PackageName Value="LCLBase"/>
+        <PackageName Value="ACBr_NFe_DanfeFPDF"/>
       </Item>
       <Item>
         <PackageName Value="ACBr_NFe"/>
-      </Item>
-      <Item>
-        <PackageName Value="LCL"/>
       </Item>
     </RequiredPackages>
     <Units>
@@ -148,6 +157,54 @@
       </Unit>
       <Unit>
         <Filename Value="routes/route.acbr.nfse.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.ciot.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.ciot.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.esocial.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.esocial.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.bpe.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.bpe.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.sped.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.sped.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.sintegra.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.sintegra.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.escpos.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.escpos.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
     </Units>

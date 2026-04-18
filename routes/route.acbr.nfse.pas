@@ -29,6 +29,7 @@ procedure PostConsultarNFSe(Req: THorseRequest; Res: THorseResponse; Next: TNext
 procedure PostCancelar(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostSubstituir(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostDANFSe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostDistribuicao(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
 procedure regRouter;
 
@@ -265,6 +266,21 @@ begin
   end;
 end;
 
+procedure PostDistribuicao(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O: TJSONObject;
+  Ac: TACBRBridgeNFSe;
+begin
+  O := GetJSON(Req.Body) as TJSONObject;
+  Ac := TACBRBridgeNFSe.Create(O.Extract(RSConfigField).AsJSON);
+  try
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(Ac.Distribuicao(O));
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
 procedure regRouter;
 begin
   THorse.Get(RSModeloNFSeConfigRoute, GetModeloConfig);
@@ -285,6 +301,7 @@ begin
   THorse.Post(RSNFSeCancelarRoute, PostCancelar);
   THorse.Post(RSNFSeSubstituirRoute, PostSubstituir);
   THorse.Post(RSNFSeDANFSeRoute, PostDANFSe);
+  THorse.Post(RSNFSeDistribuicaoRoute, PostDistribuicao);
 end;
 
 end.
