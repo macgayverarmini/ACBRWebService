@@ -175,7 +175,7 @@ begin
   try
     DecodedStream := TBytesStream.Create(DecodedBytes);
     TempFileName := FCertificadosDir + RSTempValidaPrefix + FormatDateTime(
-      RSDateTimeFormat, Now) + RSPfxExtension;
+      RSDateTimeFormat, Now) + '_' + TGuid.NewGuid.ToString + RSPfxExtension;
     DecodedStream.SaveToFile(TempFileName);
 
 
@@ -275,7 +275,7 @@ begin
   try
     DecodedStream := TBytesStream.Create(DecodedBytes);
     TempFileName := FCertificadosDir + RSTempLerDadosPrefix + FormatDateTime(
-      RSDateTimeFormat, Now) + RSPfxExtension;
+      RSDateTimeFormat, Now) + '_' + TGuid.NewGuid.ToString + RSPfxExtension;
     DecodedStream.SaveToFile(TempFileName);
 
     if ExtractCertificateData(TempFileName, Senha, sCNPJ, sNumSerie,

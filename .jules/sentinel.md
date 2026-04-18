@@ -1,0 +1,4 @@
+## 2024-04-18 - Prevent Predictable Temporary File Names
+**Vulnerability:** In `method/method.acbr.certificados.pas`, temporary file names for certificate data were being generated using only `FCertificadosDir + RSTempPrefix + FormatDateTime(...) + RSPfxExtension`. This timestamp-only approach creates predictable filenames, making the application susceptible to race conditions or local file overwrite attacks (CWE-377).
+**Learning:** Even short-lived temporary files must have unguessable names. Relying solely on `FormatDateTime` or `Now` provides insufficient entropy, especially for sensitive data like certificates.
+**Prevention:** Always incorporate a cryptographically secure random string or GUID (e.g., `TGuid.NewGuid.ToString` in Pascal) when constructing temporary file names to ensure uniqueness and unpredictability.
