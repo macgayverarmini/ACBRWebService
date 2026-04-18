@@ -26,4 +26,4 @@ Docs/
 *.bin
 *.exe
 *.pot
-cteValidoDemo.xml
+cteValidoDemo.xmltests/unit/TestRunner
