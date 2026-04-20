@@ -1,0 +1,3 @@
+## 2024-04-20 - Redundant Function Evaluation in Pascal String Buffer Writing
+**Learning:** In Pascal/Lazarus, passing the same inline function call multiple times as arguments to a procedure (like `WriteBuffer(Func()[1], Length(Func()))`) causes the compiler to evaluate the function redundantly.
+**Action:** Store the result of expensive computations (like `base64.EncodeStringBase64` and `TEncoding.UTF8.GetString`) in a local variable before using it multiple times, saving CPU cycles. Also, always check string length (`Length(s) > 0`) before accessing index 1 (`s[1]`) to prevent out-of-bounds exceptions on empty strings.
