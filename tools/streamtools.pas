@@ -28,11 +28,15 @@ end;
 
 function StringToBase64Stream(AString: string): TMemoryStream;
 var
-  LBytes: TBytes;
+  EncodedStr: string;
 begin
-  LBytes := TEncoding.UTF8.GetBytes(AString);
   Result := TMemoryStream.Create;
-  Result.WriteBuffer(base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes))[1], Length(base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes))));
+  // ⚡ Bolt: removed redundant UTF8 string->bytes->string roundtrip.
+  // ⚡ Bolt: evaluate base64 encoding once and store in a local variable.
+  EncodedStr := base64.EncodeStringBase64(AString);
+  // ⚡ Bolt: only write if length > 0 to prevent index out of bounds [1].
+  if Length(EncodedStr) > 0 then
+    Result.WriteBuffer(EncodedStr[1], Length(EncodedStr));
   Result.Position := 0;
 end;
 
