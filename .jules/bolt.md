@@ -1,0 +1,4 @@
+
+## 2024-04-24 - Avoid TEncoding.UTF8 byte arrays for Base64 stream conversions
+**Learning:** In Lazarus/FPC, `TEncoding.UTF8.GetBytes(string)` followed by `TEncoding.UTF8.GetString(bytes)` just to read/write strings into memory streams and pass them to Base64 functions (which accept string natively) adds large memory overhead and allocation cost, causing slower performance. The codebase previously performed redundant String->Bytes->String operations which is costly in loops.
+**Action:** Use native string types directly with `TMemoryStream.ReadBuffer` and `WriteBuffer` (e.g., `AStream.ReadBuffer(str[1], AStream.Size)`) to avoid intermediate TBytes allocations when interacting with APIs like `base64.EncodeStringBase64` that accept strings. Also, always cache redundant inline function evaluations into a local variable.
