@@ -27,3 +27,8 @@ Docs/
 *.exe
 *.pot
 cteValidoDemo.xml
+# Executables and build artifacts
+tests/unit/TestRunner
+*.o
+*.ppu
+*.a
