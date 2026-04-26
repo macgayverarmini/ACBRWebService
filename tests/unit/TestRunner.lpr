@@ -6,7 +6,7 @@ uses
   {$ifdef unix}
   cthreads,
   {$endif}
-  Interfaces, Classes, consoletestrunner, TestCTe, TestCTeRoundTrip, TestNFe, TestMDFe, TestDiversos, TestCertificados, TestNFSe, TestStreamTools;
+  Interfaces, Classes, consoletestrunner, TestCTe, TestCTeRoundTrip, TestNFe, TestMDFe, TestDiversos, TestCertificados, TestNFSe, TestStreamTools, TestCTeModelosUnit, TestNFeModelosUnit;
 
 type
   TMyTestRunner = class(consoletestrunner.TTestRunner)

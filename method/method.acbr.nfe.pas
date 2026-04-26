@@ -299,32 +299,25 @@ fcfg := RSEmptyString;
 End;
 
 Function TACBRBridgeNFe.ReadXMLFromJSON(Const jsonData: TJSONObject): string;
-
 Var 
   xmlBase64: string;
+  xmlBase64JSON: TJSONString;
 Begin
+  If not jsonData.Find('xml', xmlBase64JSON) Then
+    raise Exception.Create(RSErrorReadingXMLParam + 'Parâmetro "xml" não encontrado.');
+
+  xmlBase64 := xmlBase64JSON.AsString;
+  If xmlBase64 = '' Then
+    raise Exception.Create(RSErrorReadingXMLParam + 'Parâmetro "xml" está vazio.');
+
   Try
-    xmlBase64 := jsonData.Extract('xml').AsString;
+    Result := DecodeStringBase64(xmlBase64);
   Except
     on E: Exception Do
           Begin
-            raise Exception.Create(
-                               RSErrorReadingXMLParam
-                                   +
-                                   E.Message);
+            raise Exception.Create(RSInvalidBase64XML + E.Message);
           End;
-End;
-
-Try
-  Result := DecodeStringBase64(xmlBase64);
-  xmlBase64 := RSEmptyString;
-Except
-  on E: Exception Do
-        Begin
-          raise Exception.Create(RSInvalidBase64XML + E
-                                 .Message);
-        End;
-End;
+  End;
 End;
 
 constructor TACBRBridgeNFe.Create(Const Cfg: String);
@@ -467,8 +460,15 @@ Except
         End;
 End;
 
-// Esvazia a string para liberar da memÃƒÂ³ria logo o xml
+// Esvazia a string para liberar da memória logo o xml
 stringXml := RSEmptyString;
+
+If facbr.NotasFiscais.Count = 0 Then
+Begin
+  Result.Add(RSErrorField, 'Nenhuma nota fiscal foi carregada a partir do XML.');
+  Exit;
+End;
+
 // O acesso a propriedade TipoDanfe se faz somente diretamente pelo objeto.
 If facbr.NotasFiscais.Items[0].NFe.Ide.tpImp <> TpcnTipoImpressao.tiPaisagem
   Then
@@ -749,6 +749,13 @@ Begin
   Try
     facbr.EventoNFe.Evento.Clear;
     facbr.EventoNFe.LerXMLFromString(stringXml);
+
+    If facbr.EventoNFe.Evento.Count = 0 Then
+    Begin
+      Result.Add(RSStatusField, RSStatusErro);
+      Result.Add(RSMessageField, 'Nenhum evento foi carregado a partir do XML.');
+      Exit;
+    End;
 
     fdanfe.MostraPreview := False;
     fdanfe.MostraStatus := False;

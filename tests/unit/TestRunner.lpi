@@ -42,6 +42,9 @@
         <PackageName Value="ACBr_CTe"/>
       </Item>
       <Item>
+        <PackageName Value="ACBr_CTe_DACTeFPDF"/>
+      </Item>
+      <Item>
         <PackageName Value="ACBr_NFe"/>
       </Item>
       <Item>
@@ -92,6 +95,14 @@
         <Filename Value="TestCTeRoundTrip.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
+      <Unit>
+        <Filename Value="TestCTeModelosUnit.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="TestNFeModelosUnit.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -102,7 +113,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="..\..\method;..\..\routes;..\..\resources;..\..\tools"/>
+      <OtherUnitFiles Value="..\..\method;..\..\routes;..\..\resources;..\..\tools;..\..\..\horse-master\src;..\..\..\handle-exception\src;..\..\..\jhonson\src"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <CodeGeneration>

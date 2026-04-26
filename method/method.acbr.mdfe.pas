@@ -439,6 +439,12 @@ begin
 
   stringXml := '';
 
+  if facbr.Manifestos.Count = 0 then
+  begin
+    Result.Add('error', 'Nenhum MDF-e foi carregado a partir do XML.');
+    Exit;
+  end;
+
   fdamdfe.MostraPreview := False;
   fdamdfe.MostraStatus := False;
   fdamdfe.MostraSetup := False;

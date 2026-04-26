@@ -31,10 +31,16 @@ procedure GetModeloUploadCertificado(Req: THorseRequest; Res: THorseResponse;
   Next: TNextProc);
 var
   Ac: TACBRBridgeCertificados;
+  LJson: TJSONObject;
 begin
   Ac := TACBRBridgeCertificados.Create;
   try
-    Res.Send<TJSONObject>(Ac.ModeloUpload);
+    LJson := Ac.ModeloUpload;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
   finally
     Ac.Free;
   end;
@@ -118,9 +124,12 @@ begin
       Ac := TACBRBridgeCertificados.Create;
       try
         // Chama o método para salvar o certificado
-        Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
-          .Send<TJSONObject>(Ac.SalvarCertificado(CertificadoBase64,
-          Senha, CNPJ, NomeArquivo));
+        LJsonBody := Ac.SalvarCertificado(CertificadoBase64, Senha, CNPJ, NomeArquivo);
+        try
+          Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJsonBody.AsJSON);
+        finally
+          LJsonBody.Free;
+        end;
       finally
         Ac.Free;
       end;
@@ -205,8 +214,12 @@ begin
       Ac := TACBRBridgeCertificados.Create;
       try
         // Chama o método para ler os dados do certificado
-        Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
-          .Send<TJSONObject>(Ac.ObterDadosCertificado(CertificadoBase64, Senha));
+        LJsonBody := Ac.ObterDadosCertificado(CertificadoBase64, Senha);
+        try
+          Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJsonBody.AsJSON);
+        finally
+          LJsonBody.Free;
+        end;
       finally
         Ac.Free;
       end;

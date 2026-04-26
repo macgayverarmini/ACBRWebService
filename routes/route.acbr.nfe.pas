@@ -45,10 +45,16 @@ implementation
 procedure GetModeloConfig(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   Ac: TACBRModelosJSON;
+  LJson: TJSONObject;
 begin
   Ac := TACBRModelosJSON.Create(RSEmptyString);
   try
-    Res.Send<TJSONObject>(AC.ModelConfig);
+    LJson := AC.ModelConfig;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
   finally
     Ac.Free;
   end;
@@ -57,10 +63,16 @@ end;
 procedure GetModeloNFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   Ac: TACBRModelosJSON;
+  LJson: TJSONObject;
 begin
   Ac := TACBRModelosJSON.Create(RSEmptyString);
   try
-    Res.Send<TJSONObject>(Ac.ModelNFe);
+    LJson := Ac.ModelNFe;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
   finally
     Ac.Free;
   end;
@@ -69,10 +81,16 @@ end;
 procedure GetModeloEvento(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   Ac: TACBRModelosJSON;
+  LJson: TJSONObject;
 begin
   Ac := TACBRModelosJSON.Create(RSEmptyString);
   try
-    Res.Send<TJSONObject>(AC.ModelEvento);
+    LJson := AC.ModelEvento;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
   finally
     Ac.Free;
   end;
@@ -108,14 +126,18 @@ end;
 
 procedure PostDistribuicao(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O: TJSONObject;
+  O, LJson: TJSONObject;
   Ac: TACBRBridgeNFe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
   Ac := TACBRBridgeNFe.Create(O.Extract(RSConfigField).AsJSON);
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
-      .Send<TJSONObject>(Ac.Distribuicao(O));
+    LJson := Ac.Distribuicao(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
   finally
     O.Free;
     Ac.Free;
@@ -126,11 +148,17 @@ procedure PostNFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   O: TJSONObject;
   Ac: TACBRBridgeNFe;
+  LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
   Ac := TACBRBridgeNFe.Create(O.Extract(RSConfigField).AsJSON);
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(Ac.NFe(O));
+    LJson := Ac.NFe(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
   finally
     O.Free;
     Ac.Free;
@@ -141,12 +169,17 @@ procedure PostDANFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   O: TJSONObject;
   Ac: TACBRBridgeNFe;
+  LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
   Ac := TACBRBridgeNFe.Create(O.Extract(RSConfigField).AsJSON);
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
-      .Send<TJSONObject>(Ac.Danfe(O));
+    LJson := Ac.Danfe(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
   finally
     O.Free;
     Ac.Free;

@@ -24,6 +24,7 @@ type
     procedure SetUp; override;
     procedure TearDown; override;
     procedure CheckResponse(Response: String; ExpectedCode: Integer = 200; ActualCode: Integer = 200);
+    procedure AssertJSONHasField(Json: TJSONObject; const FieldPath: String);
     procedure ExecuteGetTest(const Endpoint: String; ExpectedCode: Integer = 200);
     procedure ExecutePostTest(const Endpoint: String; Payload: TJSONObject = nil; ExpectedCode: Integer = 200);
     function CreateConfigJSON(UF: String = 'SP'; Ambiente: String = '1'): TJSONObject;
@@ -126,7 +127,11 @@ begin
      try
        Json := GetJSON(Response);
        try
-         // Valid JSON
+         // Verify it's an actual object or array, not just a scalar like "1"
+         if not ((Json is TJSONObject) or (Json is TJSONArray)) then
+         begin
+           Fail('Response is valid JSON but it is a scalar/number (possibly the FPC generics serialization bug), value: ' + Response);
+         end;
        finally
          Json.Free;
        end;
@@ -139,6 +144,15 @@ begin
          ; 
      end;
    end;
+end;
+
+procedure TTestBase.AssertJSONHasField(Json: TJSONObject; const FieldPath: String);
+var
+  Data: TJSONData;
+begin
+  Data := Json.FindPath(FieldPath);
+  if not Assigned(Data) then
+    Fail('JSON path not found: ' + FieldPath);
 end;
 
 function TTestBase.CreateConfigJSON(UF: String; Ambiente: String): TJSONObject;

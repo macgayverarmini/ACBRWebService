@@ -655,6 +655,13 @@ begin
 
   // Esvazia a string para liberar da memria logo o xml
   stringXml := '';
+
+  if facbr.Conhecimentos.Count = 0 then
+  begin
+    Result.Add('error', 'Nenhum CT-e foi carregado a partir do XML.');
+    Exit;
+  end;
+
   // O acesso a propriedade TipoDanfe se faz somente diretamente pelo objeto.
   if facbr.Conhecimentos.Items[0].CTe.Ide.tpImp <> TpcnTipoImpressao.tiPaisagem then
     fdacte.TipoDACTE := tiRetrato

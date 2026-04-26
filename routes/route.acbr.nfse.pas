@@ -38,10 +38,16 @@ implementation
 procedure GetModeloConfig(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   Ac: TACBRModelosJSONNFSe;
+  LJson: TJSONObject;
 begin
   Ac := TACBRModelosJSONNFSe.Create(RSEmptyString);
   try
-    Res.Send<TJSONObject>(AC.ModelConfig);
+    LJson := AC.ModelConfig;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
   finally
     Ac.Free;
   end;
@@ -50,10 +56,16 @@ end;
 procedure GetModeloEmitir(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   Ac: TACBRModelosJSONNFSe;
+  LJson: TJSONObject;
 begin
   Ac := TACBRModelosJSONNFSe.Create(RSEmptyString);
   try
-    Res.Send<TJSONObject>(AC.ModelEmitir);
+    LJson := AC.ModelEmitir;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
   finally
     Ac.Free;
   end;
@@ -62,10 +74,16 @@ end;
 procedure GetModeloConsultarSituacao(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   Ac: TACBRModelosJSONNFSe;
+  LJson: TJSONObject;
 begin
   Ac := TACBRModelosJSONNFSe.Create(RSEmptyString);
   try
-    Res.Send<TJSONObject>(AC.ModelConsultarSituacao);
+    LJson := AC.ModelConsultarSituacao;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
   finally
     Ac.Free;
   end;
@@ -74,10 +92,16 @@ end;
 procedure GetModeloConsultarLote(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   Ac: TACBRModelosJSONNFSe;
+  LJson: TJSONObject;
 begin
   Ac := TACBRModelosJSONNFSe.Create(RSEmptyString);
   try
-    Res.Send<TJSONObject>(AC.ModelConsultarLote);
+    LJson := AC.ModelConsultarLote;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
   finally
     Ac.Free;
   end;
@@ -86,10 +110,16 @@ end;
 procedure GetModeloConsultarNFSePorRps(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   Ac: TACBRModelosJSONNFSe;
+  LJson: TJSONObject;
 begin
   Ac := TACBRModelosJSONNFSe.Create(RSEmptyString);
   try
-    Res.Send<TJSONObject>(AC.ModelConsultarNFSePorRps);
+    LJson := AC.ModelConsultarNFSePorRps;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
   finally
     Ac.Free;
   end;
@@ -98,10 +128,16 @@ end;
 procedure GetModeloConsultarNFSe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   Ac: TACBRModelosJSONNFSe;
+  LJson: TJSONObject;
 begin
   Ac := TACBRModelosJSONNFSe.Create(RSEmptyString);
   try
-    Res.Send<TJSONObject>(AC.ModelConsultarNFSe);
+    LJson := AC.ModelConsultarNFSe;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
   finally
     Ac.Free;
   end;
@@ -110,10 +146,16 @@ end;
 procedure GetModeloCancelar(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   Ac: TACBRModelosJSONNFSe;
+  LJson: TJSONObject;
 begin
   Ac := TACBRModelosJSONNFSe.Create(RSEmptyString);
   try
-    Res.Send<TJSONObject>(AC.ModelCancelar);
+    LJson := AC.ModelCancelar;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
   finally
     Ac.Free;
   end;
@@ -122,10 +164,16 @@ end;
 procedure GetModeloSubstituir(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   Ac: TACBRModelosJSONNFSe;
+  LJson: TJSONObject;
 begin
   Ac := TACBRModelosJSONNFSe.Create(RSEmptyString);
   try
-    Res.Send<TJSONObject>(AC.ModelSubstituir);
+    LJson := AC.ModelSubstituir;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
   finally
     Ac.Free;
   end;
@@ -135,11 +183,17 @@ procedure PostEmitir(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   O: TJSONObject;
   Ac: TACBRBridgeNFSe;
+  LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
   Ac := TACBRBridgeNFSe.Create(O.Extract(RSConfigField).AsJSON);
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(Ac.Emitir(O));
+    LJson := Ac.Emitir(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
   finally
     O.Free;
     Ac.Free;
@@ -150,11 +204,17 @@ procedure PostGerar(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   O: TJSONObject;
   Ac: TACBRBridgeNFSe;
+  LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
   Ac := TACBRBridgeNFSe.Create(O.Extract(RSConfigField).AsJSON);
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(Ac.Gerar(O));
+    LJson := Ac.Gerar(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
   finally
     O.Free;
     Ac.Free;
@@ -165,11 +225,17 @@ procedure PostConsultarSituacao(Req: THorseRequest; Res: THorseResponse; Next: T
 var
   O: TJSONObject;
   Ac: TACBRBridgeNFSe;
+  LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
   Ac := TACBRBridgeNFSe.Create(O.Extract(RSConfigField).AsJSON);
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(Ac.ConsultarSituacao(O));
+    LJson := Ac.ConsultarSituacao(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
   finally
     O.Free;
     Ac.Free;
@@ -180,11 +246,17 @@ procedure PostConsultarLote(Req: THorseRequest; Res: THorseResponse; Next: TNext
 var
   O: TJSONObject;
   Ac: TACBRBridgeNFSe;
+  LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
   Ac := TACBRBridgeNFSe.Create(O.Extract(RSConfigField).AsJSON);
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(Ac.ConsultarLote(O));
+    LJson := Ac.ConsultarLote(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
   finally
     O.Free;
     Ac.Free;
@@ -195,11 +267,17 @@ procedure PostConsultarNFSePorRps(Req: THorseRequest; Res: THorseResponse; Next:
 var
   O: TJSONObject;
   Ac: TACBRBridgeNFSe;
+  LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
   Ac := TACBRBridgeNFSe.Create(O.Extract(RSConfigField).AsJSON);
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(Ac.ConsultarNFSePorRps(O));
+    LJson := Ac.ConsultarNFSePorRps(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
   finally
     O.Free;
     Ac.Free;
@@ -210,11 +288,17 @@ procedure PostConsultarNFSe(Req: THorseRequest; Res: THorseResponse; Next: TNext
 var
   O: TJSONObject;
   Ac: TACBRBridgeNFSe;
+  LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
   Ac := TACBRBridgeNFSe.Create(O.Extract(RSConfigField).AsJSON);
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(Ac.ConsultarNFSe(O));
+    LJson := Ac.ConsultarNFSe(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
   finally
     O.Free;
     Ac.Free;
@@ -225,11 +309,17 @@ procedure PostCancelar(Req: THorseRequest; Res: THorseResponse; Next: TNextProc)
 var
   O: TJSONObject;
   Ac: TACBRBridgeNFSe;
+  LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
   Ac := TACBRBridgeNFSe.Create(O.Extract(RSConfigField).AsJSON);
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(Ac.Cancelar(O));
+    LJson := Ac.Cancelar(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
   finally
     O.Free;
     Ac.Free;
@@ -240,11 +330,17 @@ procedure PostSubstituir(Req: THorseRequest; Res: THorseResponse; Next: TNextPro
 var
   O: TJSONObject;
   Ac: TACBRBridgeNFSe;
+  LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
   Ac := TACBRBridgeNFSe.Create(O.Extract(RSConfigField).AsJSON);
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(Ac.Substituir(O));
+    LJson := Ac.Substituir(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
   finally
     O.Free;
     Ac.Free;
@@ -255,11 +351,17 @@ procedure PostDANFSe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   O: TJSONObject;
   Ac: TACBRBridgeNFSe;
+  LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
   Ac := TACBRBridgeNFSe.Create(O.Extract(RSConfigField).AsJSON);
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(Ac.Danfse(O));
+    LJson := Ac.Danfse(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
   finally
     O.Free;
     Ac.Free;
@@ -270,11 +372,17 @@ procedure PostDistribuicao(Req: THorseRequest; Res: THorseResponse; Next: TNextP
 var
   O: TJSONObject;
   Ac: TACBRBridgeNFSe;
+  LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
   Ac := TACBRBridgeNFSe.Create(O.Extract(RSConfigField).AsJSON);
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(Ac.Distribuicao(O));
+    LJson := Ac.Distribuicao(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
   finally
     O.Free;
     Ac.Free;

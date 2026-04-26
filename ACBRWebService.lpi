@@ -20,7 +20,7 @@
     <VersionInfo>
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
-      <BuildNr Value="42"/>
+      <BuildNr Value="50"/>
       <Language Value="0416"/>
       <Attributes pvaDebug="True"/>
     </VersionInfo>
@@ -81,7 +81,6 @@
     <Units>
       <Unit>
         <Filename Value="ACBRWebService.lpr"/>
-        <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
         <Filename Value="routes/route.acbr.nfe.pas"/>
