@@ -1,0 +1,3 @@
+## 2024-05-28 - Stream Performance
+**Learning:** In Lazarus/Delphi, redundant string-to-bytes conversions (`TEncoding.UTF8.GetBytes`/`GetString`) can be completely bypassed when converting to/from base64 streams by using `TMemoryStream.ReadBuffer` and `WriteBuffer` with direct string indexing (e.g. `s[1]`). Also, repetitive inline function calls (like `base64.EncodeStringBase64`) in `WriteBuffer` will trigger double execution; storing the result in a local variable is crucial for performance.
+**Action:** Always check for native string type compatibility with streams and store results of expensive inline functions in local variables before passing them to functions like `WriteBuffer`.
