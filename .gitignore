@@ -1,0 +1,31 @@
+# === Diretórios de build e saída ===
+bin/
+exe/
+out/
+lib/
+backup/
+modules/
+deps/
+Docs/
+
+# === Lazarus / Free Pascal ===
+*.compiled
+*.bak
+*.o
+*.ppu
+*.or
+*.a
+*.rsj
+*.dbg
+*.res
+
+# === Ferramentas e IDE ===
+.aider*
+*.vscode
+*.deps
+*.bin
+*.exe
+*.pot
+cteValidoDemo.xml
+*.svn-base
+acbr_local_copy/

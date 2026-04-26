@@ -1,0 +1,25 @@
+### Variáveis de Ambiente
+# @baseUrl = {{baseUrl}}
+# @contentType = {{contentType}}
+
+# ----------------------------------------------------
+# STATUS SERVIÇO NFE
+# ----------------------------------------------------
+
+### Status Serviço (POST)
+# @name statusServico
+POST {{baseUrl}}/nfe/status
+Content-Type: {{contentType}}
+
+{
+  "config": {
+    "UF": "SP",
+    "Ambiente": "1",
+    "SSLLib": "libOpenSSL"
+  }
+}
+
+### Modelo Status (GET)
+# @name getModeloStatus
+GET {{baseUrl}}/modelo/nfe/status
+Content-Type: {{contentType}}

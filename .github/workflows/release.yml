@@ -1,0 +1,147 @@
+# .github/workflows/release.yml
+# Este workflow automatiza a compilação e o release multiplataforma do projeto.
+name: Create Multi-Platform Release
+
+on:
+  # O workflow é acionado quando uma tag começando com 'v' (ex: v1.0.0) é enviada ao repositório.
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  # JOB ÚNICO: Prepara o ambiente, compila todas as plataformas e empacota os resultados.
+  build-and-package:
+    name: Build All Platforms
+    runs-on: ubuntu-22.04
+
+    steps:
+      # 1. Checkout do código-fonte do repositório.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Cache do ambiente Lazarus/FPC para acelerar execuções futuras.
+      - name: Cache Lazarus Environment
+        id: cache-lazarus
+        uses: actions/cache@v4
+        with:
+          path: ~/development
+          key: ubuntu-22.04-laz-fixes-4-0-fpc-trunk-cross-all-v1
+
+      # 3. Instalação completa de todas as dependências do sistema.
+      - name: Install System Dependencies
+        if: steps.cache-lazarus.outputs.cache-hit != 'true'
+        run: |
+          # Todos os comandos de gerenciamento de pacotes precisam de sudo.
+          sudo apt-get update
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential git python3 python3-pip python3-tqdm dos2unix wget unzip zip \
+            subversion clang gdb binutils-mingw-w64-x86-64 libx11-dev libgtk2.0-dev \
+            libgdk-pixbuf2.0-dev libcairo2-dev libpango1.0-dev gcc-multilib libgtk2.0-dev:i386
+          sudo apt-get --fix-broken install -y
+
+      # 4. Cria o link simbólico em um diretório de sistema, o que exige sudo.
+      - name: Create windres symlink
+        if: steps.cache-lazarus.outputs.cache-hit != 'true'
+        run: sudo ln -s /usr/bin/x86_64-w64-mingw32-windres /usr/bin/windres
+
+      # 5. Baixa e instala a ferramenta em um diretório de sistema (/usr/local/bin).
+      - name: Install fpclazup
+        if: steps.cache-lazarus.outputs.cache-hit != 'true'
+        run: |
+          # O wget precisa de sudo para escrever em /usr/local/bin.
+          sudo wget https://github.com/LongDirtyAnimAlf/Reiniero-fpcup/releases/download/v2.4.0f/fpclazup-x86_64-linux -O /usr/local/bin/fpclazup
+          sudo chmod +x /usr/local/bin/fpclazup
+
+      # 6. Instala o FPC/Lazarus. Não precisa de sudo pois instala no diretório home do usuário ($HOME).
+      - name: Install Lazarus, FPC, and Cross-Compilers
+        if: steps.cache-lazarus.outputs.cache-hit != 'true'
+        run: |
+          fpclazup --noconfirm --lazVersion=fixes_4_0 --fpcVersion=trunk --fpcOPT="-dENABLE_DELPHI_RTTI" --installdir=$HOME/development
+          fpclazup --installdir=$HOME/development --cputarget=i386 --ostarget=win32 --onlylazarus=0 --autotools --noconfirm --fpcOPT="-dENABLE_DELPHI_RTTI"
+          fpclazup --installdir=$HOME/development --cputarget=x86_64 --ostarget=win64 --onlylazarus=0 --autotools --noconfirm --fpcOPT="-dENABLE_DELPHI_RTTI"
+
+      # 7. Adiciona o diretório do Lazarus ao PATH do sistema.
+      - name: Add Lazarus to PATH
+        run: echo "$HOME/development/lazarus" >> $GITHUB_PATH
+
+      # 8. Cache das dependências do projeto.
+      - name: Cache Project Dependencies
+        id: cache-project-deps
+        uses: actions/cache@v4
+        with:
+          path: |
+            ../acbr
+            ../powerpdf
+            ../fortesreport-ce4
+          key: ${{ runner.os }}-project-deps-v2-${{ hashFiles('download.sh') }}
+
+      # 9. Baixa as dependências do projeto.
+      - name: Download Project Dependencies
+        if: steps.cache-project-deps.outputs.cache-hit != 'true'
+        run: |
+          chmod +x ./download.sh
+          ./download.sh
+
+      # 10. Executa o script de build.
+      - name: Run Build Script
+        env:
+          LAZBUILD_CMD: "$HOME/development/lazarus/lazbuild"
+          LAZARUS_DIR: "$HOME/development/lazarus/"
+        run: |
+          export LAZBUILD_CMD="$HOME/development/lazarus/lazbuild"
+          export LAZARUS_DIR="$HOME/development/lazarus/"
+          dos2unix build.sh
+          chmod +x build.sh
+          ./build.sh
+
+      # 11. Empacota os 3 binários gerados.
+      - name: Package All Artifacts
+        run: |
+          mkdir -p release
+          targets=(
+            "Linux-x86_64,ACBRWebService-x86_64-linux"
+            "Windows-x86_64,ACBRWebService-x86_64-win64.exe"
+            "Windows-i386,ACBRWebService-i386-win32.exe"
+          )
+          for target in "${targets[@]}"; do
+            IFS=',' read -r ZIP_SUFFIX EXECUTABLE_NAME <<< "$target"
+            EXECUTABLE_PATH="$GITHUB_WORKSPACE/bin/${EXECUTABLE_NAME}"
+            ZIP_NAME="ACBRWebService-${{ github.ref_name }}-${ZIP_SUFFIX}.zip"
+
+            if [ -f "${EXECUTABLE_PATH}" ]; then
+              echo "Empacotando ${EXECUTABLE_PATH} para ${ZIP_NAME}"
+              zip -j "release/${ZIP_NAME}" "${EXECUTABLE_PATH}"
+            else
+              echo "ERRO: O executável ${EXECUTABLE_PATH} não foi encontrado!"
+              exit 1
+            fi
+          done
+
+      # 12. Faz o upload dos artefatos.
+      - name: Upload Release Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-assets
+          path: release/*.zip
+
+  # JOB 2: Publica o release no GitHub.
+  release:
+    name: Create GitHub Release
+    needs: build-and-package
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-assets
+          path: release-assets/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: release-assets/*.zip

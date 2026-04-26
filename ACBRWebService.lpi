@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="13"/>
+    <General>
+      <Flags>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
+        <MainUnitHasScaledStatement Value="False"/>
+      </Flags>
+      <SessionStorage Value="InProjectDir"/>
+      <Title Value="ACBRWebService"/>
+      <UseAppBundle Value="False"/>
+      <ResourceType Value="res"/>
+    </General>
+    <i18n>
+      <EnableI18N Value="True" LFM="False"/>
+      <OutDir Value="i18n"/>
+    </i18n>
+    <VersionInfo>
+      <UseVersionInfo Value="True"/>
+      <AutoIncrementBuild Value="True"/>
+      <BuildNr Value="42"/>
+      <Language Value="0416"/>
+      <Attributes pvaDebug="True"/>
+    </VersionInfo>
+    <BuildModes>
+      <Item Name="Default" Default="True"/>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+      <UseFileFilters Value="True"/>
+    </PublishOptions>
+    <RunParams>
+      <FormatVersion Value="2"/>
+    </RunParams>
+    <RequiredPackages>
+      <Item>
+        <PackageName Value="ACBr_CIOT"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBre_Social"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBr_BPe"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBr_SPED"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBr_Sintegra"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBrSerial"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBr_NFSeXDanfseFPDF"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBr_NFSeX"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBr_MDFe_DAMDFeFPDF"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBr_MDFe"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBr_CTe_DACTeFPDF"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBr_CTe"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBr_NFe_DanfeFPDF"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBr_NFe"/>
+      </Item>
+    </RequiredPackages>
+    <Units>
+      <Unit>
+        <Filename Value="ACBRWebService.lpr"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.nfe.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.nfe.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tools/jsonconvert.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.diversos.extenso.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.diversos.extenso.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.diversos.validador.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.diversos.validador.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="/acbr/Fontes/ACBrDFe/ACBrNFe/DANFE/NFe/LazReport/ACBrNFeDANFeLazReport.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tools/streamtools.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.cte.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/router.acbr.cte.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.mdfe.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.mdfe.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="resources/resource.strings.global.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="resources/resource.strings.msg.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="resources/resource.strings.routes.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.nfse.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.nfse.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.ciot.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.ciot.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.esocial.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.esocial.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.bpe.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.bpe.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.sped.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.sped.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.sintegra.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.sintegra.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.escpos.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.escpos.pas"/>
+      </Unit>
+    </Units>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="11"/>
+    <PathDelim Value="\"/>
+    <Target>
+      <Filename Value="bin\ACBRWebService-$(TargetCPU)-$(TargetOS)"/>
+    </Target>
+    <SearchPaths>
+      <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value="..\horse-master\src;routes;method;..\handle-exception\src;tools;..\jhonson\src;resources;..\acbr\Fontes\ACBrDFe\ACBrMDFe\PCNMDFe;..\acbr\Fontes\Terceiros\synalist"/>
+      <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+    </SearchPaths>
+    <CodeGeneration>
+      <TargetCPU Value="x86_64"/>
+      <TargetOS Value="win64"/>
+      <Optimizations>
+        <OptimizationLevel Value="0"/>
+      </Optimizations>
+    </CodeGeneration>
+    <Linking>
+      <Debugging>
+        <DebugInfoType Value="dsDwarf2Set"/>
+        <UseHeaptrc Value="True"/>
+      </Debugging>
+    </Linking>
+  </CompilerOptions>
+</CONFIG>

@@ -1,0 +1,2927 @@
+[
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\addons\\modules\\addons_availables\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"/usr/bin/$name_rpm-dependencies\",$output,$retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\addons\\setup\\issabel-moduleconf\\IssabelInstallerProcess.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sCmd, $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\addons\\setup\\issabel-moduleconf\\IssabelInstallerProcess.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "proc_open('/usr/sbin/close-on-exec.pl /usr/bin/yum -y shell', $descriptores, $this->_procPipes, $cwd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\agenda\\modules\\address_book\\libs\\paloSantoAdressBook.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"/usr/sbin/asterisk -rx 'core show channels concise' | grep ^$channel\",$arrConsole,$flagStatus)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\agenda\\modules\\calendar\\libs\\calendarutils.lib.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/sbin/service festival status', $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\agenda\\modules\\calendar\\libs\\paloSantoCalendar.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "system(\"mv $sNombreTemp $sRutaArchivo\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter\\modules\\callcenter_config\\libs\\paloSantoConfiguration.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('sudo -u root service generic-cloexec issabeldialer start 1>/dev/null 2>/dev/null', $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter\\modules\\callcenter_config\\libs\\paloSantoConfiguration.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('sudo -u root service issabeldialer start 1>/dev/null 2>/dev/null', $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter\\modules\\callcenter_config\\libs\\paloSantoConfiguration.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('sudo -u root service issabeldialer stop', $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter\\setup\\dialer_process\\dialer\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($application, $options)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter\\setup\\dialer_process\\dialer\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('AbsoluteTimeout', $seconds)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter\\setup\\dialer_process\\dialer\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"AGI $command\", $args)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter\\setup\\dialer_process\\dialer\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('SetAccount', $accountcode)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter\\setup\\dialer_process\\dialer\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('SetLanguage', $language)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter\\setup\\dialer_process\\dialer\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('EnumLookup', $exten)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter\\setup\\dialer_process\\dialer\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('Dial', trim(\"$type/$identifier|$timeout|$options|$url\", '|')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter\\setup\\dialer_process\\dialer\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('Goto', trim(\"$a|$b|$c\", '|')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter\\setup\\dialer_process\\dialer\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "shell_exec(\"{$this->config['festival']['text2wave']} -F $frequency -o $fname.wav $fname.txt\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter\\setup\\dialer_process\\dialer\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "shell_exec(\"{$this->config['cepstral']['swift']} -p audio/channels=1,audio/sampling-rate=$frequency $voice -o $fname.wav -f $fname.txt\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter-comunidade\\modules\\agent_console\\libs\\paloSantoDB.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter-comunidade\\modules\\callcenter_config\\libs\\paloSantoConfiguration.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('sudo -u root service generic-cloexec issabeldialer start 1>/dev/null 2>/dev/null', $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter-comunidade\\modules\\callcenter_config\\libs\\paloSantoConfiguration.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('sudo -u root service issabeldialer start 1>/dev/null 2>/dev/null', $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter-comunidade\\modules\\callcenter_config\\libs\\paloSantoConfiguration.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('sudo -u root service issabeldialer stop', $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter-comunidade\\modules\\campaign_in\\libs\\paloSantoIncomingCampaign.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($grantCommand)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter-comunidade\\modules\\campaign_in\\libs\\paloSantoIncomingCampaign.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($revokeCommand)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter-comunidade\\modules\\campaign_monitoring\\libs\\api.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "shell_exec($command)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter-comunidade\\modules\\campaign_monitoring\\libs\\api.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "shell_exec($command)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter-comunidade\\modules\\campaign_out\\libs\\paloSantoCampaignCC.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($grantCommand)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter-comunidade\\modules\\campaign_out\\libs\\paloSantoCampaignCC.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($revokeCommand)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter-comunidade\\setup\\dialer_process\\dialer\\CampaignProcess.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sCleanup)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter-comunidade\\setup\\dialer_process\\dialer\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($application, $options)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter-comunidade\\setup\\dialer_process\\dialer\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('AbsoluteTimeout', $seconds)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter-comunidade\\setup\\dialer_process\\dialer\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"AGI $command\", $args)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter-comunidade\\setup\\dialer_process\\dialer\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('SetAccount', $accountcode)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter-comunidade\\setup\\dialer_process\\dialer\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('SetLanguage', $language)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter-comunidade\\setup\\dialer_process\\dialer\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('EnumLookup', $exten)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter-comunidade\\setup\\dialer_process\\dialer\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('Dial', trim(\"$type/$identifier|$timeout|$options|$url\", '|')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter-comunidade\\setup\\dialer_process\\dialer\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('Goto', trim(\"$a|$b|$c\", '|')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter-comunidade\\setup\\dialer_process\\dialer\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "shell_exec(\"{$this->config['festival']['text2wave']} -F $frequency -o $fname.wav $fname.txt\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\callcenter-comunidade\\setup\\dialer_process\\dialer\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "shell_exec(\"{$this->config['cepstral']['swift']} -p audio/channels=1,audio/sampling-rate=$frequency $voice -o $fname.wav -f $fname.txt\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\email_admin\\modules\\antispam\\libs\\paloSantoAntispam.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/bin/issabel-helper spamconfig --getdeleteperiod 2>&1', $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\email_admin\\modules\\email_list\\libs\\paloSantoEmaillist.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\email_admin\\modules\\email_list\\libs\\paloSantoEmaillist.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/bin/issabel-helper mailman_config check_postfix_file', $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\email_admin\\modules\\email_list\\libs\\paloSantoEmaillist.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\email_admin\\modules\\email_list\\libs\\paloSantoEmaillist.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\email_admin\\modules\\email_list\\libs\\paloSantoEmaillist.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\email_admin\\modules\\email_list\\libs\\paloSantoEmaillist.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\email_admin\\modules\\email_list\\libs\\paloSantoEmaillist.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\email_admin\\modules\\remote_smtp\\libs\\paloSantoEmailRelay.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\email_admin\\modules\\vacations\\libs\\paloSantoVacations.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"sudo /sbin/service generic-cloexec cyrus-imapd status\",$arrConsole,$flagStatus)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\email_admin\\modules\\vacations\\libs\\paloSantoVacations.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\email_admin\\modules\\vacations\\libs\\paloSantoVacations.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\email_admin\\modules\\vacations\\libs\\paloSantoVacations.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"echo \".$SIEVE['PASS'].\" | sieveshell --username=\".$SIEVE['USER'].\" --authname=\".$SIEVE['AUTHUSER'].\" \".$SIEVE['HOST'].\":\".$SIEVE['PORT'].\" -e 'list'\",$flags, $status)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\email_admin\\setup\\checkSpamFolder.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/sbin/service spamassassin status', $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\email_admin\\setup\\checkSpamFolder.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "system('/usr/share/issabel/privileged/spamconfig --refreshspamfilter', $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\email_admin\\setup\\deleteSpam.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"/etc/init.d/spamassassin status\", $flag, $status)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\email_admin\\setup\\installer.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($cmd_mv)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\email_admin\\setup\\installer.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($cmd_chown)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\email_admin\\setup\\paloSantoEmail.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\email_admin\\setup\\paloSantoEmail.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\email_admin\\setup\\paloSantoEmail.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\email_admin\\setup\\paloSantoEmail.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\email_admin\\setup\\paloSantoEmail.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\endpointconfig2\\modules\\endpoint_configurator\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/sbin/ip addr', $output)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\endpointconfig2\\modules\\endpoint_configurator\\libs\\paloSantoEndpoints.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\endpointconfig2\\modules\\endpoint_configurator\\libs\\paloSantoEndpoints.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/bin/issabel-endpointconfig --clearconfig 2>&1', $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\fax\\modules\\faxclients\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/bin/issabel-helper faxconfig --setfaxhosts '.implode(' ', $arrHostsFinal)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\fax\\modules\\faxclients\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/bin/issabel-helper faxconfig --getfaxhosts 2>&1', $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\fax\\modules\\faxmaster\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/bin/issabel-helper faxconfig --faxmaster 2>&1', $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\fax\\modules\\sendfax\\libs\\paloSantoSendFax.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"sendfax -D -h $faxhost -n -d $destine $data 2>&1\", $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\fax\\setup\\paloSantoFax.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"/usr/bin/faxstat\", $arrOutCmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\fax\\setup\\paloSantoFax.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/bin/faxstat -sdl', $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\fax\\setup\\paloSantoFax.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\additionals\\usr\\local\\issabel\\sampler.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($comando, $arrSalida, $varSalida)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\additionals\\utilities\\purgarFuncionesNoUsadas.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"grep -iE \\\"[[:space:]]*function\\\" libs/*\", $arrOutput)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\additionals\\utilities\\purgarFuncionesNoUsadas.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($cmd, $arrOutput, $retVar)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\libs\\IssabelFirstBoot.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\libs\\misc.lib.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"/usr/bin/uptime\", $arrExec, $varExec)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\libs\\misc.lib.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"/bin/df -P /etc/fstab\", $arrExec, $varExec)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\libs\\paloSantoACL.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\libs\\paloSantoACL.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\libs\\paloSantoDB.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\libs\\paloSantoInstaller.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($comando,$output,$retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\libs\\paloSantoInstaller.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($comando,$output,$retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\libs\\paloSantoInstaller.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"rm -rf $documentRoot/var/templates_c/*\",$arrConsole,$flagStatus)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\modules\\registration\\libs\\paloSantoRegistration.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\modules\\_issabelutils\\libs\\issabelutils.lib.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sCommand, $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\bosssecretary.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"SELECT secretary_extension FROM bosssecretary_secretary WHERE id_group=?\", array($data['id'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\bosssecretary.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"SELECT boss_extension FROM bosssecretary_boss WHERE id_group=?\", array($data['id'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\bosssecretary.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"SELECT chief_extension FROM bosssecretary_chief WHERE id_group=?\", array($data['id'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\bosssecretary.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,$bosssecretaryid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\bosssecretary.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"INSERT INTO $table VALUES (?,?)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\bosssecretary.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,$bosssecretaryid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\bosssecretary.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"INSERT INTO $table VALUES (?,?)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\bosssecretary.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,$oneid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\bosssecretary.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,$oneid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\bosssecretary.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,$oneid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\callflow.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\callflow.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($slot)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\callflow.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($slot,$field)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\callflow.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($slot,$field,$value)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\callflow.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($value,$slot,$field)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\callflow.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"DELETE FROM daynight WHERE ext=?\",array($input['id'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\callflow.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($input['id'],$field,$value)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\callflow.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array('daynight','toggle-mode-'.$input['id'],$input['id'].\": \".$input['name'],$this->featurecode.$input['id'],1,1)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\callflow.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"DELETE FROM daynight WHERE ext=?\",array($oneid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\callflow.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"DELETE FROM featurecodes WHERE modulename='daynight' and featurename=?\",array('toggle-mode-'.$oneid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\classofservice.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"SELECT include,timegroupid AS timegroup_id,userules as use_rules,sort FROM customcontexts_includes WHERE context=? ORDER BY sort\", array($data['id'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\classofservice.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,$cosid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\classofservice.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"INSERT INTO customcontexts_includes (context,include,timegroupid,userules,sort) VALUES (?,?,?,?,?)\",array($cosid,$data['include'],$data['timegroup_id'],$data['use_rules'],$data['sort'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\classofservice.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,$cosid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\classofservice.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"INSERT INTO customcontexts_includes (context,include,timegroupid,userules,sort) VALUES (?,?,?,?,?)\",array($cosid,$data['include'],$data['timegroup_id'],$data['use_rules'],$data['sort'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\classofservice.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,$oneid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\classofserviceadmin.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"SELECT include,description,sort FROM customcontexts_includes_list WHERE context=? ORDER BY sort\", array($data['id'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\classofserviceadmin.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"UPDATE customcontexts_includes_list SET description=?,sort=? WHERE include=?\",array($data['description'],$data['sort'],$data['include'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\customdestinations.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($input['id'],$input['description'],$input['notes'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\customextensions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($input['id'],$input['description'],$input['notes'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\dahdichanneldids.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($input['id'],$input['description'],$input['did'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\dialplaninjection.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"SELECT command FROM dialplaninjection_commands WHERE injectionid=? ORDER BY sort\", array($data['id'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\dialplaninjection.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,$dialplaninjectionid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\dialplaninjection.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"INSERT INTO dialplaninjection_commands (injectionid,command,sort) VALUES (?,?,?)\",array($dialplaninjectionid,$cmd,$sort)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\dialplaninjection.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,$dialplaninjectionid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\dialplaninjection.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"INSERT INTO dialplaninjection_commands (injectionid,command,sort) VALUES (?,?,?)\",array($dialplaninjectionid,$cmd,$sort)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\dialplaninjection.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,$oneid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\dynamicroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($dynamicroutes_id)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\dynamicroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($dynamicroutes_id,$selection,$dest,$default)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\dynamicroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($dynamicroutes_id)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\dynamicroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($dynamicroutes_id,$selection,$dest,$default)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\dynamicroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($dynamicroutes_id)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\extensions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\extensions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\extensions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($data['extension'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\extensions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array(':id'=>$data['extension'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\extensions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array(':id'=>$extension)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\extensions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"rm -f /var/spool/asterisk/voicemail/device/\".$EXTEN)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\extensions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"/bin/ln -s /var/spool/asterisk/voicemail/\".$vmcontext.\"/\".$user.\"/ /var/spool/asterisk/voicemail/device/\".$id)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\extensions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"DELETE FROM findmefollow WHERE grpnum=?\",array($EXTEN)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\extensions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"SELECT * FROM findmefollow WHERE grpnum=?\",array($EXTEN)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\extensions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"DELETE FROM findmefollow WHERE grpnum=?\",array($EXTEN)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\extensions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,$finalvalues)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\extensions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"SELECT keyword,data FROM $techtable WHERE id=?\",array(1=>$EXTEN)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\extensions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"DELETE FROM $techtable WHERE id=?\", array($EXTEN)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\extensions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"INSERT INTO $techtable (id,keyword,data,flags)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\extensions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"DELETE FROM devices WHERE id = ?\", array(1=>$EXTEN)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\extensions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"DELETE FROM $techtable WHERE id = ?\", array(1=>$EXTEN)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\extensions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array(':id'=>$input['extension'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\extensions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\extensions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"DELETE FROM devices WHERE id = ?\", array(1=>$EXTEN)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\extensions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"DELETE FROM $techtable WHERE id = ?\", array(1=>$EXTEN)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\extensions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array(':id'=>$oneid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\extensions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"DELETE FROM $tech WHERE id=?\",array(1=>$oneid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\extensions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"DELETE FROM devices WHERE id=?\",array(1=>$oneid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\extensions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array( \"%%\", $searchfinal, \"%%\", $searchfinal, \"%%\", $searchfinal,  \"%%\", $searchfinal,  \"%%\", $searchfinal)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\extensions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array( \"%$search%\", '.', \"%$search%\", '.', \"%$search%\", '.',  \"%$search%\", '.',  \"%$search%\", '.')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\extensions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array(':id'=>$data['extension'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\extensions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"grep vm_email $vmfile\", $output, $return)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\inboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\inboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\inboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\inboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($mainrow['extension'],$mainrow['callerid_number'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\inboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($mainrow['extension'],$mainrow['callerid_number'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\inboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($mainrow['extension'],$mainrow['callerid_number'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\inboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($mainrow['extension'],$mainrow['callerid_number'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\inboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($extension,$cidnum)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\inboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($extension,$cidnum,$input['language'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\inboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($extension,$cidnum)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\inboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($extension,$cidnum,$input['call_recording'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\inboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($extension,$cidnum)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\inboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($extension,$cidnum,$input['callerid_lookup'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\inboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($extension,$cidnum)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\inboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($extension,$cidnum)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\inboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($cidnum,$extension,$defaults['detection'],$defaults['detectionwait'],$defaults['destination'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\ivr.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($ivr_id)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\ivr.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($ivr_id,$digits,$destination,$return)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\ivr.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($ivr_id)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\ivr.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($ivr_id,$digits,$destination,$return)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\ivr.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($ivr_id)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\miscapplications.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\miscapplications.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($ena,'miscapp_'.$appid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\miscapplications.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array('miscapps','miscapp_'.$appid,$input['name'],$input['extension'],$ena,0)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\miscapplications.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array(\"miscapp_$appid\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\modules.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($trunkid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\musiconhold.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"sox $output -c 1 -r 8000 -b 16 $convertido\",$salida,$exitcode)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\outboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\outboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\outboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\outboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($mainrow['id'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\outboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($mainrow['id'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\outboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($mainrow['id'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\outboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($mainrow['id'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\outboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($mainrow['id'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\outboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,$arrids)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\outboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,$arrids)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\outboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,$arrids)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\outboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($route_id)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\outboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($input['pinsets_id'],$route_id)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\outboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($route_id)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\outboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($route_id,$input['call_recording'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\outboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($route_id)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\outboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($route_id,$lastseq)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\outboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($route_id)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\outboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,$vals)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\outboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($route_id)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\outboundroutes.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,$vals)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\paging.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"SELECT ext FROM paging_groups WHERE page_number=?\", array($data['id'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\paging.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,$pagingid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\paging.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"INSERT INTO paging_groups (page_number,ext) VALUES (?,?)\",array($pagingid,$member)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\paging.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"INSERT INTO paging_autoanswer (useragent,var,setting) VALUES (?,?,?)\",array('default','DOPTIONS','A('.$audios.')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\paging.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,$pagingid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\paging.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"INSERT INTO paging_groups (page_number,ext) VALUES (?,?)\",array($pagingid,$member)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\paging.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"INSERT INTO paging_autoanswer (useragent,var,setting) VALUES (?,?,?)\",array('default','DOPTIONS','A('.$audios.')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\paging.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,$oneid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\parkinglots.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"UPDATE parkplus SET defaultlot='yes' WHERE id=?\",array($parkid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\parkinglots.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"UPDATE parkplus SET defaultlot='yes' WHERE id=?\",array($parkid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\parkinglots.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"SELECT defaultlot FROM parkplus WHERE id=? AND defaultlot='yes'\",array($oneid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\queues.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query, $fldconfigval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\queues.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query, array($EXTEN,$keyword,$data)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\queues.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query, $fldconfigval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\queues.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"DELETE FROM queues_details WHERE id=?\",array($EXTEN)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\queues.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($EXTEN,$keyword,$data)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\queues.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($EXTEN,'member',$data)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\queues.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\queues.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array(':id'=>$id)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\queues.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array(\"%\".$f3->get('PARAMS.term')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\queues.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"SELECT * FROM queues_details WHERE id=?\",array($f3->get('PARAMS.id')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\queues.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\queues.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"DELETE FROM queues_details WHERE id IN (?)\",array(1=>$allids)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\recordings.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array('edit-recording-'.$recid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\recordings.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array('recordings','edit-recording-'.$recid,'Edit Recording: '.$name,'*29'.$recid,1,1)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\recordings.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array('edit-recording-'.$recid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\recordings.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array('edit-recording-'.$oneid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\recordings.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array('','custom/new')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\recordings.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"sox $output -c 1 -r 8000 -b 16 $convertido\",$salida,$exitcode)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\recordings.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($basefname,'custom/'.$basefname,$insertid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\recordings.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array('','custom/new')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\routecongestionmessages.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"INSERT INTO outroutemsg (keyword,data) VALUES (?,?)\",array($real,-1)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\routecongestionmessages.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"SELECT * FROM outroutemsg WHERE keyword=?\",array($keyword)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\routecongestionmessages.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"INSERT INTO outroutemsg (keyword,data) VALUES (?,?)\",array($keyword,$tone)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\routecongestionmessages.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"UPDATE outroutemsg SET data=? WHERE keyword=?\",array($tone,$keyword)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\timeconditions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array('timeconditions','toggle-mode-'.$condid,$condid.': '.$input['name'],'*27'.$condid,1,1)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\timeconditions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array('timeconditions','toggle-mode-'.$oneid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\timegroups.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"SELECT * FROM timegroups_details WHERE timegroupid=?\", array($data['id'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\timegroups.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"INSERT INTO timegroups_details (timegroupid,time) VALUES (?,?)\",array($mapid,$val)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\timegroups.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"DELETE FROM timegroups_details WHERE timegroupid=?\",array($groupid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\timegroups.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"INSERT INTO timegroups_details (timegroupid,time) VALUES (?,?)\",array($groupid,$val)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\timegroups.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($oneid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\trunks.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($trunkid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\trunks.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\trunks.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($trunkid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\trunks.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,$arrids)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\trunks.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"SELECT tech FROM trunks WHERE trunkid=?\",array($trunkid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\trunks.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"DELETE FROM \".$rows[0]['tech'].\" WHERE id = ?\",array(\"tr-user-$trunkid\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\trunks.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"DELETE FROM \".$rows[0]['tech'].\" WHERE id = ?\",array(\"tr-peer-$trunkid\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\trunks.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"DELETE FROM \".$rows[0]['tech'].\" WHERE id = ?\",array(\"tr-reg-$trunkid\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\trunks.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"SELECT tech FROM trunks WHERE trunkid=?\",array($trunkid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\trunks.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"DELETE FROM \".$input['technology'].\" WHERE id=?\",array($tid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\trunks.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"INSERT INTO \".$input['technology'].\" (id,keyword,data)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\trunks.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($tid,$key,$val)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\trunks.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"DELETE FROM \".$input['technology'].\" WHERE id=?\",array($tid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\trunks.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"INSERT INTO \".$input['technology'].\" (id,keyword,data)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\trunks.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($tid,$key,$val)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\trunks.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"DELETE FROM \".$input['technology'].\" WHERE id=?\",array($tid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\trunks.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"INSERT INTO \".$input['technology'].\" (id,keyword,data)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\trunks.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($trunkid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\trunks.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,$vals)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\vmblast.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"SELECT ext FROM vmblast_groups WHERE grpnum=?\", array($data['id'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\vmblast.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,$vmblastid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\vmblast.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"INSERT INTO vmblast_groups (grpnum,ext) VALUES (?,?)\",array($vmblastid,$member)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\vmblast.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,$vmblastid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\vmblast.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"INSERT INTO vmblast_groups (grpnum,ext) VALUES (?,?)\",array($vmblastid,$member)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\controllers\\vmblast.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,$oneid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\lib\\base.php",
+    "vulnerability": "Potential Eval Injection",
+    "match": "eval('unset('.$this->compile('@this->hive.'.$key)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\lib\\base.php",
+    "vulnerability": "Potential Eval Injection",
+    "match": "eval(' ?>'.$this->build($text)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\lib\\db\\sql.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($cmds,$args=NULL,$ttl=0,$log=TRUE,$stamp=FALSE)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\lib\\db\\sql.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($val[0],NULL)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\lib\\db\\jig\\mapper.php",
+    "vulnerability": "Potential Eval Injection",
+    "match": "eval('return '.$_expr.';')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\lib\\db\\sql\\mapper.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sql,$args,$ttl)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\lib\\db\\sql\\mapper.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sql,$args,$ttl)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\lib\\db\\sql\\mapper.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\n\t\t\t\t(preg_match('/mssql|dblib|sqlsrv/',$this->engine)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\lib\\db\\sql\\mapper.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sql,$args)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\lib\\db\\sql\\mapper.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('DELETE FROM '.$this->table.' WHERE '.$filter.';',$args)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\lib\\db\\sql\\session.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\n\t\t\t\t(preg_match('/mssql|sqlsrv|sybase/',$db->driver()"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\models\\jwtauth.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('SELECT * FROM acl_user WHERE name = :name AND md5_password = :md5password',array(':name'=>$user,':md5password'=>$md5password)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\models\\rest.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\models\\rest.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\models\\rest.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\models\\rest.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query,array($oneid)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\framework\\framework\\html\\pbxapi\\models\\rest.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\page.backup.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "popen($cmd, 'r')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\page.backup_restore.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(ipbx_which('tar') . ' -tf ' . $_FILES['upload']['tmp_name'], $array, $ret_code)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\page.backup_restore.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "popen($cmd, 'r')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\bin\\backup.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "system($amp_conf[\"AMPBIN\"] . \"/backup.php --opts=' . base64_encode(serialize($opts)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\bin\\backup.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(implode(' ', $cmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\bin\\backup.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(implode(' ', $cmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\bin\\backup.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "system($cmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\bin\\restore.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($manifest['hooks']['pre_restore'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\bin\\restore.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(implode(' ', $cmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\bin\\restore.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(implode(' ', $cmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\bin\\restore.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(implode(' ', $cmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\bin\\restore.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(implode(' ', $cmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\bin\\restore.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(implode(' ', $cmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\bin\\restore.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(implode(' ', $cmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\bin\\restore.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($manifest['hooks']['post_restore'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\functions.inc\\class.backup.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($cmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\functions.inc\\class.backup.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(ipbx_which('ps') . ' h ' . $pid, $ret, $status)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\functions.inc\\class.backup.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(implode(' ', $cmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\functions.inc\\class.backup.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(implode(' ', $cmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\functions.inc\\class.backup.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(implode(' ', $cmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\functions.inc\\class.backup.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($this->b['prebu_hook'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\functions.inc\\class.backup.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($this->b['postbu_hook'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\functions.inc\\class.backup.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "system(implode(' ', $cmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\functions.inc\\class.backup.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(implode(' ', $cmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\functions.inc\\class.backup.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(implode(' ', $cmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\functions.inc\\class.backup.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(implode(' ', $cmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\functions.inc\\class.backup.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(implode(' ', $cmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\functions.inc\\class.backup.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(implode(' ', $cmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\functions.inc\\class.backup.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(implode(' ', $cmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\functions.inc\\restore.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(implode(' ', $cmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\functions.inc\\restore.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(implode(' ', $cmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\functions.inc\\restore.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(implode(' ', $cmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\functions.inc\\restore.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(implode(' ', $cmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\functions.inc\\restore.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(implode(' ', $cmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\functions.inc\\restore.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(implode(' ', $cmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\functions.inc\\restore.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(implode(' ', $cmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\functions.inc\\restore.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(implode(' ', $cmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\functions.inc\\restore.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "system('rm -rf ' . $dir2 . '/tmp')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\functions.inc\\restore.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(implode(' ', $cmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\backup\\functions.inc\\restore.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "system('rm -rf '.$dir)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\core\\functions.inc.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"rm -f /var/spool/asterisk/voicemail/device/\".$id)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\core\\functions.inc.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"/bin/ln -s /var/spool/asterisk/voicemail/\".$vmcontext.\"/\".$user.\"/ /var/spool/asterisk/voicemail/device/\".$id)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\core\\functions.inc.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"rm -f /var/spool/asterisk/voicemail/device/\".$account)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\core\\functions.inc.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"rm -f /var/spool/asterisk/voicemail/device/\".$id)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\core\\functions.inc.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"/bin/ln -s /var/spool/asterisk/voicemail/\".$vmcontext.\"/\".$user.\"/ /var/spool/asterisk/voicemail/device/\".$id)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\core\\functions.inc.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"rm -f /var/spool/asterisk/voicemail/device/\".$user_device)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\core\\functions.inc.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"/bin/ln -s /var/spool/asterisk/voicemail/\".$new_vmcontext.\"/\".$extension.\"/ /var/spool/asterisk/voicemail/device/\".$user_device)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\dahdiconfig\\includes\\dahdi_cards.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/sbin/dahdi_genconf system',$output,$return_var)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\dahdiconfig\\includes\\dahdi_cards.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/sbin/dahdi_genconf system',$output,$return_var)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\dahdiconfig\\includes\\dahdi_cards.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('modprobe '.$item,$out,$return_var)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\dahdiconfig\\includes\\dahdi_cards.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/sbin/dahdi_genconf system',$output,$return_var)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\dahdiconfig\\includes\\dahdi_cards.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/sbin/dahdi_scan',$dahdi_scan_output,$return_var)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\dahdiconfig\\includes\\dahdi_cards.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('modprobe '.$module,$out,$return_var)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\dashboard\\phpsysinfo\\common_functions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "popen(\"($program $args > /dev/null)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\dashboard\\phpsysinfo\\common_functions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "popen(\"$program $args\", 'r')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\dialplaninjection\\install.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "System(command)','Execute a system command','http://www.voip-info.org/wiki/index.php?page=Asterisk+cmd+System');\";  $db->query($sql)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\digium_phones\\classes\\digium_phones_firmware_manager.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('tar xf '.$archive.' -C '.$path.' 2>&1', $output, $exitcode)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\digium_phones\\classes\\digium_phones_firmware_manager.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('rm -rf '.$path)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\digium_phones\\views\\digium_phones_logos.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "system('convert '.$tmp_file.' -resize '.$size.' '.$dest)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\digium_phones\\views\\digium_phones_logos.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('which convert 2>/dev/null', $out, $rc)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\directory\\agi-bin\\directory.lib.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "system('flite -t \"' . $con['name'] .'\" -o ' . $tmp . '.wav', $exit_code)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\fax\\functions.inc.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($cmd, $ret, $status)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\fax\\functions.inc.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($tiffinfo . ' ' . $file, $output)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\install.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"cp -rf $htdocs_source $htdocs_dest 2>&1\",$out,$ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\install.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"cp -rf $bin_source $bin_dest 2>&1\",$out,$ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\install.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"cp -rf $agibin_source $agibin_dest 2>&1\",$out,$ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\install.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"rm -rf $target 2>&1\",$out,$ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\libissabelpbx.install.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(UPGRADE_DIR.\"/\".$version.\"/\".$file)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\libissabelpbx.install.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"mkdir -m \".$mode.\" -p \".$directory,  $output, $return_value)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\libissabelpbx.install.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"chown -R $runas_uid:$runas_gid $directory\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\libissabelpbx.install.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"chown -R $runas_uid:$runas_gid $directory\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\libissabelpbx.install.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"chown -R $runas_uid:$runas_gid $directory\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\agi-bin\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($application, $options)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\agi-bin\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('AbsoluteTimeout', $seconds)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\agi-bin\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"AGI $command\", $args)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\agi-bin\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('SetAccount', $accountcode)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\agi-bin\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('SetLanguage', $language)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\agi-bin\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('SIPAddHeader', '\"'.$header.\":\".$value.'\"')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\agi-bin\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('EnumLookup', $exten)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\agi-bin\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('Dial', trim(\"$type/$identifier,$timeout,$options,$url\", ',')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\agi-bin\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('Goto', trim(\"$a,$b,$c\", ',')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\agi-bin\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "shell_exec(\"{$this->config['festival']['text2wave']} -F $frequency -o $fname.wav $fname.txt\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\agi-bin\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "shell_exec(\"{$this->config['cepstral']['swift']} -p audio/channels=1,audio/sampling-rate=$frequency $voice -o $fname.wav -f $fname.txt\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\functions.inc.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec( $setting_pre_reload, $output, $exit_val )"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\functions.inc.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($retrieve.'&>'.$asterisk_conf['astlogdir'].'/issabelpbx-retrieve.log', $output, $exit_val)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\functions.inc.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($retrieve, $output, $exit_val)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\functions.inc.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec( $setting_post_reload, $output, $exit_val )"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\helpers\\Email.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "popen($this->mailpath . \" -oi -f \".$this->clean_email($this->_headers['From'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\Cron.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/bin/crontab -u '.$this->user.' -l 2>&1', $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\Cron.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "proc_open('/usr/bin/crontab -u '.$this->user.' -', $fds, $pipes)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\cronmanager.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($job['command'],$job_out,$ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\extensions.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "System(\".$this->data.\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\gettext.php",
+    "vulnerability": "Potential Eval Injection",
+    "match": "eval(\"$string\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\module.functions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"rm -rf \".$amp_conf['AMPWEBROOT'].\"/admin/modules/_cache/$modulename\", $output, $exitcode)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\module.functions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"rm -rf \".$amp_conf['AMPWEBROOT'].\"/admin/modules/$modulename\", $output, $exitcode)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\module.functions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"mv \".$amp_conf['AMPWEBROOT'].\"/admin/modules/_cache/$modulename \".$amp_conf['AMPWEBROOT'].\"/admin/modules/$modulename\", $output, $exitcode)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\module.functions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"wget --tries=1 --timeout=600 -O $filename $url 2> /dev/null\", $filedata, $retcode)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\module.functions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"rm -rf \".$amp_conf['AMPWEBROOT'].\"/admin/modules/_cache/$modulename\", $output, $exitcode)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\module.functions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"rm -rf \".$amp_conf['AMPWEBROOT'].\"/admin/modules/$modulename\", $output, $exitcode)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\module.functions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"mv \".$amp_conf['AMPWEBROOT'].\"/admin/modules/_cache/$modulename \".$amp_conf['AMPWEBROOT'].\"/admin/modules/$modulename\", $output, $exitcode)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\module.functions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"rm -rf \".$amp_conf['AMPWEBROOT'].\"/admin/modules/_cache/$modulename\", $output, $exitcode)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\module.functions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"rm -rf \".$amp_conf['AMPWEBROOT'].\"/admin/modules/$modulename\", $output, $exitcode)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\module.functions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"mv \".$amp_conf['AMPWEBROOT'].\"/admin/modules/_cache/$modulename \".$amp_conf['AMPWEBROOT'].\"/admin/modules/$modulename\", $output, $exitcode)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\module.functions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"rm -rf \".$temppath, $output, $exitcode)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\module.functions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/sbin/ifconfig',$output, $return)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\module.functions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('ifconfig',$output, $return)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\module.functions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('lscpu 2>&1',$out,$ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\module.functions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('uname 2>&1',$kernel,$ret1)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\module.functions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('uname -r 2>&1',$kernelv,$ret2)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\utility.functions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(ipbx_which('rm') . ' -f ' . $ms_path . '/mstyle_autogen_*')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\utility.functions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"wget --tries=1 --timeout=30 -O - $fn2 2>> /dev/null\", $data_arr, $retcode)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\utility.functions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($exec, $cron_out, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\utility.functions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($exec, $out_arr, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\utility.functions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($w . ' ' . $app, $path, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\utility.functions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(ipbx_which('file') . ' -ib ' . $file, $res)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\utility.functions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('sed -i.bak \"s/\\s*\\[general\\].*$/TEMPCONTEXT/;s/\\[.*\\]/\\[' . $amp_conf['AMPMGRUSER'] . '\\]/;s/^TEMPCONTEXT$/\\[general\\]/\" '. $conf_file, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\utility.functions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('sed -i.bak \"s/secret\\s*=.*$/secret = ' . $amp_conf['AMPMGRPASS'] . '/\" ' . $conf_file, $output, $ret2)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\utility.functions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(ipbx_which('asterisk') . \" -rx 'module reload manager'\", $output, $ret2)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\php-upgrade\\upgrade.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"chown -h '$user' '$fn'\", $uu, $state)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\php-upgrade\\upgrade.php",
+    "vulnerability": "Potential Eval Injection",
+    "match": "eval(\"$abstract class $alias extends $original { /* identical subclass */ }\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\php-upgrade\\ext\\pdo.pgsql.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec( $query:String )"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\php-upgrade\\ext\\pdo.pgsql.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\php-upgrade\\ext\\pdo.pgsql.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec( $array:Array )"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\php-upgrade\\ext\\pdo.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\php-upgrade\\ext\\pdo.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\php-upgrade\\ext\\pdo.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec( $query:String )"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\php-upgrade\\ext\\pdo.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\php-upgrade\\ext\\pdo.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec( $array:Array )"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\php-upgrade\\ext\\pdo.sqlite.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec( $query:String )"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\php-upgrade\\ext\\pdo.sqlite.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($query)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\php-upgrade\\ext\\pdo.sqlite.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec( $array:Array )"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\php-upgrade\\ext\\php40.php",
+    "vulnerability": "Potential Eval Injection",
+    "match": "eval(\"return \\$obj->$method($params)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\php-upgrade\\ext\\php40.php",
+    "vulnerability": "Potential Eval Injection",
+    "match": "eval(\"return $obj::$method($params)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\php-upgrade\\ext\\php40.php",
+    "vulnerability": "Potential Eval Injection",
+    "match": "eval(\"return $callback($params)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\php-upgrade\\ext\\php40.php",
+    "vulnerability": "Potential Eval Injection",
+    "match": "eval(\"return $name\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\php-upgrade\\ext\\uncommon_functions.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "system(\"php -lqCf '$fn'\", $err)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\framework\\amp_conf\\htdocs\\admin\\libraries\\php-upgrade\\ext\\contrib\\input.php",
+    "vulnerability": "Potential SQL Injection directly from Input",
+    "match": "mysql_query(\"  SELECT * FROM x WHERE y='{$_POST"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\fw_langpacks\\install.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"cp -ru \".$mo.\" \".$i18n.\"/\".$lang.\"/LC_MESSAGES/\".basename($mo)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\fw_langpacks\\install.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"rm -rf $htdocs_source 2>&1\",$out,$ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\logfiles\\functions.inc.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(ipbx_which('tail') . ' -n' . $lines . ' ' . $logfile, $log)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\music\\page.music.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($mpg123cmd, $output, $returncode)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\music\\page.music.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($soxcmd.$soxresample.\"2>&1\", $output, $returncode)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\music\\page.music.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"rm -rf \\\"\".$newmohfile.\"\\\"\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\music\\page.music.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($soxcmd.\"2>&1\", $output, $returncode)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\music\\page.music.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($lamecmd, $output, $returncode)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\music\\page.music.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($soxcmd.$soxresample.\"2>&1\", $output, $returncode)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\music\\page.music.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"rm -rf \\\"\".$newmohfile.\"\\\"\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\music\\page.music.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($soxcmd.\"2>&1\", $output, $returncode)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\music\\page.music.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($rmcmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\music\\page.music.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($rmcmd)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\recordings\\page.recordings.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"cp \" . $recordings_save_path . \"{$dest}ivrrecording.$suffix \" . $astsnd.\"custom/{$filename}.$suffix 2>&1\", $outarray, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\recordings\\page.recordings.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"rm \" . $recordings_save_path . \"{$dest}ivrrecording.$suffix \", $outarray, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\recordings\\page.recordings.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"sox $destfilename -r 8000 $convertido\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\recordings\\page.recordings.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "system(\"chgrp \" . $amp_conf['AMPASTERISKGROUP'] . \" \" . $destfilename)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\recordings\\page.recordings.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "system(\"chmod g+rw \".$destfilename)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\sipsettings\\natget.html.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($routecmd,$output,$retcode)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\superfecta\\agi\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($application, $options)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\superfecta\\agi\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('AbsoluteTimeout', $seconds)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\superfecta\\agi\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"AGI $command\", $args)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\superfecta\\agi\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('SetAccount', $accountcode)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\superfecta\\agi\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('SetLanguage', $language)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\superfecta\\agi\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('SIPAddHeader', '\"'.$header.\":\".$value.'\"')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\superfecta\\agi\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('EnumLookup', $exten)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\superfecta\\agi\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('Dial', trim(\"$type/$identifier,$timeout,$options,$url\", ',')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\superfecta\\agi\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('Goto', trim(\"$a,$b,$c\", ',')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\superfecta\\agi\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "shell_exec(\"{$this->config['festival']['text2wave']} -F $frequency -o $fname.wav $fname.txt\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\superfecta\\agi\\phpagi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "shell_exec(\"{$this->config['cepstral']['swift']} -p audio/channels=1,audio/sampling-rate=$frequency $voice -o $fname.wav -f $fname.txt\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\superfecta\\includes\\ajax.inc.php",
+    "vulnerability": "Potential Local File Inclusion (LFI)",
+    "match": "require_once($path.'/sources/source-'.$_REQUEST"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\superfecta\\includes\\ajax.inc.php",
+    "vulnerability": "Potential Local File Inclusion (LFI)",
+    "match": "require_once($path.'/sources/source-'.$_REQUEST"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\superfecta\\includes\\config.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('find '.$amp_conf['AMPWEBROOT'].'/admin -name php-asmanager.php')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\superfecta\\includes\\config.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('find '.$amp_conf['AMPWEBROOT'].'/admin -name php-asmanager.php')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\superfecta\\includes\\oauth-php\\library\\store\\OAuthStorePDO.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sql)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\superfecta\\includes\\processors\\superfecta_multi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/bin/php '.$amp_conf['AMPWEBROOT'].'/admin/modules/superfecta/includes/callerid.php -s ' . $this->scheme_name . ' -d ' . $this->getDebug()"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\superfecta\\includes\\processors\\superfecta_multi.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/bin/php '.$amp_conf['AMPWEBROOT'].'/admin/modules/superfecta/includes/callerid.php -s ' . $this->scheme_name . ' -m ' . $superfecta_mf_child_id . ' -t ' . $trunk_info . ' -r ' . $data . ' > /dev/null 2>&1 &')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\timeconditions\\functions.inc.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($amp_conf['ASTVARLIBDIR'] . '/bin/schedtc.php 60 ' . $amp_conf['ASTSPOOLDIR'] . '/outgoing 0',$output,$ret_code)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\tts\\agi-bin\\googletts.pl",
+    "vulnerability": "Potential Command Injection",
+    "match": "system($mpg123, \"-q\", \"-w\", \"$tmpname.wav\", $tmpname)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\tts\\agi-bin\\googletts.pl",
+    "vulnerability": "Potential Command Injection",
+    "match": "system(\"$sox --version > /dev/null 2>&1\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\tts\\agi-bin\\googletts.pl",
+    "vulnerability": "Potential Command Injection",
+    "match": "system(@soxargs) == 0 or fatal_log(\"$sox failed: $?\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\tts\\agi-bin\\piper.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($command . ' 2>&1', $output, $return_var)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\voicemail\\functions.inc.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "system (%s) with a phone.\"),\"<br /><br />\",\"<br /><br />\",$fc_vm)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\voicemail\\functions.inc.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"rm -rf $vm_dir\",$output,$ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\voicemail\\functions.inc.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"grep vm_email $vmfile\", $output, $return)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\voicemail\\functions.inc.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec (\"rm -f $vmail_root/*/*/*/msg*\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\voicemail\\functions.inc.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec (\"rm -f $vmail_path/*/msg*\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\voicemail\\functions.inc.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"rm -f $greeting_path\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\voicemail\\functions.inc.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec (\"rm -f $greeting_path\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\voicemail\\functions.inc.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"ls $vmail_path/greet.*\", $listing)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\voicemail\\functions.inc.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"ls $vmail_path/unavail.*\", $listing)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\voicemail\\functions.inc.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"ls $vmail_path/busy.*\", $listing)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\voicemail\\functions.inc.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"ls $vmail_path/temp.*\", $listing)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\voicemail\\install.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"grep -e '^[[:space:]]*preload[[:space:]]*=.*res_mwi_blf.so' $mod_conf\",$output,$ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\voicemail\\install.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('sed -i.2.8.0-1.bak \"s/\\s*preload\\s*=>\\s*chan_local.so/&\\npreload => res_mwi_blf.so ;auto-inserted by IssabelPBX/\" '.$mod_conf,$output,$ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\voicemail\\install.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"grep -e '^[[:space:]]*preload[[:space:]]*=.*res_mwi_blf.so' $mod_conf\",$output,$ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\issabelPBX\\voicemail\\page.voicemail.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "system (%s) with a phone.\"),\"<br /><br />\",\"<br /><br />\",$fc_vm)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\modules\\extensions_batch\\libs\\paloSantoExtensionsBatch.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec( $this->_amportal[\"PRE_RELOAD\"]['valor'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\modules\\extensions_batch\\libs\\paloSantoExtensionsBatch.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($retrieve)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\modules\\extensions_batch\\libs\\paloSantoExtensionsBatch.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($wOpBounce.' &>'.$this->_astconfig['astlogdir']['valor'].'/issabelpbx-bounce_op.log')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\modules\\extensions_batch\\libs\\paloSantoExtensionsBatch.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec( $this->_amportal[\"POST_RELOAD\"]['valor'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\modules\\festival\\libs\\paloSantoFestival.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/bin/issabel-helper festival --enable 2>&1', $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\modules\\festival\\libs\\paloSantoFestival.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/bin/issabel-helper festival --disable', $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\modules\\festival\\libs\\paloSantoFestival.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/sbin/pidof -o $$ -o $PPID -o %PPID -x festival', $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\modules\\qr_batch\\libs\\IssabelQRConfig.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/sbin/ip addr show', $output)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\setup\\installer.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($cmd_mv)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\setup\\installer.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($cmd_chown)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\setup\\installer.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($cmd_mv)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\setup\\installer.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($cmd_chown)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\setup\\installer.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($cmd_mv)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\setup\\installer.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"mv $DataBaseRoot/trunk.db $DataBaseRoot/trunk-old.db\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\setup\\installer.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"mv $DataBaseRoot/trunk-pbx.db $DataBaseRoot/trunk.db\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\setup\\installer.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"sqlite3 $dbname '.read $filename'\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\setup\\installer.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($command)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\setup\\installer.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($command2)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\setup\\installer.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($command3)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\setup\\installer.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($command4)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\setup\\installer.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($command5)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\setup\\installer.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($command6)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\setup\\installer.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($command7)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\setup\\installer.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($command8)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\setup\\installer.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($command9)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\setup\\installer.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($command10)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\setup\\installer.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($command11)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\setup\\installer.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"sqlite3 $DataBaseRoot/$db_name '$query'\",$arrConsole,$flagStatus)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\setup\\installer.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"sqlite3 $DataBaseRoot/$db_name '.tables $table'\",$arrConsole,$flagStatus)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\setup\\installer.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec( $arrAMP[\"PRE_RELOAD\"]['valor'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\setup\\installer.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($retrieve)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\setup\\installer.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($wOpBounce.' &>'.$arrAST['astlogdir']['valor'].'/issabelpbx-bounce_op.log')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\setup\\installer.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec( $arrAMP[\"POST_RELOAD\"]['valor'])"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\setup\\asterisk\\agi-bin\\festival-script.pl",
+    "vulnerability": "Potential Command Injection",
+    "match": "system($execf)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\setup\\asterisk\\agi-bin\\festival-weather-script.pl",
+    "vulnerability": "Potential Command Injection",
+    "match": "system($execf)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\setup\\asterisk\\agi-bin\\nv-weather.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "system (\"flite -f  $tmptext -o $tmpwave\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\pbx\\setup\\asterisk\\agi-bin\\nv-weather.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "system(\"mime-construct --to $email --subject \" . chr(34)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\security\\modules\\sec_advanced_settings\\libs\\paloSantoChangePassword.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/bin/issabel-helper anonymoussip '.($bNuevoEstado ? '--enable' : '--disable')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\security\\modules\\sec_fb_admin\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/bin/issabel-helper fb_client start', $respuesta, $retorno)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\security\\modules\\sec_fb_admin\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/bin/issabel-helper fb_client stop', $respuesta, $retorno)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\security\\modules\\sec_fb_admin\\libs\\IssabelF2Bservice.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/bin/issabel-helper fb_client reload', $output, $returncode)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\security\\modules\\sec_fb_admin\\libs\\IssabelF2Bservice.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/bin/issabel-helper fb_client reload', $respuesta, $retorno)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\security\\modules\\sec_fb_banned\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/bin/issabel-helper fb_client status '.$jail, $respuesta, $retorno)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\security\\modules\\sec_geoip_key\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/bin/issabel-helper manage_geoip_key save '.$key, $respuesta, $retorno)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\security\\modules\\sec_geoip_key\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/bin/issabel-helper manage_geoip_key get ', $respuesta, $retorno)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\security\\modules\\sec_geoip_map\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\security\\modules\\sec_geoip_map\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\security\\modules\\sec_geoip_map\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\security\\modules\\sec_geoip_map\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\security\\modules\\sec_geoip_map\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\security\\modules\\sec_geoip_map\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\security\\modules\\sec_geoip_map\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\security\\modules\\sec_letsencrypt\\installcert.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"/usr/bin/issabel-helper ssl_certbot renewcertificate\", $result, $retorno)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\security\\modules\\sec_portknock_if\\libs\\paloSantoPortKnockInterfaces.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('sudo /sbin/service generic-cloexec issabel-portknock restart', $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\security\\modules\\sec_portknock_if\\libs\\paloSantoPortKnockInterfaces.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('sudo /sbin/service generic-cloexec issabel-portknock restart', $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\security\\modules\\sec_rules\\libs\\paloSantoRules.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\security\\modules\\sec_rules\\libs\\paloSantoRules.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\security\\modules\\sec_rules\\libs\\paloSantoRules.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\security\\modules\\sec_rules\\libs\\paloSantoRules.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\security\\modules\\sec_whitelist\\libs\\Issabelwhitelist.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\security\\modules\\sec_whitelist\\libs\\Issabelwhitelist.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\storage\\modules\\storage\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"udevadm info --query=all --name=$device | grep ID_BUS | grep usb\",$output,$return)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\storage\\modules\\storage\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"udevadm info --query=all --name=$device | grep ID_PATH_TAG | grep _sd\",$output,$return)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\storage\\modules\\storage\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\storage\\modules\\storage\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"udevadm info --query=all --name=$device | grep ID_BUS | grep usb\",$output,$return)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\storage\\modules\\storage\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"udevadm info --query=all --name=$device | grep ID_PATH_TAG | grep _sd\",$output,$return)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\storage\\modules\\storage\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"udevadm info --query=all --name=$device | grep ID_BUS | grep usb\",$output,$return)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\storage\\modules\\storage\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"udevadm info --query=all --name=$device | grep ID_PATH_TAG | grep _sd\",$output,$return)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\backup_restore\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "popen($cmd,\"r\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\backup_restore\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"rm -f $fileout\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\backup_restore\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\backup_restore\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\backup_restore\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"rpm -q --queryformat '%{name} %{version} %{release}\\\\n' \".implode(' ', $packageList)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\backup_restore\\restore.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "popen($cmd,\"r\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\backup_restore\\libs\\paloSantoFTPBackup.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\backup_restore\\libs\\paloSantoFTPBackup.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\betachannel\\libs\\IssabelBetaChannel.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/bin/issabel-helper betachannel --enable', $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\betachannel\\libs\\IssabelBetaChannel.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/bin/issabel-helper betachannel --disable', $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\betachannel\\libs\\IssabelBetaChannel.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/bin/issabel-helper betachannel --status', $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\dashboard\\applets\\HardDrives\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/bin/df -P /etc/fstab', $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\dashboard\\applets\\ProcessesStatus\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('sudo -u root service generic-cloexec '.$servicios[$sServicio].' '.$sAccion.' 1>/dev/null 2>/dev/null')"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\dashboard\\applets\\TelephonyHardware\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/sbin/dahdi_hardware', $output, $retval)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\dhcp_by_mac\\libs\\paloSantoDHCP_Configuration.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\dhcp_server\\libs\\paloSantoDHCP.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/bin/issabel-helper dhcpconfig --dumpconfig', $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\dhcp_server\\libs\\paloSantoDHCP.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/sbin/service dhcpd status > /dev/null 2>&1', $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\dhcp_server\\libs\\paloSantoDHCP.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\dhcp_server\\libs\\paloSantoDHCP.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\dhcp_server\\libs\\paloSantoDHCP.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\hardware_detector\\libs\\paloSantoConfEcho.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\hardware_detector\\libs\\PaloSantoHardwareDetection.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/sbin/lsdahdi',$respuesta,$retorno)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\hardware_detector\\libs\\PaloSantoHardwareDetection.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/usr/bin/misdn_info',$arrConsole,$flagStatus)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\hardware_detector\\libs\\PaloSantoHardwareDetection.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"/usr/bin/issabel-helper hardware_detector $there_is_other_card $overwrite_chan_dahdi\", $respuesta, $retorno)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\hardware_detector\\libs\\PaloSantoHardwareDetection.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\ping\\generate.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "popen($cmd,\"r\")"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\shutdown\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "system($cmd,$return)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\shutdown\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "system($cmd,$return)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\time_config\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($cmd,$output,$ret_val)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\modules\\time_config\\index.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\setup\\paloSantoNetwork.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/sbin/ip link show', $output)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\setup\\paloSantoNetwork.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec('/sbin/ip addr show dev '.$if_actual, $output)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\setup\\paloSantoNetwork.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec(\"/sbin/route -n\", $arrOutput)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\setup\\paloSantoNetwork.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  },
+  {
+    "file": "c:\\Users\\macga\\Documents\\issabel_auditoria\\system\\setup\\paloSantoNetwork.class.php",
+    "vulnerability": "Potential Command Injection",
+    "match": "exec($sComando, $output, $ret)"
+  }
+]
