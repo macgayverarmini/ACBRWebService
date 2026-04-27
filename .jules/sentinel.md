@@ -1,0 +1,4 @@
+## 2024-04-27 - Predictable Temporary File Names in Certificate Validation
+**Vulnerability:** The application used `FormatDateTime(RSDateTimeFormat, Now)` to generate temporary file names when saving decoded Base64 certificates for validation. This creates predictable file names and can lead to race conditions or file overwriting if multiple concurrent requests process certificates within the same timestamp resolution.
+**Learning:** In FPC/Lazarus web applications handling concurrent requests, timestamp-based temporary file generation is insufficient for ensuring uniqueness. Even within a single instance, high throughput can cause collisions.
+**Prevention:** Always append a cryptographically secure random string or a GUID (e.g., `TGuid.NewGuid.ToString`) to temporary file names to guarantee uniqueness and prevent predictable path-based attacks or race conditions.
