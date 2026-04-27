@@ -1,0 +1,3 @@
+## 2024-05-30 - Stream To/From String Conversions in Pascal
+**Learning:** Performing multiple `TEncoding.UTF8.GetString` and `GetBytes` operations when converting between streams and base64 strings introduces significant overhead due to memory allocation (`TBytes`) and encoding processing. Additionally, calculating the same value multiple times inside arguments (e.g., `Length(encoded_string)` and accessing `encoded_string[1]`) forces redundant evaluations.
+**Action:** Use native Pascal string buffers directly with `ReadBuffer`/`WriteBuffer` (e.g., `ReadBuffer(str[1], Size)`) to avoid intermediate array allocations. Extract expensive function calls into local variables before passing them to routines that require both the reference and its length.
