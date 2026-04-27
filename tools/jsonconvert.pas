@@ -9,7 +9,7 @@ uses
   fpjson,
   Horse.HandleException, jsonparser,
   pcnConversaoNFe, pcnConversao,
-  Classes, SysUtils, fpjsonrtti,
+  Classes, SysUtils,
   resource.strings.global, TypInfo, RTTI;
 
 type
@@ -17,10 +17,7 @@ type
 
   TJSONTools = class
   private
-    class procedure HandleRestoreProperty(Sender: TObject; AObject: TObject;
-      Info: PPropInfo; AValue: TJSONData; var Handled: Boolean);
-    class procedure PopulateObjectList(AObject: TObject; const APropName: string;
-      AArray: TJSONArray);
+    class procedure PopulateObjectList(AListObj: TObject; AArray: TJSONArray);
     class function InternalObjToJson(const Obj: TObject; Visited: TList): TJSONData;
     class function ValueToJson(const Value: TValue; Visited: TList): TJSONData;
   public
@@ -44,52 +41,41 @@ type
 
 { TJSONTools }
 
-class procedure TJSONTools.PopulateObjectList(AObject: TObject;
-  const APropName: string; AArray: TJSONArray);
+class procedure TJSONTools.PopulateObjectList(AListObj: TObject; AArray: TJSONArray);
 var
-  LPropInfo: PPropInfo;
-  LListObj: TObject;
   LMethod: TMethod;
   LNewFunc: TNewItemFunc;
   LNewItem: TObject;
   I: Integer;
 begin
-  LPropInfo := GetPropInfo(AObject, APropName);
-  if Assigned(LPropInfo) and (LPropInfo^.PropType^.Kind = tkClass) then
-  begin
-    LListObj := GetObjectProp(AObject, LPropInfo);
-    if Assigned(LListObj) then
-    begin
-      LMethod.Code := LListObj.MethodAddress('New');
-      LMethod.Data := LListObj;
+  if not Assigned(AListObj) then Exit;
 
-      if Assigned(LMethod.Code) then
+  if AListObj is TStrings then
+  begin
+    TStrings(AListObj).Clear;
+    for I := 0 to AArray.Count - 1 do
+      TStrings(AListObj).Add(AArray.Items[I].AsString);
+    Exit;
+  end;
+
+  LMethod.Code := AListObj.MethodAddress('New');
+  LMethod.Data := AListObj;
+
+  if Assigned(LMethod.Code) then
+  begin
+    LNewFunc := TNewItemFunc(LMethod);
+    
+    for I := 0 to AArray.Count - 1 do
+    begin
+      if AArray.Items[I] is TJSONObject then
       begin
-        LNewFunc := TNewItemFunc(LMethod);
-        
-        for I := 0 to AArray.Count - 1 do
+        LNewItem := LNewFunc();
+        if Assigned(LNewItem) then
         begin
-          if AArray.Items[I] is TJSONObject then
-          begin
-            LNewItem := LNewFunc();
-            if Assigned(LNewItem) then
-            begin
-              JsonToObj(TJSONObject(AArray.Items[I]), LNewItem);
-            end;
-          end;
+          JsonToObj(TJSONObject(AArray.Items[I]), LNewItem);
         end;
       end;
     end;
-  end;
-end;
-
-class procedure TJSONTools.HandleRestoreProperty(Sender: TObject;
-  AObject: TObject; Info: PPropInfo; AValue: TJSONData; var Handled: Boolean);
-begin
-  if (AValue is TJSONArray) and (Info^.PropType^.Kind = tkClass) then
-  begin
-    PopulateObjectList(AObject, Info^.Name, TJSONArray(AValue));
-    Handled := True;
   end;
 end;
 
@@ -159,8 +145,6 @@ begin
       Result := TJSONIntegerNumber.Create(Value.AsInt64);
     tkFloat:
       begin
-        // FPC does not easily tell if it's TDateTime from TValue.Kind alone without TypeInfo check
-        // But let's assume if it's tkFloat, it's a float. 
         if Value.TypeInfo = TypeInfo(TDateTime) then
           Result := TJSONString.Create(FormatDateTime('yyyy-mm-dd"T"hh:nn:ss', Value.AsExtended))
         else if Value.TypeInfo = TypeInfo(TDate) then
@@ -184,7 +168,6 @@ begin
       end;
     tkSet:
       begin
-        // Basic set to string representation
         Result := TJSONString.Create(SetToString(Value.TypeInfo, Value.AsOrdinal, True));
       end;
     tkClass:
@@ -193,7 +176,6 @@ begin
         Result := InternalObjToJson(Obj, Visited);
       end;
   else
-    // Fallback for unknown types
     Result := TJSONNull.Create;
   end;
 end;
@@ -213,13 +195,11 @@ begin
   if Obj = nil then
     Exit(TJSONNull.Create);
 
-  // Check for recursion
   if Visited.IndexOf(Obj) >= 0 then
-    Exit(TJSONNull.Create); // Or maybe some indicator of cyclic ref
+    Exit(TJSONNull.Create);
 
   Visited.Add(Obj);
   try
-    // Handle special classes
     if Obj is TStrings then
     begin
       ArrJson := TJSONArray.Create;
@@ -238,7 +218,6 @@ begin
       Exit(ArrJson);
     end;
 
-    // TObjectList (Contnrs) / TACBrObjectList handling
     if Obj is TObjectList then
     begin
       ArrJson := TJSONArray.Create;
@@ -249,7 +228,6 @@ begin
       Exit(ArrJson);
     end;
     
-    // Also TList (just in case TACBrObjectList inherits from it differently in some versions)
     if Obj is TList then
     begin
       ArrJson := TJSONArray.Create;
@@ -261,10 +239,9 @@ begin
       Exit(ArrJson);
     end;
 
-    // Standard object
     ObjJson := TJSONObject.Create;
     
-    Ctx := TRttiContext.Create(False); // Use Extended RTTI to see all public properties
+    Ctx := TRttiContext.Create(False);
     try
       RttiType := Ctx.GetType(Obj.ClassType);
       if Assigned(RttiType) then
@@ -273,14 +250,12 @@ begin
         for i := 0 to Length(Props) - 1 do
         begin
           Prop := Props[i];
-          // Only process readable public/published properties
           if Prop.IsReadable and (Prop.Visibility in [mvPublic, mvPublished]) then
           begin
             try
               Val := Prop.GetValue(Obj);
               ObjJson.Add(Prop.Name, ValueToJson(Val, Visited));
             except
-              // Ignore properties that fail to evaluate (e.g. some indexed properties if caught here)
             end;
           end;
         end;
@@ -292,7 +267,6 @@ begin
     Result := ObjJson;
 
   finally
-    // Visited.Remove(Obj); // Do not remove to prevent any traversal to already visited nodes
   end;
 end;
 
@@ -311,7 +285,7 @@ begin
       Result := TJSONObject(Data)
     else
     begin
-      Result := TJSONObject.Create; // Fallback
+      Result := TJSONObject.Create; 
       Data.Free;
     end;
   finally
@@ -321,29 +295,103 @@ end;
 
 class procedure TJSONTools.JsonStringToObj(const JsonString: string; const Obj: TObject);
 var
-  Streamer: TJSONDeStreamer;
+  Json: TJSONData;
 begin
-  Streamer := TJSONDeStreamer.Create(nil);
-  try
-    Streamer.Options := [jdoIgnorePropertyErrors];
-    Streamer.OnRestoreProperty := HandleRestoreProperty;
-    Streamer.JSONToObject(JsonString, Obj);
-  finally
-    FreeAndNil(Streamer);
+  Json := GetJSON(JsonString);
+  if Assigned(Json) then
+  begin
+    try
+      if Json is TJSONObject then
+        JsonToObj(TJSONObject(Json), Obj);
+    finally
+      Json.Free;
+    end;
   end;
 end;
 
 class procedure TJSONTools.JsonToObj(const Json: TJSONObject; const Obj: TObject);
 var
-  Streamer: TJSONDeStreamer;
+  Ctx: TRttiContext;
+  RttiType: TRttiType;
+  Prop: TRttiProperty;
+  i: Integer;
+  Val: TValue;
+  JsonVal: TJSONData;
+  PropStr: string;
+  ObjRef: TObject;
+  EnumVal: Integer;
+  LDate: TDateTime;
 begin
-  Streamer := TJSONDeStreamer.Create(nil);
+  if (Json = nil) or (Obj = nil) then Exit;
+
+  Ctx := TRttiContext.Create(False);
   try
-    Streamer.Options := [jdoIgnorePropertyErrors];
-    Streamer.OnRestoreProperty := HandleRestoreProperty;
-    Streamer.JSONToObject(Json, Obj);
+    RttiType := Ctx.GetType(Obj.ClassType);
+    if not Assigned(RttiType) then Exit;
+
+    for i := 0 to Json.Count - 1 do
+    begin
+      PropStr := Json.Names[i];
+      JsonVal := Json.Items[i];
+      if JsonVal.IsNull then Continue;
+
+      Prop := RttiType.GetProperty(PropStr);
+      if Assigned(Prop) then
+      begin
+        if Prop.PropertyType.TypeKind = tkClass then
+        begin
+          Val := Prop.GetValue(Obj);
+          ObjRef := Val.AsObject;
+          if Assigned(ObjRef) then
+          begin
+            if JsonVal is TJSONObject then
+              JsonToObj(TJSONObject(JsonVal), ObjRef)
+            else if JsonVal is TJSONArray then
+              PopulateObjectList(ObjRef, TJSONArray(JsonVal));
+          end;
+        end
+        else if Prop.IsWritable then
+        begin
+          try
+            case Prop.PropertyType.TypeKind of
+              tkInteger, tkInt64, tkQWord:
+                Prop.SetValue(Obj, TValue.From<Int64>(JsonVal.AsInt64));
+              tkFloat:
+                begin
+                  if JsonVal is TJSONString then
+                  begin
+                    if TryISO8601ToDate(JsonVal.AsString, LDate) then
+                      Prop.SetValue(Obj, TValue.From<Extended>(LDate))
+                    else
+                      Prop.SetValue(Obj, TValue.From<Extended>(StrToDateTimeDef(JsonVal.AsString, 0)));
+                  end
+                  else if JsonVal is TJSONNumber then
+                    Prop.SetValue(Obj, TValue.From<Extended>(JsonVal.AsFloat));
+                end;
+              tkString, tkUString, tkAString, tkWString, tkChar, tkWChar, tkUChar:
+                Prop.SetValue(Obj, TValue.From<string>(JsonVal.AsString));
+              tkEnumeration:
+                if Prop.PropertyType.Handle = TypeInfo(Boolean) then
+                  Prop.SetValue(Obj, TValue.From<Boolean>(JsonVal.AsBoolean))
+                else
+                begin
+                  EnumVal := GetEnumValue(Prop.PropertyType.Handle, JsonVal.AsString);
+                  if EnumVal >= 0 then
+                    Prop.SetValue(Obj, TValue.FromOrdinal(Prop.PropertyType.Handle, EnumVal));
+                end;
+              tkSet:
+                begin
+                  EnumVal := StringToSet(Prop.PropertyType.Handle, JsonVal.AsString);
+                  Prop.SetValue(Obj, TValue.FromOrdinal(Prop.PropertyType.Handle, EnumVal));
+                end;
+            end;
+          except
+          end;
+        end;
+      end;
+    end;
   finally
-    FreeAndNil(Streamer);
+    Ctx.Free;
   end;
 end;
 
