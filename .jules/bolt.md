@@ -1,0 +1,3 @@
+## 2025-04-30 - Optimize Stream Base64 Performance
+**Learning:** Calling `TEncoding.UTF8.GetString` and `TEncoding.UTF8.GetBytes` redundantly on string/stream operations adds huge latency. Pascal's native string reads like `ReadBuffer(strBase64[1], Size)` skip bytes allocation overhead. Furthermore, double-calling functions (e.g. evaluating an encoding once for value and once for length) creates huge unnecessary processing load.
+**Action:** When working with string buffers and Pascal streams, allocate natively and read directly. Store expensive evaluations in variables instead of re-calling them, specifically inside memory stream writing sequences.

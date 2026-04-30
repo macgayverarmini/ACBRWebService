@@ -16,34 +16,50 @@ implementation
 
 function Base64StreamToString(AStream: TMemoryStream): string;
 var
-  LBytes: TBytes;
   strBase64: string;
 begin
-  SetLength(LBytes, AStream.Size);
+  Result := '';
+  if AStream.Size = 0 then
+    Exit;
+
+  // Performance optimization: Read directly into a pre-allocated string,
+  // bypassing intermediate TBytes allocations and TEncoding.UTF8 conversions.
+  SetLength(strBase64, AStream.Size);
   AStream.Position := 0;
-  AStream.Read(LBytes[0], AStream.Size);
-  strBase64 := TEncoding.UTF8.GetString(LBytes);
+  AStream.ReadBuffer(strBase64[1], AStream.Size);
   Result := base64.DecodeStringBase64(strBase64);
 end;
 
 function StringToBase64Stream(AString: string): TMemoryStream;
 var
-  LBytes: TBytes;
+  strBase64: string;
 begin
-  LBytes := TEncoding.UTF8.GetBytes(AString);
   Result := TMemoryStream.Create;
-  Result.WriteBuffer(base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes))[1], Length(base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes))));
+  if Length(AString) = 0 then
+    Exit;
+
+  // Performance optimization: Call base64.EncodeStringBase64 only once
+  // and write directly without intermediate TEncoding.UTF8 byte arrays.
+  strBase64 := base64.EncodeStringBase64(AString);
+  if Length(strBase64) > 0 then
+    Result.WriteBuffer(strBase64[1], Length(strBase64));
   Result.Position := 0;
 end;
 
 function StreamToBase64String(AStream: TMemoryStream): string;
 var
-  LBytes: TBytes;
+  strBase64: string;
 begin
-  SetLength(LBytes, AStream.Size);
+  Result := '';
+  if AStream.Size = 0 then
+    Exit;
+
+  // Performance optimization: Read directly into a pre-allocated string,
+  // bypassing intermediate TBytes allocations and TEncoding.UTF8 conversions.
+  SetLength(strBase64, AStream.Size);
   AStream.Position := 0;
-  AStream.Read(LBytes[0], AStream.Size);
-  Result := base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes));
+  AStream.ReadBuffer(strBase64[1], AStream.Size);
+  Result := base64.EncodeStringBase64(strBase64);
 end;
 
 function FileToStringBase64(const FileName: string; const Apagar: Boolean; out size: integer): string;
@@ -73,4 +89,3 @@ begin
 end;
 
 end.
-
