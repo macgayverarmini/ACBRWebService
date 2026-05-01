@@ -150,31 +150,16 @@ var
   Ac: TACBRBridgeNFe;
   LJson: TJSONObject;
   Step: String;
-  F: TextFile;
 begin
   try
     Step := 'ParseJSONBody';
     O := GetJSON(Req.Body) as TJSONObject;
-    
+
     Step := 'CreateTACBRBridgeNFe';
     Ac := TACBRBridgeNFe.Create(O.Extract(RSConfigField).AsJSON);
     try
       Step := 'CallAcNFe';
-      try
-        AssignFile(F, 'C:\NFMonitor\src\bin\log_debug.txt');
-        if FileExists('C:\NFMonitor\src\bin\log_debug.txt') then Append(F) else Rewrite(F);
-        WriteLn(F, FormatDateTime('hh:nn:ss.zzz', Now) + ' - PostNFe: Chamando Ac.NFe...');
-        CloseFile(F);
-      except end;
-
       LJson := Ac.NFe(O);
-
-      try
-        AssignFile(F, 'C:\NFMonitor\src\bin\log_debug.txt');
-        if FileExists('C:\NFMonitor\src\bin\log_debug.txt') then Append(F) else Rewrite(F);
-        WriteLn(F, FormatDateTime('hh:nn:ss.zzz', Now) + ' - PostNFe: Ac.NFe retornou!');
-        CloseFile(F);
-      except end;
 
       try
         Step := 'SendResponse';

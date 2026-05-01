@@ -33,20 +33,20 @@ Classes, SysUtils,
 resource.strings.global,
 resource.strings.msg;
 
-Type 
+Type
 
 
   { TACBRBridgeNFe }
 
   TACBRBridgeNFe = Class
-    Private 
+    Private
       fcfg: string;
       facbr: TACBrNFe;
       fdanfe: TACBrNFeDANFeFPDF;
       Procedure CarregaConfig;
 
       Function ReadXMLFromJSON(Const jsonData: TJSONObject): string;
-    Public 
+    Public
       constructor Create(Const Cfg: String);
       destructor Destroy;
       override;
@@ -85,8 +85,8 @@ Type
   documentaÃƒÂ§ÃƒÂ£o ou consulta por parte do programador.}
 
   TACBRModelosJSON = Class(TACBRBridgeNFe)
-    Private 
-    Public 
+    Private
+    Public
       // Retorna as configuraÃƒÂ§ÃƒÂµes atuais do componente da ACBR.
       Function ModelConfig: TJSONObject;
       Function ModelEvento: TJSONObject;
@@ -151,7 +151,7 @@ End;
 
 Function TACBRModelosJSON.ModelNFe: TJSONObject;
 
-Var 
+Var
   NF: NotaFiscal;
   Det: TDetCollectionItem;
 Begin
@@ -246,24 +246,13 @@ End;
 { TACBRBridgeNFe }
 
 Procedure LogDebug(Const Msg: String);
-Var
-  F: TextFile;
 Begin
-  Try
-    AssignFile(F, 'C:\NFMonitor\src\bin\log_debug.txt');
-    if FileExists('C:\NFMonitor\src\bin\log_debug.txt') then
-      Append(F)
-    else
-      Rewrite(F);
-    WriteLn(F, FormatDateTime('hh:nn:ss.zzz', Now) + ' - ' + Msg);
-    CloseFile(F);
-  Except
-  End;
+  // Stub para manter compatibilidade, mas sem escrita para o disco
 End;
 
 Function TACBRBridgeNFe.NFe(Const jNFe: TJSONObject): TJSONObject;
 
-Var 
+Var
   Nota: NotaFiscal;
   Lote: integer;
   // Unit pcnProcNFe
@@ -276,20 +265,10 @@ Begin
   //Gera objeto TNotaFiscal da unit ACBrNFeNotasFiscais
   Nota := facbr.NotasFiscais.Add;
   LogDebug('NFe - facbr.NotasFiscais.Add finalizado.');
-  
+
   // Inicia o nÃƒÂºmero do lote do envio da NFe
   Lote := 1;
-  
-  Try
-    With TStringList.Create Do
-    Begin
-      Text := 'fcfg: ' + fcfg + sLineBreak + 'jNFe: ' + jNFe.AsJSON;
-      SaveToFile('C:\NFMonitor\src\bin\debug_json.txt');
-      Free;
-    End;
-  Except
-  End;
-  
+
   // Alimenta o objeto Nota com os valores passandos por JSON
   Try
     LogDebug('NFe - Chamando JsonToObj(jNFe, Nota)...');
@@ -312,7 +291,7 @@ Begin
     LogDebug('NFe - Assinar finalizado. Chamando Validar...');
     facbr.NotasFiscais.Validar;
     LogDebug('NFe - Validar finalizado. Chamando facbr.WebServices.Envia...');
-    
+
     // Pede a ACBR para transmitir os dados
     facbr.WebServices.Envia(Lote, True, False);
     LogDebug('NFe - facbr.WebServices.Envia finalizado.');
@@ -325,7 +304,7 @@ End;
 
 Procedure TACBRBridgeNFe.CarregaConfig;
 
-Var 
+Var
   O, CertConfig: TJSONObject;
   tempData: TJSONData;
   b64String: String;
@@ -343,7 +322,7 @@ Begin
     LogDebug('CarregaConfig - chamando JsonToObj...');
     TJSONTools.JsonToObj(O, facbr.Configuracoes);
     LogDebug('CarregaConfig - JsonToObj finalizado.');
-    
+
     LogDebug('CarregaConfig - Procurando certificado...');
     tempData := O.Find('Certificados');
     if Assigned(tempData) and (tempData.JSONType = jtObject) then
@@ -367,7 +346,7 @@ Begin
 End;
 
 Function TACBRBridgeNFe.ReadXMLFromJSON(Const jsonData: TJSONObject): string;
-Var 
+Var
   xmlBase64: string;
   xmlBase64JSON: TJSONString;
 Begin
@@ -405,7 +384,7 @@ End;
 
 Function TACBRBridgeNFe.Evento(Const jEventos: TJSONArray): string;
 
-Var 
+Var
   objEvento: TInfEventoCollectionItem;
   oEvento: TJSONObject;
   I: integer;
@@ -438,12 +417,12 @@ Function TACBRBridgeNFe.Distribuicao(Const jDistribuicao: TJSONObject):
                                                                      TJSONObject
 ;
 
-Var 
+Var
   objDistribuicao: TDistribuicaoDFe;
   UF: TJSONString;
   CNPJCPF, ultNSU, NSU, chNFe: TJSONString;
 
-Const 
+Const
   CodigosIBGE: array [0..26] Of string = (
                                           '11', '12', '13', '14', '15', '16',
                                           '17', '21', '22', '23', '24',
@@ -498,7 +477,7 @@ End;
 
 Function TACBRBridgeNFe.Danfe(Const xmlData: TJSONObject): TJSONObject;
 
-Var 
+Var
   arquivofinal: string;
   stringXml: string;
   tamanho: integer;
