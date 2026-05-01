@@ -11,11 +11,8 @@ uses
   Variants,
   fpjson,
   jsonconvert,
-  Base64,
   jsonparser,
-  Classes, SysUtils,
-  streamtools;
-
+  Classes, SysUtils;
 type
   TACBRBridgeEscPos = class
   private
@@ -52,7 +49,8 @@ procedure TACBRBridgeEscPos.CarregaConfig;
 var
   O: TJSONObject;
 begin
-  if fcfg = '' then Exit;
+  if fcfg = '' then
+    exit;
   O := GetJSON(fcfg) as TJSONObject;
   try
     TJSONTools.JsonToObj(O, facbr);

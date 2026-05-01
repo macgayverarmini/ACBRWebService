@@ -8,14 +8,12 @@ interface
 uses
   RTTI,
   ACBrSintegra,
-  pcnConversao,
+  ACBRDFe.Conversao,
   Variants,
   fpjson,
   jsonconvert,
-  Base64,
   jsonparser,
-  Classes, SysUtils,
-  streamtools;
+  Classes, SysUtils;
 
 type
   TACBRBridgeSintegra = class
@@ -51,7 +49,8 @@ procedure TACBRBridgeSintegra.CarregaConfig;
 var
   O: TJSONObject;
 begin
-  if fcfg = '' then Exit;
+  if fcfg = '' then
+    exit;
   O := GetJSON(fcfg) as TJSONObject;
   try
     TJSONTools.JsonToObj(O, facbr);

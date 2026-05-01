@@ -45,11 +45,27 @@ procedure regRouter;
 implementation
 
 
+
+function ExtractConfig(O: TJSONObject; const Field: string): string;
+var
+  Data: TJSONData;
+begin
+  Result := '';
+  if Assigned(O) then
+  begin
+    Data := O.Extract(Field);
+    if Assigned(Data) then
+    begin
+      Result := Data.AsJSON;
+      Data.Free;
+    end;
+  end;
+end;
 procedure GetModeloConfigCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   AcC: TACBRModelosJSONCTe;
 begin
-  AcC := TACBRModelosJSONCTe.Create(RSEmptyString);
+  AcC := TACBRModelosJSONCTe.Create('');
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(AcC.ModelConfig.AsJSON);
   finally
@@ -61,7 +77,7 @@ procedure GetModeloEventoCTe(Req: THorseRequest; Res: THorseResponse; Next: TNex
 var
   AcC: TACBRModelosJSONCTe;
 begin
-  AcC := TACBRModelosJSONCTe.Create(RSEmptyString);
+  AcC := TACBRModelosJSONCTe.Create('');
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(AcC.ModelEvento.AsJSON);
   finally
@@ -74,7 +90,7 @@ procedure GetModeloCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc)
 var
   AcC: TACBRModelosJSONCTe;
 begin
-  AcC := TACBRModelosJSONCTe.Create(RSEmptyString);
+  AcC := TACBRModelosJSONCTe.Create('');
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(AcC.ModelCTe.AsJSON);
   finally
@@ -88,7 +104,7 @@ var
   Ac: TACBRBridgeCTe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeCTe.Create(O.Extract(RSConfigField).AsJSON);
+  Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
       .Send(Ac.Evento(O.Extract(RSEventosField) as TJSONArray));
@@ -104,7 +120,7 @@ var
   Ac: TACBRBridgeCTe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeCTe.Create(O.Extract(RSConfigField).AsJSON);
+  Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
       .Send(Ac.DACTE(O).AsJSON);
@@ -121,7 +137,7 @@ var
   Ac: TACBRBridgeCTe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeCTe.Create(O.Extract(RSConfigField).AsJSON);
+  Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.CTe(O).AsJSON);
   finally
@@ -134,7 +150,7 @@ procedure GetModeloDistCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextP
 var
   Ac: TACBRModelosJSONCTe;
 begin
-  Ac := TACBRModelosJSONCTe.Create(RSEmptyString);
+  Ac := TACBRModelosJSONCTe.Create('');
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(AC.ModelDistribuicao);
   finally
@@ -148,7 +164,7 @@ var
   Ac: TACBRBridgeCTe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeCTe.Create(O.Extract(RSConfigField).AsJSON);
+  Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
       .Send(Ac.Distribuicao(O).AsJSON);
@@ -162,7 +178,7 @@ procedure GetModeloStatusServico(Req: THorseRequest; Res: THorseResponse; Next: 
 var
   Ac: TACBRModelosJSONCTe;
 begin
-  Ac := TACBRModelosJSONCTe.Create(RSEmptyString);
+  Ac := TACBRModelosJSONCTe.Create('');
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelStatusServico.AsJSON);
   finally
@@ -174,7 +190,7 @@ procedure GetModeloConsulta(Req: THorseRequest; Res: THorseResponse; Next: TNext
 var
   Ac: TACBRModelosJSONCTe;
 begin
-  Ac := TACBRModelosJSONCTe.Create(RSEmptyString);
+  Ac := TACBRModelosJSONCTe.Create('');
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelConsulta.AsJSON);
   finally
@@ -186,7 +202,7 @@ procedure GetModeloInutilizacao(Req: THorseRequest; Res: THorseResponse; Next: T
 var
   Ac: TACBRModelosJSONCTe;
 begin
-  Ac := TACBRModelosJSONCTe.Create(RSEmptyString);
+  Ac := TACBRModelosJSONCTe.Create('');
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelInutilizacao.AsJSON);
   finally
@@ -200,7 +216,7 @@ var
   Ac: TACBRBridgeCTe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeCTe.Create(O.Extract(RSConfigField).AsJSON);
+  Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.StatusServico(O).AsJSON);
   finally
@@ -215,7 +231,7 @@ var
   Ac: TACBRBridgeCTe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeCTe.Create(O.Extract(RSConfigField).AsJSON);
+  Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.Consulta(O).AsJSON);
   finally
@@ -230,7 +246,7 @@ var
   Ac: TACBRBridgeCTe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeCTe.Create(O.Extract(RSConfigField).AsJSON);
+  Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.Inutilizacao(O).AsJSON);
   finally
@@ -244,7 +260,7 @@ procedure GetModeloCancelamento(Req: THorseRequest; Res: THorseResponse; Next: T
 var
   Ac: TACBRModelosJSONCTe;
 begin
-  Ac := TACBRModelosJSONCTe.Create(RSEmptyString);
+  Ac := TACBRModelosJSONCTe.Create('');
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelCancelamento.AsJSON);
   finally
@@ -256,7 +272,7 @@ procedure GetModeloCTeFromXML(Req: THorseRequest; Res: THorseResponse; Next: TNe
 var
   Ac: TACBRModelosJSONCTe;
 begin
-  Ac := TACBRModelosJSONCTe.Create(RSEmptyString);
+  Ac := TACBRModelosJSONCTe.Create('');
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelCTeFromXML.AsJSON);
   finally
@@ -268,7 +284,7 @@ procedure GetModeloCTeToXML(Req: THorseRequest; Res: THorseResponse; Next: TNext
 var
   Ac: TACBRModelosJSONCTe;
 begin
-  Ac := TACBRModelosJSONCTe.Create(RSEmptyString);
+  Ac := TACBRModelosJSONCTe.Create('');
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelCTeToXML.AsJSON);
   finally
@@ -282,7 +298,7 @@ var
   Ac: TACBRBridgeCTe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeCTe.Create(O.Extract(RSConfigField).AsJSON);
+  Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.Cancelamento(O).AsJSON);
   finally
@@ -333,7 +349,7 @@ var
   Ac: TACBRBridgeCTe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeCTe.Create(O.Extract(RSConfigField).AsJSON);
+  Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.CTeToXML(O).AsJSON);
   finally
@@ -348,7 +364,7 @@ var
   Ac: TACBRBridgeCTe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeCTe.Create(O.Extract(RSConfigField).AsJSON);
+  Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ValidarRegras(O).AsJSON);
   finally
@@ -363,7 +379,7 @@ var
   Ac: TACBRBridgeCTe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeCTe.Create(O.Extract(RSConfigField).AsJSON);
+  Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.DACTEEvento(O).AsJSON);
   finally
@@ -376,7 +392,7 @@ procedure GetModeloValidarRegrasCTe(Req: THorseRequest; Res: THorseResponse; Nex
 var
   Ac: TACBRModelosJSONCTe;
 begin
-  Ac := TACBRModelosJSONCTe.Create(RSEmptyString);
+  Ac := TACBRModelosJSONCTe.Create('');
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelValidarRegras.AsJSON);
   finally
@@ -388,7 +404,7 @@ procedure GetModeloDACTEEvento(Req: THorseRequest; Res: THorseResponse; Next: TN
 var
   Ac: TACBRModelosJSONCTe;
 begin
-  Ac := TACBRModelosJSONCTe.Create(RSEmptyString);
+  Ac := TACBRModelosJSONCTe.Create('');
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelDACTEEvento.AsJSON);
   finally

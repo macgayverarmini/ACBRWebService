@@ -53,7 +53,8 @@ procedure TACBRBridgeSPED.CarregaConfig;
 var
   O: TJSONObject;
 begin
-  if fcfg = '' then Exit;
+  if fcfg = '' then
+    exit;
   O := GetJSON(fcfg) as TJSONObject;
   try
     TJSONTools.JsonToObj(O, facbr); // Popula as properties do componente em si

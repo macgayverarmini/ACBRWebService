@@ -35,12 +35,28 @@ procedure regRouter;
 
 implementation
 
+
+function ExtractConfig(O: TJSONObject; const Field: string): string;
+var
+  Data: TJSONData;
+begin
+  Result := '';
+  if Assigned(O) then
+  begin
+    Data := O.Extract(Field);
+    if Assigned(Data) then
+    begin
+      Result := Data.AsJSON;
+      Data.Free;
+    end;
+  end;
+end;
 procedure GetModeloConfig(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   Ac: TACBRModelosJSONNFSe;
   LJson: TJSONObject;
 begin
-  Ac := TACBRModelosJSONNFSe.Create(RSEmptyString);
+  Ac := TACBRModelosJSONNFSe.Create('');
   try
     LJson := AC.ModelConfig;
     try
@@ -58,7 +74,7 @@ var
   Ac: TACBRModelosJSONNFSe;
   LJson: TJSONObject;
 begin
-  Ac := TACBRModelosJSONNFSe.Create(RSEmptyString);
+  Ac := TACBRModelosJSONNFSe.Create('');
   try
     LJson := AC.ModelEmitir;
     try
@@ -76,7 +92,7 @@ var
   Ac: TACBRModelosJSONNFSe;
   LJson: TJSONObject;
 begin
-  Ac := TACBRModelosJSONNFSe.Create(RSEmptyString);
+  Ac := TACBRModelosJSONNFSe.Create('');
   try
     LJson := AC.ModelConsultarSituacao;
     try
@@ -94,7 +110,7 @@ var
   Ac: TACBRModelosJSONNFSe;
   LJson: TJSONObject;
 begin
-  Ac := TACBRModelosJSONNFSe.Create(RSEmptyString);
+  Ac := TACBRModelosJSONNFSe.Create('');
   try
     LJson := AC.ModelConsultarLote;
     try
@@ -112,7 +128,7 @@ var
   Ac: TACBRModelosJSONNFSe;
   LJson: TJSONObject;
 begin
-  Ac := TACBRModelosJSONNFSe.Create(RSEmptyString);
+  Ac := TACBRModelosJSONNFSe.Create('');
   try
     LJson := AC.ModelConsultarNFSePorRps;
     try
@@ -130,7 +146,7 @@ var
   Ac: TACBRModelosJSONNFSe;
   LJson: TJSONObject;
 begin
-  Ac := TACBRModelosJSONNFSe.Create(RSEmptyString);
+  Ac := TACBRModelosJSONNFSe.Create('');
   try
     LJson := AC.ModelConsultarNFSe;
     try
@@ -148,7 +164,7 @@ var
   Ac: TACBRModelosJSONNFSe;
   LJson: TJSONObject;
 begin
-  Ac := TACBRModelosJSONNFSe.Create(RSEmptyString);
+  Ac := TACBRModelosJSONNFSe.Create('');
   try
     LJson := AC.ModelCancelar;
     try
@@ -166,7 +182,7 @@ var
   Ac: TACBRModelosJSONNFSe;
   LJson: TJSONObject;
 begin
-  Ac := TACBRModelosJSONNFSe.Create(RSEmptyString);
+  Ac := TACBRModelosJSONNFSe.Create('');
   try
     LJson := AC.ModelSubstituir;
     try
@@ -186,7 +202,7 @@ var
   LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFSe.Create(O.Extract(RSConfigField).AsJSON);
+  Ac := TACBRBridgeNFSe.Create(ExtractConfig(O, RSConfigField));
   try
     LJson := Ac.Emitir(O);
     try
@@ -207,7 +223,7 @@ var
   LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFSe.Create(O.Extract(RSConfigField).AsJSON);
+  Ac := TACBRBridgeNFSe.Create(ExtractConfig(O, RSConfigField));
   try
     LJson := Ac.Gerar(O);
     try
@@ -228,7 +244,7 @@ var
   LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFSe.Create(O.Extract(RSConfigField).AsJSON);
+  Ac := TACBRBridgeNFSe.Create(ExtractConfig(O, RSConfigField));
   try
     LJson := Ac.ConsultarSituacao(O);
     try
@@ -249,7 +265,7 @@ var
   LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFSe.Create(O.Extract(RSConfigField).AsJSON);
+  Ac := TACBRBridgeNFSe.Create(ExtractConfig(O, RSConfigField));
   try
     LJson := Ac.ConsultarLote(O);
     try
@@ -270,7 +286,7 @@ var
   LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFSe.Create(O.Extract(RSConfigField).AsJSON);
+  Ac := TACBRBridgeNFSe.Create(ExtractConfig(O, RSConfigField));
   try
     LJson := Ac.ConsultarNFSePorRps(O);
     try
@@ -291,7 +307,7 @@ var
   LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFSe.Create(O.Extract(RSConfigField).AsJSON);
+  Ac := TACBRBridgeNFSe.Create(ExtractConfig(O, RSConfigField));
   try
     LJson := Ac.ConsultarNFSe(O);
     try
@@ -312,7 +328,7 @@ var
   LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFSe.Create(O.Extract(RSConfigField).AsJSON);
+  Ac := TACBRBridgeNFSe.Create(ExtractConfig(O, RSConfigField));
   try
     LJson := Ac.Cancelar(O);
     try
@@ -333,7 +349,7 @@ var
   LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFSe.Create(O.Extract(RSConfigField).AsJSON);
+  Ac := TACBRBridgeNFSe.Create(ExtractConfig(O, RSConfigField));
   try
     LJson := Ac.Substituir(O);
     try
@@ -354,7 +370,7 @@ var
   LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFSe.Create(O.Extract(RSConfigField).AsJSON);
+  Ac := TACBRBridgeNFSe.Create(ExtractConfig(O, RSConfigField));
   try
     LJson := Ac.Danfse(O);
     try
@@ -375,7 +391,7 @@ var
   LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFSe.Create(O.Extract(RSConfigField).AsJSON);
+  Ac := TACBRBridgeNFSe.Create(ExtractConfig(O, RSConfigField));
   try
     LJson := Ac.Distribuicao(O);
     try

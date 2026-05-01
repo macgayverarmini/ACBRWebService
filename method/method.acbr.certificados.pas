@@ -65,7 +65,7 @@ constructor TACBRBridgeCertificados.Create(ACustomCertDir: String = '');
 begin
   inherited Create;
 
-  if ACustomCertDir.Trim <> RSEmptyString then
+  if ACustomCertDir.Trim <> '' then
     FCertificadosDir := IncludeTrailingPathDelimiter(ACustomCertDir)
   else
     FCertificadosDir := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)
@@ -94,7 +94,7 @@ var
   DecodedStr: AnsiString;
 begin
   Result := Nil;
-  ErrorMessage := RSEmptyString;
+  ErrorMessage := '';
   if Base64String.Trim.IsEmpty then
   begin
     ErrorMessage := RSEmptyBase64Error;
@@ -105,7 +105,7 @@ begin
     DecodedStr := synacode.DecodeBase64(AnsiString(Base64String));
     if Length(DecodedStr) = 0 then
     begin
-      if Base64String <> RSEmptyString then
+      if Base64String <> '' then
         ErrorMessage := RSZeroBytesAfterDecodeError
       else
         ErrorMessage := RSZeroBytesEmptyStringError;
@@ -147,7 +147,7 @@ begin
     FACBrDFeSSL.CarregarCertificado;
 
 
-    Result := FACBrDFeSSL.CertNumeroSerie <> RSEmptyString;
+    Result := FACBrDFeSSL.CertNumeroSerie <> '';
   except
     on E: Exception do
     begin
@@ -165,7 +165,7 @@ function TACBRBridgeCertificados.InternalValidarCertificado(const
 
 begin
   Result := False;
-  ErrorMsg := RSEmptyString;
+  ErrorMsg := '';
 
   if CertificadoBase64 = '' then
   begin
@@ -178,7 +178,7 @@ begin
     FACBrDFeSSL.DadosPFX := synacode.DecodeBase64(AnsiString(CertificadoBase64));
     FACBrDFeSSL.Senha := Senha;
     FACBrDFeSSL.CarregarCertificado;
-    Result := FACBrDFeSSL.CertNumeroSerie <> RSEmptyString;
+    Result := FACBrDFeSSL.CertNumeroSerie <> '';
     if not Result then
       ErrorMsg := RSValidationFailedError;
   except
@@ -196,10 +196,10 @@ var
   CertEhA1: Boolean;
 begin
   Result := False;
-  CNPJ := RSEmptyString;
-  NumSerie := RSEmptyString;
-  RazaoSocial := RSEmptyString;
-  Tipo := RSEmptyString;
+  CNPJ := '';
+  NumSerie := '';
+  RazaoSocial := '';
+  Tipo := '';
   Validade := 0;
 
   FACBrDFeSSL.DadosPFX := synacode.DecodeBase64(AnsiString(CertificadoBase64));

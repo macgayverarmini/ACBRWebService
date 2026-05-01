@@ -8,7 +8,6 @@ uses
   Interfaces,
   SysUtils,
   Classes,
-  ACBrCTe,
   Horse,
   Horse.HandleException,
   route.acbr.nfe,
@@ -18,7 +17,6 @@ uses
   route.acbr.certificados,
   route.acbr.cte,
   route.acbr.mdfe,
-  method.acbr.mdfe,
   route.acbr.ciot,
   route.acbr.esocial,
   route.acbr.bpe,
@@ -26,8 +24,7 @@ uses
   route.acbr.sintegra,
   route.acbr.escpos,
   resource.strings.global,
-  resource.strings.msg,
-  resource.strings.routes;
+  resource.strings.msg;
 
   procedure LogInfo(const AMessage: string);
   begin

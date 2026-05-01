@@ -18,7 +18,8 @@ uses
   Base64,
   jsonparser,
   Classes, SysUtils,
-  streamtools;
+  streamtools,
+  resource.strings.global;
 
 type
   TACBRBridgeCIOT = class
@@ -53,12 +54,18 @@ procedure TACBRBridgeCIOT.CarregaConfig;
 var
   O: TJSONObject;
 begin
-  if fcfg = '' then Exit;
-  O := GetJSON(fcfg) as TJSONObject;
+  if (fcfg = '') or (fcfg = '') then
+    raise Exception.Create('Configuracao vazia ou nao informada.');
   try
-    TJSONTools.JsonToObj(O, facbr.Configuracoes);
-  finally
-    O.Free;
+    O := GetJSON(fcfg) as TJSONObject;
+      try
+        TJSONTools.JsonToObj(O, facbr.Configuracoes);
+      finally
+        O.Free;
+      end;
+  except
+    on E: Exception do
+      raise Exception.Create('Erro na leitura da configuracao: ' + E.Message);
   end;
   fcfg := '';
 end;

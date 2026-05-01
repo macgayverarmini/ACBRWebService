@@ -245,77 +245,40 @@ End;
 
 { TACBRBridgeNFe }
 
-Procedure LogDebug(Const Msg: String);
-Var
-  F: TextFile;
-Begin
-  Try
-    AssignFile(F, 'C:\NFMonitor\src\bin\log_debug.txt');
-    if FileExists('C:\NFMonitor\src\bin\log_debug.txt') then
-      Append(F)
-    else
-      Rewrite(F);
-    WriteLn(F, FormatDateTime('hh:nn:ss.zzz', Now) + ' - ' + Msg);
-    CloseFile(F);
-  Except
-  End;
-End;
-
 Function TACBRBridgeNFe.NFe(Const jNFe: TJSONObject): TJSONObject;
-
 Var 
   Nota: NotaFiscal;
   Lote: integer;
   // Unit pcnProcNFe
   RetWS: TProcNFe;
 Begin
-  LogDebug('NFe - Iniciando...');
   CarregaConfig;
-  LogDebug('NFe - CarregaConfig finalizado.');
 
   //Gera objeto TNotaFiscal da unit ACBrNFeNotasFiscais
   Nota := facbr.NotasFiscais.Add;
-  LogDebug('NFe - facbr.NotasFiscais.Add finalizado.');
   
-  // Inicia o nÃƒÂºmero do lote do envio da NFe
+  // Inicia o número do lote do envio da NFe
   Lote := 1;
-  
-  Try
-    With TStringList.Create Do
-    Begin
-      Text := 'fcfg: ' + fcfg + sLineBreak + 'jNFe: ' + jNFe.AsJSON;
-      SaveToFile('C:\NFMonitor\src\bin\debug_json.txt');
-      Free;
-    End;
-  Except
-  End;
   
   // Alimenta o objeto Nota com os valores passandos por JSON
   Try
-    LogDebug('NFe - Chamando JsonToObj(jNFe, Nota)...');
     TJSONTools.JsonToObj(jNFe, Nota);
-    LogDebug('NFe - JsonToObj finalizado.');
+    Nota.NFe.infNFe.Versao := pcnConversaoNFe.VersaoDFToDbl(facbr.Configuracoes.Geral.VersaoDF);
   Except
     on E: Exception Do
           Begin
-            LogDebug('NFe - Erro no JsonToObj: ' + E.Message);
             Result := TJSONTools.SafeObjToJson(nil, RSErrorReadingJSON + E.Message);
             Exit;
           End;
   End;
 
   Try
-    LogDebug('NFe - Chamando GerarNFe...');
     facbr.NotasFiscais.GerarNFe;
-    LogDebug('NFe - GerarNFe finalizado. Chamando Assinar...');
     facbr.NotasFiscais.Assinar;
-    LogDebug('NFe - Assinar finalizado. Chamando Validar...');
     facbr.NotasFiscais.Validar;
-    LogDebug('NFe - Validar finalizado. Chamando facbr.WebServices.Envia...');
     
     // Pede a ACBR para transmitir os dados
     facbr.WebServices.Envia(Lote, True, False);
-    LogDebug('NFe - facbr.WebServices.Envia finalizado.');
     Result := TJSONTools.SafeObjToJson(facbr.WebServices.Retorno, 'Erro ao enviar NFe');
   Finally
   facbr.NotasFiscais.Clear;
@@ -330,21 +293,13 @@ Var
   tempData: TJSONData;
   b64String: String;
 Begin
-  LogDebug('CarregaConfig - Iniciando...');
-  If fcfg = RSEmptyString Then
-  begin
-    LogDebug('CarregaConfig - fcfg vazio, abortando');
-    exit;
-  end;
+  if (fcfg = '') or (fcfg = '') then
+    raise Exception.Create('Configuracao vazia ou nao informada.');
 
-  LogDebug('CarregaConfig - parse fcfg to JSON...');
   O := GetJSON(fcfg) as TJSONObject;
   Try
-    LogDebug('CarregaConfig - chamando JsonToObj...');
     TJSONTools.JsonToObj(O, facbr.Configuracoes);
-    LogDebug('CarregaConfig - JsonToObj finalizado.');
     
-    LogDebug('CarregaConfig - Procurando certificado...');
     tempData := O.Find('Certificados');
     if Assigned(tempData) and (tempData.JSONType = jtObject) then
     begin
@@ -352,9 +307,7 @@ Begin
       b64String := CertConfig.Get('DadosPFXBase64', '');
       if b64String <> '' then
       begin
-        LogDebug('CarregaConfig - Decodificando certificado base64...');
         facbr.Configuracoes.Certificados.DadosPFX := synacode.DecodeBase64(AnsiString(b64String));
-        LogDebug('CarregaConfig - Certificado decodificado com sucesso.');
       end;
     end;
 
@@ -362,8 +315,7 @@ Begin
     O.Free;
   End;
 
-  fcfg := RSEmptyString;
-  LogDebug('CarregaConfig - Sucesso absoluto.');
+  fcfg := '';
 End;
 
 Function TACBRBridgeNFe.ReadXMLFromJSON(Const jsonData: TJSONObject): string;
@@ -413,7 +365,7 @@ Var
   XmlBase64: TJSONString;
 Begin
   CarregaConfig;
-  Result := RSEmptyString;
+  Result := '';
 
 
 
@@ -529,7 +481,7 @@ Except
 End;
 
 // Esvazia a string para liberar da memória logo o xml
-stringXml := RSEmptyString;
+stringXml := '';
 
 If facbr.NotasFiscais.Count = 0 Then
 Begin
@@ -722,7 +674,7 @@ Begin
 
   Try
     Nota := facbr.NotasFiscais.Add;
-    TJSONTools.JsonToObj(jNFe, Nota);
+    TJSONTools.JsonToObj(jNFe, Nota); Nota.NFe.infNFe.Versao := pcnConversaoNFe.VersaoDFToDbl(facbr.Configuracoes.Geral.VersaoDF);
   Except
     on E: Exception Do
     Begin
@@ -760,7 +712,7 @@ Begin
     Nota := facbr.NotasFiscais.Add;
 
     Try
-      TJSONTools.JsonToObj(jNFe, Nota);
+      TJSONTools.JsonToObj(jNFe, Nota); Nota.NFe.infNFe.Versao := pcnConversaoNFe.VersaoDFToDbl(facbr.Configuracoes.Geral.VersaoDF);
     Except
       on E: Exception Do
       Begin

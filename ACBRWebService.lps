@@ -1,2 +1,327 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<CONFIG/>
+<CONFIG>
+  <ProjectSession>
+    <Version Value="13"/>
+    <BuildModes Active="Default"/>
+    <Units>
+      <Unit>
+        <Filename Value="ACBRWebService.lpr"/>
+        <Loaded Value="True"/>
+        <UsageCount Value="20"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="18"/>
+        <CursorPos X="35" Y="34"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.nfe.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.nfe.pas"/>
+        <Loaded Value="True"/>
+        <UsageCount Value="20"/>
+        <EditorIndex Value="8"/>
+        <TopLine Value="258"/>
+        <CursorPos X="7" Y="43"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tools/jsonconvert.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.diversos.extenso.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.diversos.extenso.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.diversos.validador.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.diversos.validador.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="/acbr/Fontes/ACBrDFe/ACBrNFe/DANFE/NFe/LazReport/ACBrNFeDANFeLazReport.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="tools/streamtools.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.cte.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/router.acbr.cte.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.mdfe.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.mdfe.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="resources/resource.strings.global.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="resources/resource.strings.msg.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="resources/resource.strings.routes.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.nfse.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.nfse.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.ciot.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.ciot.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.esocial.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.esocial.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.bpe.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.bpe.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.sped.pas"/>
+        <Loaded Value="True"/>
+        <UsageCount Value="20"/>
+        <EditorIndex Value="6"/>
+        <CursorPos X="108" Y="5"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.sped.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.sintegra.pas"/>
+        <Loaded Value="True"/>
+        <UsageCount Value="20"/>
+        <EditorIndex Value="5"/>
+        <TopLine Value="11"/>
+        <CursorPos X="29" Y="27"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.sintegra.pas"/>
+        <UsageCount Value="20"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.escpos.pas"/>
+        <Loaded Value="True"/>
+        <UsageCount Value="20"/>
+        <EditorIndex Value="3"/>
+        <CursorPos X="15" Y="13"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.escpos.pas"/>
+        <Loaded Value="True"/>
+        <UsageCount Value="20"/>
+        <EditorIndex Value="4"/>
+        <CursorPos X="63" Y="14"/>
+      </Unit>
+      <Unit>
+        <Filename Value="../acbr/Fontes/ACBrDFe/ACBrDFeSSL.pas"/>
+        <Loaded Value="True"/>
+        <UsageCount Value="10"/>
+        <TopLine Value="1894"/>
+        <CursorPos X="15" Y="1911"/>
+      </Unit>
+      <Unit>
+        <Filename Value="../acbr/Fontes/ACBrDFe/ACBrDFeConfiguracoes.pas"/>
+        <Loaded Value="True"/>
+        <UsageCount Value="10"/>
+        <EditorIndex Value="9"/>
+        <TopLine Value="1457"/>
+        <CursorPos X="23" Y="1469"/>
+      </Unit>
+      <Unit>
+        <Filename Value="../acbr/Fontes/Terceiros/synalist/synaser.pas"/>
+        <Loaded Value="True"/>
+        <UsageCount Value="10"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="135"/>
+        <CursorPos X="3" Y="151"/>
+      </Unit>
+      <Unit>
+        <Filename Value="../horse-master/src/Horse.Provider.FPC.HTTPApplication.pas"/>
+        <Loaded Value="True"/>
+        <UsageCount Value="10"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="7"/>
+        <TopLine Value="89"/>
+        <CursorPos X="33" Y="114"/>
+      </Unit>
+    </Units>
+    <JumpHistory HistoryIndex="29">
+      <Position>
+        <Filename Value="../acbr/Fontes/ACBrDFe/ACBrDFeConfiguracoes.pas"/>
+        <Caret Line="1469" Column="23" TopLine="1457"/>
+      </Position>
+      <Position>
+        <Filename Value="../acbr/Fontes/ACBrDFe/ACBrDFeSSL.pas"/>
+        <Caret Line="1877" Column="51" TopLine="1862"/>
+      </Position>
+      <Position>
+        <Filename Value="../acbr/Fontes/ACBrDFe/ACBrDFeSSL.pas"/>
+        <Caret Line="837" Column="3" TopLine="822"/>
+      </Position>
+      <Position>
+        <Filename Value="../acbr/Fontes/ACBrDFe/ACBrDFeSSL.pas"/>
+        <Caret Line="1869" Column="32" TopLine="1861"/>
+      </Position>
+      <Position>
+        <Filename Value="../acbr/Fontes/ACBrDFe/ACBrDFeSSL.pas"/>
+        <Caret Line="1882" Column="15" TopLine="1870"/>
+      </Position>
+      <Position>
+        <Filename Value="../acbr/Fontes/ACBrDFe/ACBrDFeSSL.pas"/>
+        <Caret Line="139" Column="20" TopLine="124"/>
+      </Position>
+      <Position>
+        <Filename Value="../acbr/Fontes/ACBrDFe/ACBrDFeSSL.pas"/>
+        <Caret Line="525" Column="4" TopLine="505"/>
+      </Position>
+      <Position>
+        <Filename Value="../acbr/Fontes/ACBrDFe/ACBrDFeSSL.pas"/>
+        <Caret Line="1885" Column="13" TopLine="1863"/>
+      </Position>
+      <Position>
+        <Filename Value="../acbr/Fontes/ACBrDFe/ACBrDFeSSL.pas"/>
+        <Caret Line="1877" Column="14" TopLine="1866"/>
+      </Position>
+      <Position>
+        <Filename Value="../acbr/Fontes/ACBrDFe/ACBrDFeSSL.pas"/>
+        <Caret Line="1911" Column="15" TopLine="1894"/>
+      </Position>
+      <Position>
+        <Filename Value="ACBRWebService.lpr"/>
+        <Caret Line="20" Column="19" TopLine="5"/>
+      </Position>
+      <Position>
+        <Filename Value="ACBRWebService.lpr"/>
+        <Caret Line="26" Column="3" TopLine="17"/>
+      </Position>
+      <Position>
+        <Filename Value="ACBRWebService.lpr"/>
+        <Caret Line="36" Column="35" TopLine="20"/>
+      </Position>
+      <Position>
+        <Filename Value="ACBRWebService.lpr"/>
+        <Caret Line="10" Column="11"/>
+      </Position>
+      <Position>
+        <Filename Value="ACBRWebService.lpr"/>
+        <Caret Line="19" Column="19" TopLine="3"/>
+      </Position>
+      <Position>
+        <Filename Value="ACBRWebService.lpr"/>
+        <Caret Line="27" Column="24" TopLine="12"/>
+      </Position>
+      <Position>
+        <Filename Value="../acbr/Fontes/Terceiros/synalist/synaser.pas"/>
+        <Caret Line="151" Column="3" TopLine="135"/>
+      </Position>
+      <Position>
+        <Filename Value="method/method.acbr.escpos.pas"/>
+        <Caret Line="13" Column="15"/>
+      </Position>
+      <Position>
+        <Filename Value="routes/route.acbr.escpos.pas"/>
+        <Caret Line="13" Column="32"/>
+      </Position>
+      <Position>
+        <Filename Value="routes/route.acbr.escpos.pas"/>
+        <Caret Line="14" Column="63"/>
+      </Position>
+      <Position>
+        <Filename Value="method/method.acbr.sintegra.pas"/>
+        <Caret Line="16" Column="20"/>
+      </Position>
+      <Position>
+        <Filename Value="ACBRWebService.lpr"/>
+        <Caret Line="34" Column="35" TopLine="18"/>
+      </Position>
+      <Position>
+        <Filename Value="method/method.acbr.sintegra.pas"/>
+        <Caret Line="27" Column="29" TopLine="11"/>
+      </Position>
+      <Position>
+        <Filename Value="method/method.acbr.sped.pas"/>
+        <Caret Line="5" Column="108"/>
+      </Position>
+      <Position>
+        <Filename Value="method/method.acbr.nfe.pas"/>
+        <Caret Line="61" Column="17" TopLine="44"/>
+      </Position>
+      <Position>
+        <Filename Value="method/method.acbr.nfe.pas"/>
+        <Caret Line="296" Column="19" TopLine="270"/>
+      </Position>
+      <Position>
+        <Filename Value="method/method.acbr.nfe.pas"/>
+        <Caret Line="46" Column="17" TopLine="30"/>
+      </Position>
+      <Position>
+        <Filename Value="method/method.acbr.nfe.pas"/>
+        <Caret Line="344" Column="20" TopLine="323"/>
+      </Position>
+      <Position>
+        <Filename Value="method/method.acbr.nfe.pas"/>
+        <Caret Line="43" Column="7" TopLine="258"/>
+      </Position>
+      <Position>
+        <Filename Value="../horse-master/src/Horse.Provider.FPC.HTTPApplication.pas"/>
+        <Caret Line="114" Column="32" TopLine="99"/>
+      </Position>
+    </JumpHistory>
+    <RunParams>
+      <FormatVersion Value="2"/>
+      <Modes ActiveMode=""/>
+    </RunParams>
+  </ProjectSession>
+  <Debugging>
+    <BreakPoints>
+      <Item>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="method/method.acbr.nfe.pas"/>
+        <Line Value="273"/>
+      </Item>
+    </BreakPoints>
+  </Debugging>
+</CONFIG>

@@ -17,6 +17,22 @@ procedure regRouter;
 
 implementation
 
+
+function ExtractConfig(O: TJSONObject; const Field: string): string;
+var
+  Data: TJSONData;
+begin
+  Result := '';
+  if Assigned(O) then
+  begin
+    Data := O.Extract(Field);
+    if Assigned(Data) then
+    begin
+      Result := Data.AsJSON;
+      Data.Free;
+    end;
+  end;
+end;
 procedure GetModeloConfigSintegra(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   AcM: TACBRModelosJSONSintegra;
@@ -44,7 +60,7 @@ begin
     end;
   end;
 
-  Ac := TACBRBridgeSintegra.Create(O.Extract('config').AsJSON);
+  Ac := TACBRBridgeSintegra.Create(ExtractConfig(O, 'config'));
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(Ac.Sintegra(O));
   finally
@@ -59,7 +75,7 @@ var
   Ac: TACBRBridgeSintegra;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeSintegra.Create(O.Extract('config').AsJSON);
+  Ac := TACBRBridgeSintegra.Create(ExtractConfig(O, 'config'));
   try
     try
       Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(Ac.Gerar(O));

@@ -27,6 +27,22 @@ procedure regRouter;
 
 implementation
 
+
+function ExtractConfig(O: TJSONObject; const Field: string): string;
+var
+  Data: TJSONData;
+begin
+  Result := '';
+  if Assigned(O) then
+  begin
+    Data := O.Extract(Field);
+    if Assigned(Data) then
+    begin
+      Result := Data.AsJSON;
+      Data.Free;
+    end;
+  end;
+end;
 procedure GetModeloUploadCertificado(Req: THorseRequest; Res: THorseResponse;
   Next: TNextProc);
 var
@@ -88,7 +104,7 @@ begin
       if O.Find(RSCertificadoBase64Field, JsonStr) then
       begin
         CertificadoBase64 := JsonStr.Value;
-        if CertificadoBase64 = RSEmptyString then
+        if CertificadoBase64 = '' then
           raise Exception.Create(RSCertificadoBase64EmptyError);
       end
       else
@@ -100,7 +116,7 @@ begin
       if O.Find(RSSenhaField, JsonStr) then
       begin
         Senha := JsonStr.Value;
-        if Senha = RSEmptyString then
+        if Senha = '' then
           raise Exception.Create(RSSenhaEmptyError);
       end
       else
@@ -112,13 +128,13 @@ begin
       if O.Find(RSCNPJField, JsonStr) then
         CNPJ := JsonStr.Value
       else
-        CNPJ := RSEmptyString; // Valor padrão se não encontrado ou tipo incorreto
+        CNPJ := ''; // Valor padrão se não encontrado ou tipo incorreto
 
       // Campo: nome_arquivo (opcional)
       if O.Find(RSNomeArquivoField, JsonStr) then
         NomeArquivo := JsonStr.Value
       else
-        NomeArquivo := RSEmptyString; // Valor padrão
+        NomeArquivo := ''; // Valor padrão
 
       // Cria a instância da Bridge
       Ac := TACBRBridgeCertificados.Create;
@@ -190,7 +206,7 @@ begin
       if O.Find(RSCertificadoBase64Field, JsonStr) then
       begin
         CertificadoBase64 := JsonStr.Value;
-        if CertificadoBase64 = RSEmptyString then
+        if CertificadoBase64 = '' then
           raise Exception.Create(RSCertificadoBase64EmptyError);
       end
       else
@@ -202,7 +218,7 @@ begin
       if O.Find(RSSenhaField, JsonStr) then
       begin
         Senha := JsonStr.Value;
-        if Senha = RSEmptyString then
+        if Senha = '' then
           raise Exception.Create(RSSenhaEmptyError);
       end
       else

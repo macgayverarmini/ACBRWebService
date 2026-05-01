@@ -161,17 +161,22 @@ Procedure TACBRBridgeNFSe.CarregaConfig;
 Var 
   O: TJSONObject;
 Begin
-  If fcfg = RSEmptyString Then
-    exit;
+  if (fcfg = '') or (fcfg = '') then
+    raise Exception.Create('Configuracao vazia ou nao informada.');
 
-  O := GetJSON(fcfg) as TJSONObject;
-  Try
-    TJSONTools.JsonToObj(O, facbr.Configuracoes);
-  Finally
-    O.Free;
-  End;
+  try
+    O := GetJSON(fcfg) as TJSONObject;
+      Try
+        TJSONTools.JsonToObj(O, facbr.Configuracoes);
+      Finally
+        O.Free;
+      End;
+  except
+    on E: Exception do
+      raise Exception.Create('Erro na leitura da configuracao: ' + E.Message);
+  end;
 
-  fcfg := RSEmptyString;
+  fcfg := '';
 End;
 
 Function TACBRBridgeNFSe.ReadXMLFromJSON(Const jsonData: TJSONObject): string;
@@ -189,7 +194,7 @@ Begin
 
   Try
     Result := DecodeStringBase64(xmlBase64);
-    xmlBase64 := RSEmptyString;
+    xmlBase64 := '';
   Except
     on E: Exception Do
           Begin
@@ -539,7 +544,7 @@ Begin
           End;
   End;
 
-  stringXml := RSEmptyString;
+  stringXml := '';
 
   fdanfse.MostraPreview := False;
   fdanfse.MostraStatus := False;

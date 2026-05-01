@@ -28,6 +28,22 @@ procedure regRouter;
 
 implementation
 
+
+function ExtractConfig(O: TJSONObject; const Field: string): string;
+var
+  Data: TJSONData;
+begin
+  Result := '';
+  if Assigned(O) then
+  begin
+    Data := O.Extract(Field);
+    if Assigned(Data) then
+    begin
+      Result := Data.AsJSON;
+      Data.Free;
+    end;
+  end;
+end;
 // --- Implementação dos Handlers de Modelos (GET) ---
 
 procedure GetModeloConfigMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
@@ -113,7 +129,7 @@ begin
     end;
   end;
 
-  Ac := TACBRBridgeMDFe.Create(O.Extract('config').AsJSON);
+  Ac := TACBRBridgeMDFe.Create(ExtractConfig(O, 'config'));
   try
     LJson := Ac.MDFe(O);
     try
@@ -142,7 +158,7 @@ begin
     end;
   end;
 
-  Ac := TACBRBridgeMDFe.Create(O.Extract('config').AsJSON);
+  Ac := TACBRBridgeMDFe.Create(ExtractConfig(O, 'config'));
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
       .Send(Ac.Evento(O.Extract('eventos') as TJSONArray));
@@ -168,7 +184,7 @@ begin
     end;
   end;
 
-  Ac := TACBRBridgeMDFe.Create(O.Extract('config').AsJSON);
+  Ac := TACBRBridgeMDFe.Create(ExtractConfig(O, 'config'));
   try
     LJson := Ac.Damdfe(O);
     try
@@ -198,7 +214,7 @@ begin
     end;
   end;
 
-  Ac := TACBRBridgeMDFe.Create(O.Extract('config').AsJSON);
+  Ac := TACBRBridgeMDFe.Create(ExtractConfig(O, 'config'));
   try
     LJson := Ac.Distribuicao(O);
     try
