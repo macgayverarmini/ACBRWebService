@@ -382,15 +382,25 @@ begin
                 Prop.SetValue(Obj, TValue.From<Int64>(JsonVal.AsInt64));
               tkFloat:
                 begin
-                  if JsonVal is TJSONString then
+                  if Prop.PropertyType.Handle = TypeInfo(TDateTime) then
                   begin
-                    if TryISO8601ToDate(JsonVal.AsString, LDate) then
-                      Prop.SetValue(Obj, TValue.From<Extended>(LDate))
-                    else
-                      Prop.SetValue(Obj, TValue.From<Extended>(StrToDateTimeDef(JsonVal.AsString, 0)));
+                    if JsonVal is TJSONString then
+                    begin
+                      if TryISO8601ToDate(JsonVal.AsString, LDate, False) then
+                        Prop.SetValue(Obj, TValue.From<Extended>(LDate))
+                      else
+                        Prop.SetValue(Obj, TValue.From<Extended>(StrToDateTimeDef(JsonVal.AsString, 0)));
+                    end
+                    else if JsonVal is TJSONNumber then
+                      Prop.SetValue(Obj, TValue.From<Extended>(JsonVal.AsFloat));
                   end
-                  else if JsonVal is TJSONNumber then
-                    Prop.SetValue(Obj, TValue.From<Extended>(JsonVal.AsFloat));
+                  else
+                  begin
+                    if JsonVal is TJSONString then
+                      Prop.SetValue(Obj, TValue.From<Extended>(StrToFloatDef(JsonVal.AsString, 0)))
+                    else if JsonVal is TJSONNumber then
+                      Prop.SetValue(Obj, TValue.From<Extended>(JsonVal.AsFloat));
+                  end;
                 end;
               tkString, tkUString, tkAString, tkWString, tkChar, tkWChar, tkUChar:
                 Prop.SetValue(Obj, TValue.From<string>(JsonVal.AsString));

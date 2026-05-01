@@ -63,6 +63,8 @@ Type
       Function StatusServico(Const jStatus: TJSONObject): TJSONObject;
       // Consulta por chave
       Function Consulta(Const jConsulta: TJSONObject): TJSONObject;
+      // Consulta por Recibo (Lote Assíncrono)
+      Function ConsultaRecibo(Const jConsulta: TJSONObject): TJSONObject;
       // InutilizaÃƒÂ§ÃƒÂ£o de numeraÃƒÂ§ÃƒÂ£o
       Function Inutilizacao(Const jInutilizacao: TJSONObject): TJSONObject;
       // Cancelamento (atalho)
@@ -78,6 +80,10 @@ Type
 
       // Teste a configuraÃƒÂ§ÃƒÂ£o passada em JSON
       Function TesteConfig: boolean;
+      // Debug: retorna a config carregada como JSON
+      Function DebugConfig: TJSONObject;
+      // Envio em lote (array de NFes)
+      Function NFeLote(Const jLote: TJSONArray): TJSONObject;
   End;
 
 
@@ -277,12 +283,55 @@ Begin
     facbr.NotasFiscais.Assinar;
     facbr.NotasFiscais.Validar;
     
-    // Pede a ACBR para transmitir os dados
+    // Pede a ACBR para transmitir os dados (síncrono obrigatório)
     facbr.WebServices.Envia(Lote, True, False);
-    Result := TJSONTools.SafeObjToJson(facbr.WebServices.Retorno, 'Erro ao enviar NFe');
+    Result := TJSONTools.SafeObjToJson(facbr.WebServices.Enviar, 'Erro ao enviar NFe');
   Finally
   facbr.NotasFiscais.Clear;
 End;
+End;
+
+Function TACBRBridgeNFe.NFeLote(Const jLote: TJSONArray): TJSONObject;
+Var
+  Nota: NotaFiscal;
+  i, Lote: integer;
+  jNFe: TJSONObject;
+Begin
+  CarregaConfig;
+  Lote := 1;
+
+  // Limpa as notas
+  facbr.NotasFiscais.Clear;
+
+  // Adiciona cada NFe do array ao componente
+  For i := 0 to jLote.Count - 1 Do
+  Begin
+    jNFe := jLote.Objects[i];
+    Nota := facbr.NotasFiscais.Add;
+    Try
+      TJSONTools.JsonToObj(jNFe, Nota);
+      Nota.NFe.infNFe.Versao := pcnConversaoNFe.VersaoDFToDbl(facbr.Configuracoes.Geral.VersaoDF);
+    Except
+      on E: Exception Do
+      Begin
+        Result := TJSONTools.SafeObjToJson(nil, RSErrorReadingJSON + ' (item ' + IntToStr(i) + '): ' + E.Message);
+        facbr.NotasFiscais.Clear;
+        Exit;
+      End;
+    End;
+  End;
+
+  Try
+    facbr.NotasFiscais.GerarNFe;
+    facbr.NotasFiscais.Assinar;
+    facbr.NotasFiscais.Validar;
+
+    // Envia lote assíncrono (segundo parâmetro = False)
+    facbr.WebServices.Envia(Lote, False, False);
+    Result := TJSONTools.SafeObjToJson(facbr.WebServices.Retorno, 'Erro ao enviar lote');
+  Finally
+    facbr.NotasFiscais.Clear;
+  End;
 End;
 
 
@@ -314,6 +363,10 @@ Begin
   Finally
     O.Free;
   End;
+
+  // Garante PathSchemas padrão para NFe se não foi informado
+  if facbr.Configuracoes.Arquivos.PathSchemas = '' then
+    facbr.Configuracoes.Arquivos.PathSchemas := ExtractFilePath(ParamStr(0)) + 'Schemas' + PathDelim + 'NFe';
 
   fcfg := '';
 End;
@@ -549,6 +602,12 @@ Begin
 End;
 End;
 
+Function TACBRBridgeNFe.DebugConfig: TJSONObject;
+Begin
+  CarregaConfig;
+  Result := TJSONTools.ObjToJson(facbr.Configuracoes);
+End;
+
 Function TACBRBridgeNFe.StatusServico(Const jStatus: TJSONObject): TJSONObject;
 Begin
   CarregaConfig;
@@ -580,6 +639,27 @@ Begin
   End
   Else
     Result := TJSONTools.SafeObjToJson(nil, 'Chave nao informada para consulta.');
+End;
+
+Function TACBRBridgeNFe.ConsultaRecibo(Const jConsulta: TJSONObject): TJSONObject;
+Var
+  Recibo: TJSONData;
+Begin
+  CarregaConfig;
+
+  If jConsulta.Find('Recibo', Recibo) Then
+  Begin
+    Try
+      facbr.WebServices.Retorno.Recibo := Recibo.AsString;
+      facbr.WebServices.Retorno.Executar;
+      Result := TJSONTools.SafeObjToJson(facbr.WebServices.Retorno, 'Erro na consulta do recibo');
+    Except
+      on E: Exception Do
+        Result := TJSONTools.SafeObjToJson(nil, 'Erro na consulta do recibo: ' + E.Message);
+    End;
+  End
+  Else
+    Result := TJSONTools.SafeObjToJson(nil, 'Recibo nao informado para consulta.');
 End;
 
 Function TACBRBridgeNFe.Inutilizacao(Const jInutilizacao: TJSONObject): TJSONObject;
@@ -627,7 +707,7 @@ Begin
 
   Try
     facbr.EnviarEvento(idLote);
-    Result := TJSONTools.SafeObjToJson(facbr.WebServices.EnvEvento.EventoRetorno.retEvento, 'Erro ao enviar evento de cancelamento');
+    Result := TJSONTools.SafeObjToJson(facbr.WebServices.EnvEvento, 'Erro ao enviar evento de cancelamento');
   Except
     on E: Exception Do
       Result := TJSONTools.SafeObjToJson(nil, 'Erro ao enviar evento de cancelamento: ' + E.Message);

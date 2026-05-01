@@ -22,6 +22,7 @@ procedure PostDANFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostNFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostStatusServicoNFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostConsultaNFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostConsultaReciboNFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostInutilizacaoNFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostCancelamentoNFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostNFeFromXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
@@ -39,6 +40,8 @@ procedure GetModeloValidarRegrasNFe(Req: THorseRequest; Res: THorseResponse; Nex
 procedure GetModeloDanfeEvento(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
 procedure regRouter;
+procedure PostDebugConfig(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostNFeLote(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
 implementation
 var F: TextFile;
@@ -268,6 +271,27 @@ begin
   end;
 end;
 
+procedure PostConsultaReciboNFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O: TJSONObject;
+  Ac: TACBRBridgeNFe;
+  LJson: TJSONObject;
+begin
+  O := GetJSON(Req.Body) as TJSONObject;
+  Ac := TACBRBridgeNFe.Create(ExtractConfig(O, RSConfigField));
+  try
+    LJson := Ac.ConsultaRecibo(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
 procedure PostInutilizacaoNFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   O: TJSONObject;
@@ -477,6 +501,80 @@ begin
   end;
 end;
 
+procedure PostNFeLote(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O, ErrObj: TJSONObject;
+  Ac: TACBRBridgeNFe;
+  LJson: TJSONObject;
+  LNFes: TJSONArray;
+  Step: String;
+begin
+  try
+    Step := 'ParseJSONBody';
+    O := GetJSON(Req.Body) as TJSONObject;
+
+    Step := 'CreateTACBRBridgeNFe';
+    Ac := TACBRBridgeNFe.Create(ExtractConfig(O, RSConfigField));
+    try
+      Step := 'ExtractNFesArray';
+      LNFes := O.Find('NFes', jtArray) as TJSONArray;
+      if LNFes = nil then
+      begin
+        ErrObj := TJSONObject.Create;
+        ErrObj.Add('Status', 'Erro');
+        ErrObj.Add('error', 'Campo NFes (array) nao encontrado no payload');
+        Res.Status(400).ContentType(TMimeTypes.ApplicationJSON.ToString).Send(ErrObj.AsJSON);
+        ErrObj.Free;
+        Exit;
+      end;
+
+      Step := 'CallAcNFeLote';
+      LJson := Ac.NFeLote(LNFes);
+      try
+        Step := 'SendResponse';
+        Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+      finally
+        LJson.Free;
+      end;
+    finally
+      O.Free;
+      Ac.Free;
+    end;
+  except
+    on E: Exception do
+    begin
+      ErrObj := TJSONObject.Create;
+      ErrObj.Add('Status', 'Erro');
+      ErrObj.Add('error', 'Excecao em PostNFeLote (' + Step + '): ' + E.Message);
+      ErrObj.Add('Message', 'Excecao em PostNFeLote (' + Step + '): ' + E.Message);
+      ErrObj.Add('ClassName', E.ClassName);
+      Res.Status(400).ContentType(TMimeTypes.ApplicationJSON.ToString).Send(ErrObj.AsJSON);
+      ErrObj.Free;
+    end;
+  end;
+end;
+
+procedure PostDebugConfig(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O: TJSONObject;
+  Ac: TACBRBridgeNFe;
+  LJson: TJSONObject;
+begin
+  O := GetJSON(Req.Body) as TJSONObject;
+  Ac := TACBRBridgeNFe.Create(ExtractConfig(O, RSConfigField));
+  try
+    LJson := Ac.DebugConfig;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
 procedure regRouter;
 begin
   THorse.Get(RSModeloNFeConfigRoute, GetModeloConfig);
@@ -498,12 +596,17 @@ begin
   THorse.Post(RSNFeNFeRoute, PostNFe);
   THorse.Post(RSNFeStatusRoute, PostStatusServicoNFe);
   THorse.Post(RSNFeConsultaRoute, PostConsultaNFe);
+  THorse.Post('/nfe/consulta-recibo', PostConsultaReciboNFe);
   THorse.Post(RSNFeInutilizacaoRoute, PostInutilizacaoNFe);
   THorse.Post(RSNFeCancelamentoRoute, PostCancelamentoNFe);
   THorse.Post(RSNFeNFeFromXMLRoute, PostNFeFromXML);
   THorse.Post(RSNFeNFeToXMLRoute, PostNFeToXML);
   THorse.Post(RSNFeValidarRegrasRoute, PostValidarRegrasNFe);
   THorse.Post(RSNFeDanfeEventoRoute, PostDanfeEvento);
+
+  // Debug temporário
+  THorse.Post('/nfe/debug-config', PostDebugConfig);
+  THorse.Post('/nfe/nfe-lote', PostNFeLote);
 end;
 
 end.
