@@ -1,0 +1,44 @@
+### Variáveis de Ambiente
+# Defina o ambiente em "Rest Client: Switch Environment"
+# @baseUrl = {{baseUrl}}
+# @contentType = {{contentType}}
+
+# ----------------------------------------------------
+# CONFIGURAÇÃO CTE
+# ----------------------------------------------------
+
+### Configuração Atual (GET)
+# @name getConfig
+GET {{baseUrl}}/modelo/cte/config
+Content-Type: {{contentType}}
+
+# ----------------------------------------------------
+# STATUS SERVIÇO CTE
+# ----------------------------------------------------
+
+### Status Serviço (POST)
+# @name statusServico
+POST {{baseUrl}}/cte/status
+Content-Type: {{contentType}}
+
+{
+  "config": {
+    "Webservices": {
+      "UF": "SP",
+      "Ambiente": "1",
+      "Visualizar": false,
+      "Salvar": true,
+      "AjustaAguarda1": true,
+      "AguardarConsultaRet": 1000,
+      "Tentativas": 5,
+      "IntervaloTentativas": 1000,
+      "Timeout": 5000
+    },
+    "SSLLib": "libOpenSSL"
+  }
+}
+
+### Modelo Status Serviço (GET)
+# @name getModeloStatus
+GET {{baseUrl}}/modelo/cte/status
+Content-Type: {{contentType}}
