@@ -28,6 +28,7 @@ uses
   jsonconvert,
   Base64,
   jsonparser,
+  synacode,
   Classes, SysUtils,
   streamtools,
   ACBrUtil,       // Para GetTempFileName e possivelmente FileToStringBase64
@@ -54,13 +55,16 @@ type
     function StatusServico(const jStatus: TJSONObject): TJSONObject;
     function Consulta(const jConsulta: TJSONObject): TJSONObject;
     function Inutilizacao(const jInutilizacao: TJSONObject): TJSONObject;
-    function CTe(const jCTe: TJSONObject): TJSONObject;
+    function CTe(const O: TJSONObject): TJSONObject;
     function Cancelamento(const jCancelamento: TJSONObject): TJSONObject;
     function CTeFromXML(const jXML: TJSONObject): TJSONObject;
     function CTeToXML(const jCTe: TJSONObject): TJSONObject;
     function DACTE(const xmlData: TJSONObject): TJSONObject;
     function ValidarRegras(const jCTe: TJSONObject): TJSONObject;
     function DACTEEvento(const xmlEvento: TJSONObject): TJSONObject;
+
+    function DebugConfig: TJSONObject;
+    function DebugCTe(const O: TJSONObject): TJSONObject;
 
     function TesteConfig: boolean;
   end;
@@ -287,7 +291,9 @@ end;
 
 procedure TACBRBridgeCTe.CarregaConfig;
 var
-  O: TJSONObject;
+  O, CertConfig: TJSONObject;
+  tempData: TJSONData;
+  b64String: String;
 begin
 
   if (fcfg = '') or (fcfg = '') then
@@ -297,6 +303,28 @@ begin
     O := GetJSON(fcfg) as TJSONObject;
       try
         TJSONTools.JsonToObj(O, facbr.Configuracoes);
+        
+        tempData := O.FindPath('Certificados');
+        if Assigned(tempData) and (tempData is TJSONObject) then
+        begin
+          CertConfig := TJSONObject(tempData);
+          b64String := CertConfig.Get('DadosPFXBase64', '');
+          if b64String <> '' then
+          begin
+            facbr.Configuracoes.Certificados.DadosPFX := synacode.DecodeBase64(AnsiString(b64String));
+          end;
+        end;
+
+        // Força configurações de SSL para OpenSSL
+        with facbr.Configuracoes.Geral do
+        begin
+          SSLLib := libNone; // Forca recriacao
+          SSLLib := libOpenSSL;
+          SSLCryptLib := cryOpenSSL;
+          SSLHttpLib := httpOpenSSL;
+          SSLXmlSignLib := xsLibXml2;
+        end;
+
       finally
         O.Free;
       end;
@@ -304,6 +332,10 @@ begin
     on E: Exception do
       raise Exception.Create('Erro na leitura da configuracao: ' + E.Message);
   end;
+
+  // Garante PathSchemas padrao para CTe se nao foi informado
+  if facbr.Configuracoes.Arquivos.PathSchemas = '' then
+    facbr.Configuracoes.Arquivos.PathSchemas := ExtractFilePath(ParamStr(0)) + 'Schemas' + PathDelim + 'CTe';
 
   fcfg := '';
 
@@ -345,18 +377,18 @@ begin
   inherited Destroy;
 end;
 
-function TACBRBridgeCTe.CTe(const jCTe: TJSONObject): TJSONObject;
+function TACBRBridgeCTe.CTe(const O: TJSONObject): TJSONObject;
 var
-  ConhecimentoCTe: TCTe;
+  Item: Conhecimento;
   Lote: integer;
 begin
   CarregaConfig;
 
   try
-    ConhecimentoCTe := facbr.Conhecimentos.Add.CTe;
+    Item := facbr.Conhecimentos.Add;
     Lote := 1;
 
-    TJSONTools.JsonToObj(jCTe, ConhecimentoCTe);
+    TJSONTools.JsonToObj(O, Item);
   except
     on E: Exception do
     begin
@@ -367,7 +399,49 @@ begin
   end;
 
   try
-    facbr.WebServices.Envia(Lote, True); // True para Assinar
+    Writeln('Config.WebServices.UF: ', facbr.Configuracoes.WebServices.UF);
+    Writeln('Config.Geral.VersaoDF: ', Integer(facbr.Configuracoes.Geral.VersaoDF));
+    Writeln('Ide.cUF: ', Item.CTe.Ide.cUF);
+    Writeln('Ide.UFEnv: ', Item.CTe.Ide.UFEnv);
+    Writeln('infCTe.versao: ', Item.CTe.infCTe.versao);
+    
+    Writeln('--> Chamando GerarCTe');
+    facbr.Conhecimentos.GerarCTe;
+    Writeln('XML gerado (tamanho): ', Length(facbr.Conhecimentos.Items[0].XML));
+    facbr.Conhecimentos.Items[0].GravarXML('C:\NFMonitor\src\tmp\dump_cte.xml');
+    Writeln('ArquivoPFX: ', facbr.Configuracoes.Certificados.ArquivoPFX);
+    Writeln('Senha length: ', Length(facbr.Configuracoes.Certificados.Senha));
+    Writeln('SSLCryptLib: ', Integer(facbr.Configuracoes.Geral.SSLCryptLib));
+    
+    Writeln('--> Chamando CarregarCertificado');
+    facbr.SSL.CarregarCertificado;
+    
+    if Assigned(facbr.Conhecimentos.Items[0].CTe.Emit) then
+      Writeln('CNPJ Emitente: ', facbr.Conhecimentos.Items[0].CTe.Emit.CNPJ)
+    else
+      Writeln('Emitente nao assinado ou nulo!');
+      
+    Writeln('--> Chamando ValidarCNPJCertificado');
+    try
+      facbr.SSL.ValidarCNPJCertificado(Item.CTe.Emit.CNPJ);
+      Writeln('--> Validou CNPJ com sucesso');
+    except
+      on E: Exception do
+      begin
+        Writeln('--> Erro ValidarCNPJ: ', E.ClassName, ' - ', E.Message);
+        raise;
+      end;
+    end;
+    
+    Writeln('--> Chamando facbr.SSL.Assinar');
+    Item.XML := facbr.SSL.Assinar(String(Item.XML), 'CTe', 'infCte');
+    
+    Writeln('--> Chamando Validar');
+    facbr.Conhecimentos.Validar;
+    
+    Writeln('--> Chamando Envia');
+    facbr.WebServices.Envia(Lote, False);
+    Writeln('--> Envia OK');
     Result := TJSONTools.SafeObjToJson(facbr.WebServices.Retorno, 'Erro ao enviar CTe');
   finally
     if Assigned(facbr.Conhecimentos) then facbr.Conhecimentos.Clear;
@@ -821,6 +895,32 @@ begin
       Result.Add('message', 'Erro ao gerar PDF do Evento: ' + E.Message);
     end;
   end;
+end;
+
+function TACBRBridgeCTe.DebugConfig: TJSONObject;
+begin
+  CarregaConfig;
+  Result := TJSONTools.ObjToJson(facbr.Configuracoes);
+end;
+
+function TACBRBridgeCTe.DebugCTe(const O: TJSONObject): TJSONObject;
+var
+  Item: Conhecimento;
+begin
+  CarregaConfig;
+  try
+    Item := facbr.Conhecimentos.Add;
+    TJSONTools.JsonToObj(O, Item);
+    
+    Result := TJSONTools.ObjToJson(Item.CTe);
+  except
+    on E: Exception do
+    begin
+      Result := TJSONTools.SafeObjToJson(nil, 'Erro no DebugCTe: ' + E.Message);
+      Exit;
+    end;
+  end;
+  facbr.Conhecimentos.Clear;
 end;
 
 function TACBRBridgeCTe.TesteConfig: boolean;

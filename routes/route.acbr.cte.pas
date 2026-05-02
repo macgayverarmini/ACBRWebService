@@ -35,6 +35,9 @@ procedure PostCTeToXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc)
 procedure PostValidarRegrasCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostDACTEEvento(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
+procedure PostDebugConfig(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostDebugCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+
 procedure GetModeloValidarRegrasCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure GetModeloDACTEEvento(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
@@ -131,15 +134,28 @@ begin
 end;
 
 procedure PostCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
-
 var
   O: TJSONObject;
   Ac: TACBRBridgeCTe;
+  ErrObj: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
   Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.CTe(O).AsJSON);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.CTe(O).AsJSON);
+    except
+      on E: Exception do
+      begin
+        ErrObj := TJSONObject.Create;
+        ErrObj.Add('Status', 'Erro');
+        ErrObj.Add('error', 'Excecao em PostCTe: ' + E.Message);
+        ErrObj.Add('Message', 'Excecao em PostCTe: ' + E.Message);
+        ErrObj.Add('ClassName', E.ClassName);
+        Res.Status(400).ContentType(TMimeTypes.ApplicationJSON.ToString).Send(ErrObj.AsJSON);
+        ErrObj.Free;
+      end;
+    end;
   finally
     O.Free;
     Ac.Free;
@@ -351,7 +367,49 @@ begin
   O := GetJSON(Req.Body) as TJSONObject;
   Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.CTeToXML(O).AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.CTeToXML(O.Extract('CTe') as TJSONObject).AsJSON);
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
+procedure PostDebugConfig(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O: TJSONObject;
+  Ac: TACBRBridgeCTe;
+  LJson: TJSONObject;
+begin
+  O := GetJSON(Req.Body) as TJSONObject;
+  Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
+  try
+    LJson := Ac.DebugConfig;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
+procedure PostDebugCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O: TJSONObject;
+  Ac: TACBRBridgeCTe;
+  LJson: TJSONObject;
+begin
+  O := GetJSON(Req.Body) as TJSONObject;
+  Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
+  try
+    LJson := Ac.DebugCTe(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
   finally
     O.Free;
     Ac.Free;
@@ -438,6 +496,9 @@ begin
   THorse.Post(RSCTeCTeToXMLRoute, PostCTeToXML);
   THorse.Post(RSCTeValidarRegrasRoute, PostValidarRegrasCTe);
   THorse.Post(RSCTeDACTEEventoRoute, PostDACTEEvento);
+
+  THorse.Post('/cte/debug-config', PostDebugConfig);
+  THorse.Post('/cte/debug-cte', PostDebugCTe);
 
   THorse.Get(RSModeloCTeValidarRegrasRoute, GetModeloValidarRegrasCTe);
   THorse.Get(RSModeloCTeDACTEEventoRoute, GetModeloDACTEEvento);
