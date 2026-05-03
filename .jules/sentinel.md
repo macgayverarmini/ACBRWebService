@@ -1,0 +1,4 @@
+## 2025-02-18 - Legacy Debug Blocks and Path Disclosure
+**Vulnerability:** Legacy debug blocks using `AssignFile` / `SaveToFile` with hardcoded file paths (e.g., `C:\NFMonitor\src\bin\log_debug.txt`) left in production code.
+**Learning:** Hardcoded absolute paths in debug blocks can lead to information disclosure regarding the host environment's directory structure, and may cause directory traversal or path errors if the directory structure changes or on non-Windows platforms.
+**Prevention:** Remove all such hardcoded absolute paths used in debugging. Use configurable paths based on global application state (like `RSDefaultCertPath` or equivalent constants) or dedicated logging frameworks that properly handle paths and sensitive information without leaking details in production environments.
