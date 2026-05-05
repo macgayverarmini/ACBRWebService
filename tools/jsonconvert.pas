@@ -17,9 +17,10 @@ type
 
   TJSONTools = class
   private
-    class procedure PopulateObjectList(AListObj: TObject; AArray: TJSONArray);
-    class function InternalObjToJson(const Obj: TObject; Visited: TList): TJSONData;
-    class function ValueToJson(const Value: TValue; Visited: TList): TJSONData;
+    class procedure PopulateObjectList(AListObj: TObject; AArray: TJSONArray; Ctx: TRttiContext);
+    class function InternalObjToJson(const Obj: TObject; Visited: TList; Ctx: TRttiContext): TJSONData;
+    class function ValueToJson(const Value: TValue; Visited: TList; Ctx: TRttiContext): TJSONData;
+    class procedure InternalJsonToObj(const Json: TJSONObject; const Obj: TObject; Ctx: TRttiContext);
   public
     class function ObjToJsonString(const Obj: TObject): string;
     class function ObjToJson(const Obj: TObject): TJSONObject;
@@ -41,11 +42,10 @@ type
 
 { TJSONTools }
 
-class procedure TJSONTools.PopulateObjectList(AListObj: TObject; AArray: TJSONArray);
+class procedure TJSONTools.PopulateObjectList(AListObj: TObject; AArray: TJSONArray; Ctx: TRttiContext);
 var
   I: Integer;
   LNewItem: TObject;
-  Ctx: TRttiContext;
   RttiType: TRttiType;
   RttiMethod: TRttiMethod;
 begin
@@ -68,16 +68,14 @@ begin
       begin
         LNewItem := TCollection(AListObj).Add;
         if Assigned(LNewItem) then
-          JsonToObj(TJSONObject(AArray.Items[I]), LNewItem);
+          InternalJsonToObj(TJSONObject(AArray.Items[I]), LNewItem, Ctx);
       end;
     end;
     Exit;
   end;
 
-  Ctx := TRttiContext.Create(False);
-  try
-    RttiType := Ctx.GetType(AListObj.ClassType);
-    if not Assigned(RttiType) then Exit;
+  RttiType := Ctx.GetType(AListObj.ClassType);
+  if not Assigned(RttiType) then Exit;
 
     RttiMethod := RttiType.GetMethod('New');
     if not Assigned(RttiMethod) then
@@ -94,13 +92,10 @@ begin
         begin
           LNewItem := RttiMethod.Invoke(AListObj, []).AsObject;
           if Assigned(LNewItem) then
-            JsonToObj(TJSONObject(AArray.Items[I]), LNewItem);
+            InternalJsonToObj(TJSONObject(AArray.Items[I]), LNewItem, Ctx);
         end;
       end;
     end;
-  finally
-    Ctx.Free;
-  end;
 end;
 
 class function TJSONTools.SafeObjToJson(const Obj: TObject; const ErrorMsg: string): TJSONObject;
@@ -159,7 +154,7 @@ begin
     Result := '{}';
 end;
 
-class function TJSONTools.ValueToJson(const Value: TValue; Visited: TList): TJSONData;
+class function TJSONTools.ValueToJson(const Value: TValue; Visited: TList; Ctx: TRttiContext): TJSONData;
 var
   Obj: TObject;
   EnumName: string;
@@ -197,16 +192,15 @@ begin
     tkClass:
       begin
         Obj := Value.AsObject;
-        Result := InternalObjToJson(Obj, Visited);
+        Result := InternalObjToJson(Obj, Visited, Ctx);
       end;
   else
     Result := TJSONNull.Create;
   end;
 end;
 
-class function TJSONTools.InternalObjToJson(const Obj: TObject; Visited: TList): TJSONData;
+class function TJSONTools.InternalObjToJson(const Obj: TObject; Visited: TList; Ctx: TRttiContext): TJSONData;
 var
-  Ctx: TRttiContext;
   RttiType: TRttiType;
   Props: TRttiPropertyArray;
   Prop: TRttiProperty;
@@ -223,9 +217,8 @@ begin
     Exit(TJSONNull.Create);
 
   Visited.Add(Obj);
-  try
-    if Obj is TStrings then
-    begin
+  if Obj is TStrings then
+  begin
       ArrJson := TJSONArray.Create;
       for i := 0 to TStrings(Obj).Count - 1 do
         ArrJson.Add(TStrings(Obj)[i]);
@@ -237,7 +230,7 @@ begin
       ArrJson := TJSONArray.Create;
       for i := 0 to TCollection(Obj).Count - 1 do
       begin
-        ArrJson.Add(InternalObjToJson(TCollection(Obj).Items[i], Visited));
+        ArrJson.Add(InternalObjToJson(TCollection(Obj).Items[i], Visited, Ctx));
       end;
       Exit(ArrJson);
     end;
@@ -247,7 +240,7 @@ begin
       ArrJson := TJSONArray.Create;
       for i := 0 to TObjectList(Obj).Count - 1 do
       begin
-        ArrJson.Add(InternalObjToJson(TObjectList(Obj).Items[i], Visited));
+        ArrJson.Add(InternalObjToJson(TObjectList(Obj).Items[i], Visited, Ctx));
       end;
       Exit(ArrJson);
     end;
@@ -258,53 +251,48 @@ begin
       for i := 0 to TList(Obj).Count - 1 do
       begin
         ItemObj := TObject(TList(Obj).Items[i]);
-        ArrJson.Add(InternalObjToJson(ItemObj, Visited));
+        ArrJson.Add(InternalObjToJson(ItemObj, Visited, Ctx));
       end;
       Exit(ArrJson);
     end;
 
     ObjJson := TJSONObject.Create;
     
-    Ctx := TRttiContext.Create(False);
-    try
-      RttiType := Ctx.GetType(Obj.ClassType);
-      if Assigned(RttiType) then
+    RttiType := Ctx.GetType(Obj.ClassType);
+    if Assigned(RttiType) then
+    begin
+      Props := RttiType.GetProperties;
+      for i := 0 to Length(Props) - 1 do
       begin
-        Props := RttiType.GetProperties;
-        for i := 0 to Length(Props) - 1 do
+        Prop := Props[i];
+        if Prop.IsReadable and (Prop.Visibility in [mvPublic, mvPublished]) then
         begin
-          Prop := Props[i];
-          if Prop.IsReadable and (Prop.Visibility in [mvPublic, mvPublished]) then
-          begin
-            try
-              Val := Prop.GetValue(Obj);
-              ObjJson.Add(Prop.Name, ValueToJson(Val, Visited));
-            except
-            end;
+          try
+            Val := Prop.GetValue(Obj);
+            ObjJson.Add(Prop.Name, ValueToJson(Val, Visited, Ctx));
+          except
           end;
         end;
       end;
-    finally
-      Ctx.Free;
     end;
 
     Result := ObjJson;
-
-  finally
-  end;
 end;
 
 class function TJSONTools.ObjToJson(const Obj: TObject): TJSONObject;
 var
   Visited: TList;
   Data: TJSONData;
+  Ctx: TRttiContext;
 begin
   if Obj = nil then
     Exit(nil);
 
   Visited := TList.Create;
+  // ⚡ Bolt: Create TRttiContext once and pass it down recursively to avoid expensive object creation inside loops.
+  Ctx := TRttiContext.Create(False);
   try
-    Data := InternalObjToJson(Obj, Visited);
+    Data := InternalObjToJson(Obj, Visited, Ctx);
     if Data is TJSONObject then
       Result := TJSONObject(Data)
     else
@@ -313,6 +301,7 @@ begin
       Data.Free;
     end;
   finally
+    Ctx.Free;
     Visited.Free;
   end;
 end;
@@ -336,6 +325,20 @@ end;
 class procedure TJSONTools.JsonToObj(const Json: TJSONObject; const Obj: TObject);
 var
   Ctx: TRttiContext;
+begin
+  if (Json = nil) or (Obj = nil) then Exit;
+
+  // ⚡ Bolt: Create TRttiContext once and pass it down recursively to avoid expensive object creation inside loops.
+  Ctx := TRttiContext.Create(False);
+  try
+    InternalJsonToObj(Json, Obj, Ctx);
+  finally
+    Ctx.Free;
+  end;
+end;
+
+class procedure TJSONTools.InternalJsonToObj(const Json: TJSONObject; const Obj: TObject; Ctx: TRttiContext);
+var
   RttiType: TRttiType;
   Prop: TRttiProperty;
   i: Integer;
@@ -348,10 +351,8 @@ var
 begin
   if (Json = nil) or (Obj = nil) then Exit;
 
-  Ctx := TRttiContext.Create(False);
-  try
-    RttiType := Ctx.GetType(Obj.ClassType);
-    if not Assigned(RttiType) then Exit;
+  RttiType := Ctx.GetType(Obj.ClassType);
+  if not Assigned(RttiType) then Exit;
 
     for i := 0 to Json.Count - 1 do
     begin
@@ -369,9 +370,9 @@ begin
           if Assigned(ObjRef) then
           begin
             if JsonVal is TJSONObject then
-              JsonToObj(TJSONObject(JsonVal), ObjRef)
+              InternalJsonToObj(TJSONObject(JsonVal), ObjRef, Ctx)
             else if JsonVal is TJSONArray then
-              PopulateObjectList(ObjRef, TJSONArray(JsonVal));
+              PopulateObjectList(ObjRef, TJSONArray(JsonVal), Ctx);
           end;
         end
         else if Prop.IsWritable then
@@ -424,9 +425,6 @@ begin
         end;
       end;
     end;
-  finally
-    Ctx.Free;
-  end;
 end;
 
 end.
