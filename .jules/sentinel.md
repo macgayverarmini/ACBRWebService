@@ -1,0 +1,4 @@
+## 2025-02-12 - DoS Vulnerability in Horse Routes via Global File Handlers
+**Vulnerability:** A global file descriptor (`var F: TextFile;`) was declared and used in a route implementation (`routes/route.acbr.nfe.pas`) to write debug logs to a hardcoded path.
+**Learning:** In a concurrent web framework like Horse, global variables shared across requests cause severe race conditions. Using a global file handle across multiple requests will cause file locking errors, thread contention, and can be easily exploited to cause a Denial of Service (DoS) by sending concurrent requests.
+**Prevention:** Never use global state (like file descriptors, temporary object instances, or hardcoded absolute file paths) within web route implementation files. Debugging should use proper logging mechanisms (e.g., Horse-Logger) configured per-instance.
