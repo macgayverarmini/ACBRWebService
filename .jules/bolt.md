@@ -1,0 +1,3 @@
+## 2025-05-07 - Avoid TEncoding Roundtrips and Redundant Function Evaluations
+**Learning:** In Free Pascal/Delphi, avoiding `TEncoding.UTF8.GetString` and `GetBytes` when interacting with streams significantly reduces memory allocation and O(N) operations by allowing reads/writes directly from string buffers (e.g., `ReadBuffer(str[1], AStream.Size)`). Additionally, inline procedure arguments like `WriteBuffer(Func()[1], Length(Func()))` result in redundant executions of the function `Func()`.
+**Action:** Always read directly into pre-allocated string buffers from streams and store results of expensive inline function calls in local variables when they are needed multiple times as procedure arguments.

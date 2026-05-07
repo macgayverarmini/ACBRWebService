@@ -16,34 +16,45 @@ implementation
 
 function Base64StreamToString(AStream: TMemoryStream): string;
 var
-  LBytes: TBytes;
   strBase64: string;
 begin
-  SetLength(LBytes, AStream.Size);
+  if AStream.Size = 0 then
+    Exit('');
+
+  SetLength(strBase64, AStream.Size);
   AStream.Position := 0;
-  AStream.Read(LBytes[0], AStream.Size);
-  strBase64 := TEncoding.UTF8.GetString(LBytes);
+  // Read directly into string buffer, avoiding TBytes allocation and GetString
+  AStream.ReadBuffer(strBase64[1], AStream.Size);
+
   Result := base64.DecodeStringBase64(strBase64);
 end;
 
 function StringToBase64Stream(AString: string): TMemoryStream;
 var
-  LBytes: TBytes;
+  encodedStr: string;
 begin
-  LBytes := TEncoding.UTF8.GetBytes(AString);
   Result := TMemoryStream.Create;
-  Result.WriteBuffer(base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes))[1], Length(base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes))));
+  // Encode directly from string, avoiding string-to-bytes-to-string roundtrips
+  encodedStr := base64.EncodeStringBase64(AString);
+  if Length(encodedStr) > 0 then
+    // Store in local variable to avoid evaluating EncodeStringBase64 multiple times
+    Result.WriteBuffer(encodedStr[1], Length(encodedStr));
   Result.Position := 0;
 end;
 
 function StreamToBase64String(AStream: TMemoryStream): string;
 var
-  LBytes: TBytes;
+  rawStr: string;
 begin
-  SetLength(LBytes, AStream.Size);
+  if AStream.Size = 0 then
+    Exit('');
+
+  SetLength(rawStr, AStream.Size);
   AStream.Position := 0;
-  AStream.Read(LBytes[0], AStream.Size);
-  Result := base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes));
+  // Read directly into string buffer, avoiding TBytes allocation and GetString
+  AStream.ReadBuffer(rawStr[1], AStream.Size);
+
+  Result := base64.EncodeStringBase64(rawStr);
 end;
 
 function FileToStringBase64(const FileName: string; const Apagar: Boolean; out size: integer): string;
@@ -73,4 +84,3 @@ begin
 end;
 
 end.
-
