@@ -1,0 +1,3 @@
+## 2024-05-24 - Stream and String Optimization in Pascal
+**Learning:** In Free Pascal/Delphi, passing the same inline function call multiple times as arguments to a procedure (e.g., `Result.WriteBuffer(base64.EncodeStringBase64(A)[1], Length(base64.EncodeStringBase64(A)))`) causes the compiler to evaluate the function redundantly. Also, unnecessary string-to-bytes-to-string round-trips via `TEncoding.UTF8.GetBytes` and `GetString` add redundant memory allocation when working with native strings and streams.
+**Action:** Store the result of expensive computations in a local variable before use in procedure calls. Use native string types directly with `TMemoryStream.ReadBuffer` and `WriteBuffer` instead of allocating intermediate `TBytes` arrays.
