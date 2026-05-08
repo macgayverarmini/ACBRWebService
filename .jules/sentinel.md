@@ -1,0 +1,4 @@
+## 2024-05-28 - Global File Handler Concurrency/DoS Vulnerability
+**Vulnerability:** A global file descriptor (`var F: TextFile;`) combined with legacy hardcoded debug logging (`AssignFile(F, 'C:\NFMonitor\src\bin\log_debug.txt')`) within HTTP route handlers (e.g., `routes/route.acbr.nfe.pas`) created a race condition.
+**Learning:** In asynchronous/concurrent web frameworks like Horse, global shared resources within the `implementation` section can lead to concurrent access conflicts resulting in DoS, data corruption, and unauthorized file modification. Additionally, writing to hardcoded global paths exposes internal path information.
+**Prevention:** Remove global variables used within endpoint functions. Remove legacy debugging code from production handlers. Use proper contextual logging mechanisms without shared global resources to manage concurrent requests correctly.
