@@ -1,0 +1,3 @@
+## 2024-05-18 - Optimize Stream to String Conversions
+**Learning:** In Lazarus/FPC, passing strings through intermediate `TBytes` arrays via `TEncoding.UTF8` for streams is highly inefficient. Also, placing inline function calls directly inside stream parameters causes redundant evaluations. Native Pascal strings can interface directly with TMemoryStream via `ReadBuffer`/`WriteBuffer`.
+**Action:** Always map stream bytes directly to strings utilizing 1-based indexing (e.g., `AStream.ReadBuffer(str[1], AStream.Size)`) after sizing the string correctly. Cache results of computations in local variables rather than calling them twice in parameters.
