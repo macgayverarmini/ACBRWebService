@@ -16,34 +16,38 @@ implementation
 
 function Base64StreamToString(AStream: TMemoryStream): string;
 var
-  LBytes: TBytes;
   strBase64: string;
 begin
-  SetLength(LBytes, AStream.Size);
+  // ⚡ Bolt: Removed TBytes allocation and UTF-8 roundtrip. Direct string buffer read reduces memory allocation overhead and execution time.
+  SetLength(strBase64, AStream.Size);
   AStream.Position := 0;
-  AStream.Read(LBytes[0], AStream.Size);
-  strBase64 := TEncoding.UTF8.GetString(LBytes);
+  if AStream.Size > 0 then
+    AStream.ReadBuffer(strBase64[1], AStream.Size);
   Result := base64.DecodeStringBase64(strBase64);
 end;
 
 function StringToBase64Stream(AString: string): TMemoryStream;
 var
-  LBytes: TBytes;
+  LBase64: string;
 begin
-  LBytes := TEncoding.UTF8.GetBytes(AString);
+  // ⚡ Bolt: Cached EncodeStringBase64 result to avoid evaluating it twice during WriteBuffer. Direct string buffer write avoids TBytes GC overhead.
+  LBase64 := base64.EncodeStringBase64(AString);
   Result := TMemoryStream.Create;
-  Result.WriteBuffer(base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes))[1], Length(base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes))));
+  if Length(LBase64) > 0 then
+    Result.WriteBuffer(LBase64[1], Length(LBase64));
   Result.Position := 0;
 end;
 
 function StreamToBase64String(AStream: TMemoryStream): string;
 var
-  LBytes: TBytes;
+  LStr: string;
 begin
-  SetLength(LBytes, AStream.Size);
+  // ⚡ Bolt: Removed TBytes allocation and UTF-8 roundtrip. Direct string buffer read reduces memory allocation overhead and execution time.
+  SetLength(LStr, AStream.Size);
   AStream.Position := 0;
-  AStream.Read(LBytes[0], AStream.Size);
-  Result := base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes));
+  if AStream.Size > 0 then
+    AStream.ReadBuffer(LStr[1], AStream.Size);
+  Result := base64.EncodeStringBase64(LStr);
 end;
 
 function FileToStringBase64(const FileName: string; const Apagar: Boolean; out size: integer): string;
@@ -73,4 +77,3 @@ begin
 end;
 
 end.
-
