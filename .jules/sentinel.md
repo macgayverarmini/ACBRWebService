@@ -1,0 +1,4 @@
+## 2024-05-18 - Path Disclosure and Concurrency Risk via Global File Handle
+**Vulnerability:** A global `TextFile` descriptor (`var F: TextFile;`) was declared in `routes/route.acbr.nfe.pas` and used concurrently inside the `PostNFe` web route handler to write debug logs to a hardcoded Windows path (`C:\NFMonitor\src\bin\log_debug.txt`).
+**Learning:** Hardcoded paths can expose sensitive internal directory structures and fail in cross-platform deployments. Furthermore, using a global file handle across concurrent web requests leads to race conditions, file locking errors, and potential Denial of Service (DoS) during peak load.
+**Prevention:** Remove legacy debug file writes and never use global variables for file descriptors or state in web route handlers. Rely on standard logging frameworks or configurable paths.
