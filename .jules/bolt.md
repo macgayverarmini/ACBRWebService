@@ -1,0 +1,3 @@
+## 2025-05-24 - Optimize RTTI Context Creation in Serialization
+**Learning:** In Free Pascal/Delphi, `TRttiContext.Create(False)` is a relatively expensive operation as it initializes and retrieves RTTI information. Instantiating it redundantly within recursive serialization loops (like JSON object serialization and deserialization) results in O(N) context allocations, degrading performance, particularly for large objects.
+**Action:** Always refactor recursive RTTI-heavy methods to initialize `TRttiContext` once at the public entry point and pass it down as a `const` parameter to internal private recursive helper functions.
