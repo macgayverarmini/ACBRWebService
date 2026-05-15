@@ -1,0 +1,3 @@
+## 2024-05-24 - Avoiding Redundant TEncoding Evaluations in Pascal
+**Learning:** In Lazarus/Free Pascal, writing to a buffer from `TEncoding.UTF8.GetBytes` and passing string evaluations multiple times like `Length(base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes)))` allocates unnecessary intermediate `TBytes` arrays and evaluates the function redundantly causing significant performance overhead in stream operations.
+**Action:** When working with base64 conversions and TMemoryStream read/write buffer methods, read string buffers natively and store the result of expensive computations (like encode functions) into a local variable before using its length or value.
