@@ -1,0 +1,3 @@
+## 2024-06-25 - Redundant Evaluations and Native String Usage in Pascal Streams
+**Learning:** Passing the same inline function call (like `base64.EncodeStringBase64`) multiple times as arguments causes redundant evaluation. Additionally, intermediate `TBytes` allocation when interacting with `TStream` functions (`Read`, `WriteBuffer`) is often unnecessary since FPC native strings (`str[1]`) can map directly to bytes for streams.
+**Action:** Always store expensive function calls in a local variable if used multiple times. Avoid `TEncoding.UTF8.GetBytes/GetString` and `TBytes` intermediate arrays when working with streams; use native string indexing (`str[1]`) alongside stream buffer size/length, checking for `> 0` first.
