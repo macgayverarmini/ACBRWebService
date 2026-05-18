@@ -1,0 +1,12 @@
+<<<<<<< SEARCH
+implementation
+var F: TextFile;
+
+
+function ExtractConfig(O: TJSONObject; const Field: string): string;
+=======
+implementation
+
+
+function ExtractConfig(O: TJSONObject; const Field: string): string;
+>>>>>>> REPLACE
