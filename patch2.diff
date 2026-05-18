@@ -1,0 +1,27 @@
+<<<<<<< SEARCH
+    Step := 'CallAcNFe';
+    try
+      AssignFile(F, 'C:\NFMonitor\src\bin\log_debug.txt');
+      if FileExists('C:\NFMonitor\src\bin\log_debug.txt') then Append(F) else Rewrite(F);
+      WriteLn(F, FormatDateTime('hh:nn:ss.zzz', Now) + ' - PostNFe: Chamando Ac.NFe...');
+      CloseFile(F);
+    except end;
+
+    LJson := Ac.NFe(O);
+
+    try
+      AssignFile(F, 'C:\NFMonitor\src\bin\log_debug.txt');
+      if FileExists('C:\NFMonitor\src\bin\log_debug.txt') then Append(F) else Rewrite(F);
+      WriteLn(F, FormatDateTime('hh:nn:ss.zzz', Now) + ' - PostNFe: Ac.NFe retornou!');
+      CloseFile(F);
+    except end;
+
+    try
+      Step := 'SendResponse';
+=======
+    Step := 'CallAcNFe';
+    LJson := Ac.NFe(O);
+
+    try
+      Step := 'SendResponse';
+>>>>>>> REPLACE
