@@ -1,0 +1,4 @@
+## 2024-05-21 - Fix Concurrency Vulnerability and Sensitive Path Disclosure
+**Vulnerability:** A global `var F: TextFile;` was used in `routes/route.acbr.nfe.pas` along with hardcoded debug logging (`C:\NFMonitor\src\bin\log_debug.txt`). This setup exposed an internal Windows file path and created a severe concurrency vulnerability (race conditions on the file descriptor) when multiple HTTP requests were processed simultaneously.
+**Learning:** Hardcoded absolute file paths can leak internal server environment structure. Global variables for I/O in a concurrent environment like HTTP route handlers lead to race conditions, potential DoS, and data corruption.
+**Prevention:** Avoid declaring global file descriptors in web route implementations. Use thread-safe logging mechanisms and configurable relative paths instead of hardcoded absolute paths wrapped in silent `try...except` blocks.
