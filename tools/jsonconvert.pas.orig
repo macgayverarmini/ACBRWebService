@@ -213,8 +213,6 @@ begin
   if Obj = nil then
     Exit(TJSONNull.Create);
 
-  // Optimization: TRttiContext passed recursively to avoid expensive O(N) allocation overhead.
-
   if Visited.IndexOf(Obj) >= 0 then
     Exit(TJSONNull.Create);
 
@@ -247,7 +245,7 @@ begin
       end;
       Exit(ArrJson);
     end;
-    
+
     if Obj is TList then
     begin
       ArrJson := TJSONArray.Create;
@@ -260,7 +258,7 @@ begin
     end;
 
     ObjJson := TJSONObject.Create;
-    
+
     RttiType := Ctx.GetType(Obj.ClassType);
     if Assigned(RttiType) then
     begin
