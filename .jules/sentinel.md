@@ -1,0 +1,4 @@
+## 2024-05-15 - Removed Legacy Debug File with Hardcoded Path
+**Vulnerability:** A global file descriptor `var F: TextFile` was declared in `routes/route.acbr.nfe.pas` and used in a concurrent web route (`PostNFe`) with a hardcoded path (`C:\NFMonitor\src\bin\log_debug.txt`). This caused concurrency issues, DoS potential, and disclosed the server's internal file system structure.
+**Learning:** Legacy debugging blocks wrapped in `try..except` are sometimes left behind in Pascal code. Combined with global variables for file handling, they create silent vulnerabilities and race conditions under concurrent load.
+**Prevention:** Avoid declaring global file descriptors or using `AssignFile` / `SaveToFile` with hardcoded absolute paths in web routes. Use properly configured asynchronous logging mechanisms instead.
