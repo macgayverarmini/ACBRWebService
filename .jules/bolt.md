@@ -1,0 +1,3 @@
+## 2024-05-24 - Optimize Base64 Stream Handling
+**Learning:** In Free Pascal/Delphi, translating data streams directly to native string buffers is much more efficient than using intermediate `TBytes` arrays via `TEncoding.UTF8.GetString` and `GetBytes`. Additionally, duplicate inline function calls inside procedures (like `WriteBuffer(Func()[1], Length(Func()))`) cause redundant evaluations (O(2n)).
+**Action:** Always read/write directly to string buffers using `SetLength` and `ReadBuffer`/`WriteBuffer`, checking for non-zero lengths first to prevent out-of-bounds exceptions (`str[1]`). Cache results of expensive encoding operations in local variables rather than re-evaluating them inline.
