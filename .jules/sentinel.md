@@ -1,0 +1,5 @@
+
+## 2024-05-24 - Concurrency and Hardcoded Path Vulnerabilities in Web Routes
+**Vulnerability:** Global file descriptors (e.g., `var F: TextFile;`) were declared globally in route implementations, creating thread-safety and concurrency issues for concurrent web requests. In addition, these were writing to a hardcoded Windows path (`C:\NFMonitor\src\bin\log_debug.txt`). This can lead to denial-of-service, unintended information leakage, or crash issues on systems where the path doesn't exist or concurrent execution clobbers the file.
+**Learning:** In a multi-threaded web environment like the Horse framework, avoid declaring file descriptors or shared state globally. Also, legacy debug code leaving hardcoded paths is a significant risk.
+**Prevention:** Always scope variables as locally as possible within procedures or functions. Remove `try...except` debug code blocks writing to hardcoded paths before shipping to production. If logging is required, use centralized and configurable logging strategies (e.g., environment variables for paths) and thread-safe approaches.
