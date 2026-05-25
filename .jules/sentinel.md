@@ -1,0 +1,4 @@
+## 2024-05-25 - Global File Descriptors in Web Routes Cause DoS and Path Traversal Risks
+**Vulnerability:** A global `var F: TextFile;` was declared in `routes/route.acbr.nfe.pas` and used concurrently by the `PostNFe` web endpoint to log to a hardcoded absolute Windows path `C:\NFMonitor\src\bin\log_debug.txt`.
+**Learning:** In a concurrent web environment like Horse, sharing a global file descriptor leads to race conditions and potential Denial of Service (DoS). Additionally, hardcoded file paths expose directory structure and are vulnerable to path manipulation or access denied errors.
+**Prevention:** Avoid global variables for IO descriptors in web route modules. Remove legacy debug file logging wrapped in empty `try...except end;` blocks in production endpoints. Use configured global paths or standard stdout logging instead of hardcoded paths.
