@@ -17,9 +17,10 @@ type
 
   TJSONTools = class
   private
-    class procedure PopulateObjectList(AListObj: TObject; AArray: TJSONArray);
-    class function InternalObjToJson(const Obj: TObject; Visited: TList): TJSONData;
-    class function ValueToJson(const Value: TValue; Visited: TList): TJSONData;
+    class procedure PopulateObjectList(const Ctx: TRttiContext; AListObj: TObject; AArray: TJSONArray);
+    class function InternalObjToJson(const Ctx: TRttiContext; const Obj: TObject; Visited: TList): TJSONData;
+    class function ValueToJson(const Ctx: TRttiContext; const Value: TValue; Visited: TList): TJSONData;
+    class procedure InternalJsonToObj(const Ctx: TRttiContext; const Json: TJSONObject; const Obj: TObject);
   public
     class function ObjToJsonString(const Obj: TObject): string;
     class function ObjToJson(const Obj: TObject): TJSONObject;
@@ -41,11 +42,10 @@ type
 
 { TJSONTools }
 
-class procedure TJSONTools.PopulateObjectList(AListObj: TObject; AArray: TJSONArray);
+class procedure TJSONTools.PopulateObjectList(const Ctx: TRttiContext; AListObj: TObject; AArray: TJSONArray);
 var
   I: Integer;
   LNewItem: TObject;
-  Ctx: TRttiContext;
   RttiType: TRttiType;
   RttiMethod: TRttiMethod;
 begin
@@ -68,38 +68,33 @@ begin
       begin
         LNewItem := TCollection(AListObj).Add;
         if Assigned(LNewItem) then
-          JsonToObj(TJSONObject(AArray.Items[I]), LNewItem);
+          InternalJsonToObj(Ctx, TJSONObject(AArray.Items[I]), LNewItem);
       end;
     end;
     Exit;
   end;
 
-  Ctx := TRttiContext.Create(False);
-  try
-    RttiType := Ctx.GetType(AListObj.ClassType);
-    if not Assigned(RttiType) then Exit;
+  RttiType := Ctx.GetType(AListObj.ClassType);
+  if not Assigned(RttiType) then Exit;
 
-    RttiMethod := RttiType.GetMethod('New');
-    if not Assigned(RttiMethod) then
-      RttiMethod := RttiType.GetMethod('NEW');
-    
-    if not Assigned(RttiMethod) then
-      RttiMethod := RttiType.GetMethod('new');
+  RttiMethod := RttiType.GetMethod('New');
+  if not Assigned(RttiMethod) then
+    RttiMethod := RttiType.GetMethod('NEW');
 
-    if Assigned(RttiMethod) then
+  if not Assigned(RttiMethod) then
+    RttiMethod := RttiType.GetMethod('new');
+
+  if Assigned(RttiMethod) then
+  begin
+    for I := 0 to AArray.Count - 1 do
     begin
-      for I := 0 to AArray.Count - 1 do
+      if AArray.Items[I] is TJSONObject then
       begin
-        if AArray.Items[I] is TJSONObject then
-        begin
-          LNewItem := RttiMethod.Invoke(AListObj, []).AsObject;
-          if Assigned(LNewItem) then
-            JsonToObj(TJSONObject(AArray.Items[I]), LNewItem);
-        end;
+        LNewItem := RttiMethod.Invoke(AListObj, []).AsObject;
+        if Assigned(LNewItem) then
+          InternalJsonToObj(Ctx, TJSONObject(AArray.Items[I]), LNewItem);
       end;
     end;
-  finally
-    Ctx.Free;
   end;
 end;
 
@@ -159,7 +154,7 @@ begin
     Result := '{}';
 end;
 
-class function TJSONTools.ValueToJson(const Value: TValue; Visited: TList): TJSONData;
+class function TJSONTools.ValueToJson(const Ctx: TRttiContext; const Value: TValue; Visited: TList): TJSONData;
 var
   Obj: TObject;
   EnumName: string;
@@ -197,16 +192,15 @@ begin
     tkClass:
       begin
         Obj := Value.AsObject;
-        Result := InternalObjToJson(Obj, Visited);
+        Result := InternalObjToJson(Ctx, Obj, Visited);
       end;
   else
     Result := TJSONNull.Create;
   end;
 end;
 
-class function TJSONTools.InternalObjToJson(const Obj: TObject; Visited: TList): TJSONData;
+class function TJSONTools.InternalObjToJson(const Ctx: TRttiContext; const Obj: TObject; Visited: TList): TJSONData;
 var
-  Ctx: TRttiContext;
   RttiType: TRttiType;
   Props: TRttiPropertyArray;
   Prop: TRttiProperty;
@@ -237,7 +231,7 @@ begin
       ArrJson := TJSONArray.Create;
       for i := 0 to TCollection(Obj).Count - 1 do
       begin
-        ArrJson.Add(InternalObjToJson(TCollection(Obj).Items[i], Visited));
+        ArrJson.Add(InternalObjToJson(Ctx, TCollection(Obj).Items[i], Visited));
       end;
       Exit(ArrJson);
     end;
@@ -247,45 +241,40 @@ begin
       ArrJson := TJSONArray.Create;
       for i := 0 to TObjectList(Obj).Count - 1 do
       begin
-        ArrJson.Add(InternalObjToJson(TObjectList(Obj).Items[i], Visited));
+        ArrJson.Add(InternalObjToJson(Ctx, TObjectList(Obj).Items[i], Visited));
       end;
       Exit(ArrJson);
     end;
-    
+
     if Obj is TList then
     begin
       ArrJson := TJSONArray.Create;
       for i := 0 to TList(Obj).Count - 1 do
       begin
         ItemObj := TObject(TList(Obj).Items[i]);
-        ArrJson.Add(InternalObjToJson(ItemObj, Visited));
+        ArrJson.Add(InternalObjToJson(Ctx, ItemObj, Visited));
       end;
       Exit(ArrJson);
     end;
 
     ObjJson := TJSONObject.Create;
-    
-    Ctx := TRttiContext.Create(False);
-    try
-      RttiType := Ctx.GetType(Obj.ClassType);
-      if Assigned(RttiType) then
+
+    RttiType := Ctx.GetType(Obj.ClassType);
+    if Assigned(RttiType) then
+    begin
+      Props := RttiType.GetProperties;
+      for i := 0 to Length(Props) - 1 do
       begin
-        Props := RttiType.GetProperties;
-        for i := 0 to Length(Props) - 1 do
+        Prop := Props[i];
+        if Prop.IsReadable and (Prop.Visibility in [mvPublic, mvPublished]) then
         begin
-          Prop := Props[i];
-          if Prop.IsReadable and (Prop.Visibility in [mvPublic, mvPublished]) then
-          begin
-            try
-              Val := Prop.GetValue(Obj);
-              ObjJson.Add(Prop.Name, ValueToJson(Val, Visited));
-            except
-            end;
+          try
+            Val := Prop.GetValue(Obj);
+            ObjJson.Add(Prop.Name, ValueToJson(Ctx, Val, Visited));
+          except
           end;
         end;
       end;
-    finally
-      Ctx.Free;
     end;
 
     Result := ObjJson;
@@ -298,21 +287,25 @@ class function TJSONTools.ObjToJson(const Obj: TObject): TJSONObject;
 var
   Visited: TList;
   Data: TJSONData;
+  Ctx: TRttiContext;
 begin
   if Obj = nil then
     Exit(nil);
 
   Visited := TList.Create;
+  // ⚡ Bolt: Use a single TRttiContext instance for the entire serialization tree
+  Ctx := TRttiContext.Create(False);
   try
-    Data := InternalObjToJson(Obj, Visited);
+    Data := InternalObjToJson(Ctx, Obj, Visited);
     if Data is TJSONObject then
       Result := TJSONObject(Data)
     else
     begin
-      Result := TJSONObject.Create; 
+      Result := TJSONObject.Create;
       Data.Free;
     end;
   finally
+    Ctx.Free;
     Visited.Free;
   end;
 end;
@@ -333,9 +326,8 @@ begin
   end;
 end;
 
-class procedure TJSONTools.JsonToObj(const Json: TJSONObject; const Obj: TObject);
+class procedure TJSONTools.InternalJsonToObj(const Ctx: TRttiContext; const Json: TJSONObject; const Obj: TObject);
 var
-  Ctx: TRttiContext;
   RttiType: TRttiType;
   Prop: TRttiProperty;
   i: Integer;
@@ -348,82 +340,91 @@ var
 begin
   if (Json = nil) or (Obj = nil) then Exit;
 
-  Ctx := TRttiContext.Create(False);
-  try
-    RttiType := Ctx.GetType(Obj.ClassType);
-    if not Assigned(RttiType) then Exit;
+  RttiType := Ctx.GetType(Obj.ClassType);
+  if not Assigned(RttiType) then Exit;
 
-    for i := 0 to Json.Count - 1 do
+  for i := 0 to Json.Count - 1 do
+  begin
+    PropStr := Json.Names[i];
+    JsonVal := Json.Items[i];
+    if JsonVal.IsNull then Continue;
+
+    Prop := RttiType.GetProperty(PropStr);
+    if Assigned(Prop) then
     begin
-      PropStr := Json.Names[i];
-      JsonVal := Json.Items[i];
-      if JsonVal.IsNull then Continue;
-
-      Prop := RttiType.GetProperty(PropStr);
-      if Assigned(Prop) then
+      if Prop.PropertyType.TypeKind = tkClass then
       begin
-        if Prop.PropertyType.TypeKind = tkClass then
+        Val := Prop.GetValue(Obj);
+        ObjRef := Val.AsObject;
+        if Assigned(ObjRef) then
         begin
-          Val := Prop.GetValue(Obj);
-          ObjRef := Val.AsObject;
-          if Assigned(ObjRef) then
-          begin
-            if JsonVal is TJSONObject then
-              JsonToObj(TJSONObject(JsonVal), ObjRef)
-            else if JsonVal is TJSONArray then
-              PopulateObjectList(ObjRef, TJSONArray(JsonVal));
-          end;
-        end
-        else if Prop.IsWritable then
-        begin
-          try
-            case Prop.PropertyType.TypeKind of
-              tkInteger, tkInt64, tkQWord:
-                Prop.SetValue(Obj, TValue.From<Int64>(JsonVal.AsInt64));
-              tkFloat:
+          if JsonVal is TJSONObject then
+            InternalJsonToObj(Ctx, TJSONObject(JsonVal), ObjRef)
+          else if JsonVal is TJSONArray then
+            PopulateObjectList(Ctx, ObjRef, TJSONArray(JsonVal));
+        end;
+      end
+      else if Prop.IsWritable then
+      begin
+        try
+          case Prop.PropertyType.TypeKind of
+            tkInteger, tkInt64, tkQWord:
+              Prop.SetValue(Obj, TValue.From<Int64>(JsonVal.AsInt64));
+            tkFloat:
+              begin
+                if Prop.PropertyType.Handle = TypeInfo(TDateTime) then
                 begin
-                  if Prop.PropertyType.Handle = TypeInfo(TDateTime) then
+                  if JsonVal is TJSONString then
                   begin
-                    if JsonVal is TJSONString then
-                    begin
-                      if TryISO8601ToDate(JsonVal.AsString, LDate, False) then
-                        Prop.SetValue(Obj, TValue.From<Extended>(LDate))
-                      else
-                        Prop.SetValue(Obj, TValue.From<Extended>(StrToDateTimeDef(JsonVal.AsString, 0)));
-                    end
-                    else if JsonVal is TJSONNumber then
-                      Prop.SetValue(Obj, TValue.From<Extended>(JsonVal.AsFloat));
+                    if TryISO8601ToDate(JsonVal.AsString, LDate, False) then
+                      Prop.SetValue(Obj, TValue.From<Extended>(LDate))
+                    else
+                      Prop.SetValue(Obj, TValue.From<Extended>(StrToDateTimeDef(JsonVal.AsString, 0)));
                   end
-                  else
-                  begin
-                    if JsonVal is TJSONString then
-                      Prop.SetValue(Obj, TValue.From<Extended>(StrToFloatDef(JsonVal.AsString, 0)))
-                    else if JsonVal is TJSONNumber then
-                      Prop.SetValue(Obj, TValue.From<Extended>(JsonVal.AsFloat));
-                  end;
-                end;
-              tkString, tkUString, tkAString, tkWString, tkChar, tkWChar, tkUChar:
-                Prop.SetValue(Obj, TValue.From<string>(JsonVal.AsString));
-              tkEnumeration:
-                if Prop.PropertyType.Handle = TypeInfo(Boolean) then
-                  Prop.SetValue(Obj, TValue.From<Boolean>(JsonVal.AsBoolean))
+                  else if JsonVal is TJSONNumber then
+                    Prop.SetValue(Obj, TValue.From<Extended>(JsonVal.AsFloat));
+                end
                 else
                 begin
-                  EnumVal := GetEnumValue(Prop.PropertyType.Handle, JsonVal.AsString);
-                  if EnumVal >= 0 then
-                    Prop.SetValue(Obj, TValue.FromOrdinal(Prop.PropertyType.Handle, EnumVal));
+                  if JsonVal is TJSONString then
+                    Prop.SetValue(Obj, TValue.From<Extended>(StrToFloatDef(JsonVal.AsString, 0)))
+                  else if JsonVal is TJSONNumber then
+                    Prop.SetValue(Obj, TValue.From<Extended>(JsonVal.AsFloat));
                 end;
-              tkSet:
-                begin
-                  EnumVal := StringToSet(Prop.PropertyType.Handle, JsonVal.AsString);
+              end;
+            tkString, tkUString, tkAString, tkWString, tkChar, tkWChar, tkUChar:
+              Prop.SetValue(Obj, TValue.From<string>(JsonVal.AsString));
+            tkEnumeration:
+              if Prop.PropertyType.Handle = TypeInfo(Boolean) then
+                Prop.SetValue(Obj, TValue.From<Boolean>(JsonVal.AsBoolean))
+              else
+              begin
+                EnumVal := GetEnumValue(Prop.PropertyType.Handle, JsonVal.AsString);
+                if EnumVal >= 0 then
                   Prop.SetValue(Obj, TValue.FromOrdinal(Prop.PropertyType.Handle, EnumVal));
-                end;
-            end;
-          except
+              end;
+            tkSet:
+              begin
+                EnumVal := StringToSet(Prop.PropertyType.Handle, JsonVal.AsString);
+                Prop.SetValue(Obj, TValue.FromOrdinal(Prop.PropertyType.Handle, EnumVal));
+              end;
           end;
+        except
         end;
       end;
     end;
+  end;
+end;
+
+class procedure TJSONTools.JsonToObj(const Json: TJSONObject; const Obj: TObject);
+var
+  Ctx: TRttiContext;
+begin
+  if (Json = nil) or (Obj = nil) then Exit;
+  // ⚡ Bolt: Use a single TRttiContext instance for the entire deserialization tree
+  Ctx := TRttiContext.Create(False);
+  try
+    InternalJsonToObj(Ctx, Json, Obj);
   finally
     Ctx.Free;
   end;

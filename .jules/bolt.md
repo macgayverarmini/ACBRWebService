@@ -1,0 +1,3 @@
+## 2024-05-25 - Optimization of TRttiContext creation in recursive JSON conversions
+**Learning:** In Free Pascal/Delphi, TRttiContext creation is a relatively expensive operation because it initializes and caches RTTI information. In the `TJSONTools` class, `TRttiContext.Create(False)` was being called repetitively within recursive functions (`InternalObjToJson`, `PopulateObjectList`, `JsonToObj`), resulting in redundant allocations per JSON object/field processed.
+**Action:** Always create `TRttiContext` once at the top-level public entry point of recursive serialization/deserialization methods and pass it down as a `const` parameter to internal methods. This avoids O(N) allocation overhead for nested JSON trees and significantly improves performance.
