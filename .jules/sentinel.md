@@ -1,0 +1,4 @@
+## 2025-05-26 - Remove Hardcoded Temporary File Logging in PostNFe
+**Vulnerability:** The PostNFe handler in routes/route.acbr.nfe.pas contained legacy hardcoded paths (`C:\NFMonitor\src\bin\log_debug.txt`) wrapped in try..except blocks for debugging. It additionally used a globally defined file descriptor `var F: TextFile;`.
+**Learning:** This introduces path traversal or local file write risks, potential sensitive information disclosure (e.g. system state or operational data logic tracing), and concurrency issues because multiple web requests could collide over a globally defined `var F: TextFile;`.
+**Prevention:** Remove hardcoded, absolute Windows path logging from production route handlers. Remove global `TextFile` variables in web handler frameworks like Horse to prevent concurrency problems.
