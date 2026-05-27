@@ -1,0 +1,3 @@
+## 2024-05-27 - Stream performance optimization and caching in Pascal
+**Learning:** Found redundant function evaluations in inline Pascal code (e.g., passing `Encode(...)` multiple times as arguments) and unnecessary string-to-bytes roundtripping in stream methods using `TEncoding.UTF8`.
+**Action:** Always store the result of expensive functions like `EncodeStringBase64` in a local variable before using them as arguments, especially with stream operations. Also, prefer direct native string type operations like `ReadBuffer` and `WriteBuffer` over `TBytes` buffer conversions to reduce memory usage and avoid roundtrip overhead.
