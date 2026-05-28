@@ -1,0 +1,3 @@
+## 2024-05-28 - Optimize Stream Operations
+**Learning:** Found redundant evaluations of `base64.EncodeStringBase64` and unnecessary `TEncoding.UTF8.GetBytes/GetString` round-trips when reading/writing from `TMemoryStream` objects in Pascal. Modern FPC string variables can be read from and written directly to streams (`AStream.ReadBuffer(str[1], AStream.Size)`), negating the need for expensive `TBytes` buffer allocations.
+**Action:** When working with Pascal streams, use native strings and `ReadBuffer/WriteBuffer` directly. Also cache expensive functional operations in local variables to prevent O(N) duplicate evaluations inside parameter lists.
