@@ -1,0 +1,3 @@
+## 2024-05-24 - Optimize stream encoding and allocation in streamtools
+**Learning:** During stream processing with base64, redundant UTF-8 array allocations (`TEncoding.UTF8.GetString` and `TEncoding.UTF8.GetBytes`) were bottlenecking conversions because they unnecessarily transform strings to bytes and back before the base64 encoding/decoding. Additionally, passing inline function calls (`base64.EncodeStringBase64()`) multiple times in `WriteBuffer` resulted in double evaluation.
+**Action:** Always read/write directly into native string buffers using `ReadBuffer/WriteBuffer` checking for `Length > 0`, and always store the result of expensive base64 encodings in a local variable if used more than once in an operation.
