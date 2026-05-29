@@ -1,0 +1,4 @@
+## 2025-02-28 - Avoid global file descriptors in web routes
+**Vulnerability:** A global `var F: TextFile;` was declared in `routes/route.acbr.nfe.pas` and used in `PostNFe` for logging. This creates concurrency issues in a web server handling multiple requests concurrently, potentially leading to race conditions, file locking errors, or Denial of Service (DoS). Furthermore, it logs to a hardcoded local path `C:\NFMonitor\src\bin\log_debug.txt` creating an insecure direct object reference to the file system.
+**Learning:** Legacy debugging code with global state and hardcoded paths left in production web routes poses security and stability risks.
+**Prevention:** Never use global variables for request-level state (like file handles) in web frameworks. Remove legacy debugging code before merging, or use a proper logging framework.
