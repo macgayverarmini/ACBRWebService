@@ -1,0 +1,4 @@
+## 2024-05-18 - Remove Global File Descriptor and Hardcoded Logging
+**Vulnerability:** A global file descriptor `var F: TextFile;` was used in `routes/route.acbr.nfe.pas` along with hardcoded paths (`C:\NFMonitor\src\bin\log_debug.txt`) in API request routes.
+**Learning:** Using global file descriptors for logging in asynchronous or concurrent web routes (like those in the Horse framework) introduces severe race conditions, potentially leading to deadlocks or Denial of Service (DoS). Additionally, writing to hardcoded paths can lead to path errors in standard environments and unmanaged sensitive information disclosure.
+**Prevention:** Avoid global variables for request handling. Remove legacy file-based debugging blocks wrapped in `try..except` completely from production code, or use a proper, thread-safe logging framework with configurable paths.
