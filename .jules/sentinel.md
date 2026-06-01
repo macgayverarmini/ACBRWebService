@@ -1,0 +1,5 @@
+## 2024-06-01 - Global File Descriptor DoS Risk and Information Disclosure
+
+**Vulnerability:** A global file descriptor `var F: TextFile;` was declared in the `implementation` section of `routes/route.acbr.nfe.pas`, and it was used with a hardcoded path (`C:\NFMonitor\src\bin\log_debug.txt`) for debugging in a web route (`PostNFe`).
+**Learning:** In a multithreaded web application framework (like Horse), concurrent requests accessing the same global file descriptor will cause race conditions, access violations, or application crashes, leading to a Denial of Service (DoS). Additionally, writing to hardcoded external paths can expose sensitive application logic or system configurations, and it will crash if the directory does not exist or lacks proper permissions.
+**Prevention:** Never declare file descriptors globally in route handlers. Remove legacy debug code before committing. If logging is required, use thread-safe logging mechanisms (like structured logging to standard output) rather than manual file operations. If a file must be written, use configurable paths with dynamic, non-colliding names.
