@@ -16,34 +16,46 @@ implementation
 
 function Base64StreamToString(AStream: TMemoryStream): string;
 var
-  LBytes: TBytes;
   strBase64: string;
 begin
-  SetLength(LBytes, AStream.Size);
-  AStream.Position := 0;
-  AStream.Read(LBytes[0], AStream.Size);
-  strBase64 := TEncoding.UTF8.GetString(LBytes);
-  Result := base64.DecodeStringBase64(strBase64);
+  if AStream.Size > 0 then
+  begin
+    // ⚡ Bolt: Direct string allocation avoids intermediate TBytes and TEncoding overhead
+    SetLength(strBase64, AStream.Size);
+    AStream.Position := 0;
+    AStream.ReadBuffer(strBase64[1], AStream.Size);
+    Result := base64.DecodeStringBase64(strBase64);
+  end
+  else
+    Result := '';
 end;
 
 function StringToBase64Stream(AString: string): TMemoryStream;
 var
-  LBytes: TBytes;
+  LBase64Str: string;
 begin
-  LBytes := TEncoding.UTF8.GetBytes(AString);
   Result := TMemoryStream.Create;
-  Result.WriteBuffer(base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes))[1], Length(base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes))));
+  // ⚡ Bolt: Cache base64 result to avoid double evaluation and intermediate TBytes allocation
+  LBase64Str := base64.EncodeStringBase64(AString);
+  if Length(LBase64Str) > 0 then
+    Result.WriteBuffer(LBase64Str[1], Length(LBase64Str));
   Result.Position := 0;
 end;
 
 function StreamToBase64String(AStream: TMemoryStream): string;
 var
-  LBytes: TBytes;
+  strContent: string;
 begin
-  SetLength(LBytes, AStream.Size);
-  AStream.Position := 0;
-  AStream.Read(LBytes[0], AStream.Size);
-  Result := base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes));
+  if AStream.Size > 0 then
+  begin
+    // ⚡ Bolt: Direct string allocation avoids intermediate TBytes and TEncoding overhead
+    SetLength(strContent, AStream.Size);
+    AStream.Position := 0;
+    AStream.ReadBuffer(strContent[1], AStream.Size);
+    Result := base64.EncodeStringBase64(strContent);
+  end
+  else
+    Result := '';
 end;
 
 function FileToStringBase64(const FileName: string; const Apagar: Boolean; out size: integer): string;
@@ -73,4 +85,3 @@ begin
 end;
 
 end.
-
