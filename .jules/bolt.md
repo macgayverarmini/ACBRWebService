@@ -1,0 +1,3 @@
+## 2024-06-03 - Avoid Redundant Function Calls and Intermediate Arrays in FreePascal Stream Conversions
+**Learning:** In FreePascal, calling expensive functions like `base64.EncodeStringBase64` twice in arguments to `WriteBuffer` triggers duplicate computations because arguments are evaluated inline. Additionally, using intermediate `TBytes` buffer via `TEncoding.UTF8.GetString`/`GetBytes` is unnecessary when working with Base64 strings.
+**Action:** Always store the result of expensive computations in a local variable before passing it to procedures. Use `ReadBuffer` and `WriteBuffer` directly with the memory address of native 1-based strings (e.g., `str[1]`) instead of allocating intermediate byte arrays.
