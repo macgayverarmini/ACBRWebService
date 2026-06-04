@@ -1,0 +1,5 @@
+
+## 2024-06-04 - Concurrency vulnerability and path exposure via global file descriptor in web route
+**Vulnerability:** The web route implementation in `routes/route.acbr.nfe.pas` declared a global `var F: TextFile;` and concurrently accessed it using hardcoded legacy debug file paths (`C:\NFMonitor\src\bin\log_debug.txt`). This could lead to sensitive path exposures, DoS conditions due to unhandled concurrent access via `AssignFile`, and potential race conditions in handling requests.
+**Learning:** Legacy debug logging blocks in framework routes (like Horse) often leave behind global file descriptors. Because web applications execute routes concurrently, these global descriptors create major race conditions that compromise application stability and leak internal file paths.
+**Prevention:** Enforce static analysis checks against the use of global state (especially I/O handles) in web route units. Ensure any debugging outputs are routed through standardized, thread-safe logger components utilizing configurable dynamic paths (e.g., using `RSDefaultCertPath` or similar configuration constants).
