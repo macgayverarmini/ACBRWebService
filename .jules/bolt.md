@@ -1,0 +1,5 @@
+## 2024-06-06 - Stream Memory and Inline Evaluation Performance Optimizations
+**Learning:** Found two significant performance anti-patterns in Pascal string/stream operations in this codebase.
+1. `TEncoding.UTF8.GetString(TEncoding.UTF8.GetBytes(Str))` style conversions combined with intermediate `TBytes` allocations are completely unnecessary overhead when stream methods (`ReadBuffer`/`WriteBuffer`) can interact directly with native string memory boundaries (`Str[1]`).
+2. Passing an expensive inline function call directly as both the buffer and size arguments to `WriteBuffer` (e.g. `WriteBuffer(Encode(...)[1], Length(Encode(...)))`) causes the compiler to evaluate the expensive function redundantly.
+**Action:** When working with TMemoryStream and strings in Free Pascal/Lazarus, read/write directly to native string lengths (`Length()`) using 1-based indexing (`str[1]`) without intermediate `TBytes` byte arrays. Always store the result of expensive base64 encoding/decoding string transformations in local variables before passing them to multi-parameter buffer operations.
