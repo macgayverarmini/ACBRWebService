@@ -16,34 +16,40 @@ implementation
 
 function Base64StreamToString(AStream: TMemoryStream): string;
 var
-  LBytes: TBytes;
   strBase64: string;
 begin
-  SetLength(LBytes, AStream.Size);
+  if AStream.Size = 0 then
+    Exit('');
+  // BOLT OPTIMIZATION: Removed intermediate TBytes and TEncoding.UTF8 usage to reduce memory allocations and improve speed.
+  SetLength(strBase64, AStream.Size);
   AStream.Position := 0;
-  AStream.Read(LBytes[0], AStream.Size);
-  strBase64 := TEncoding.UTF8.GetString(LBytes);
+  AStream.ReadBuffer(strBase64[1], AStream.Size);
   Result := base64.DecodeStringBase64(strBase64);
 end;
 
 function StringToBase64Stream(AString: string): TMemoryStream;
 var
-  LBytes: TBytes;
+  Base64EncodedStr: string;
 begin
-  LBytes := TEncoding.UTF8.GetBytes(AString);
   Result := TMemoryStream.Create;
-  Result.WriteBuffer(base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes))[1], Length(base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes))));
+  // BOLT OPTIMIZATION: Removed intermediate TBytes and TEncoding.UTF8 usage to reduce memory allocations and improve speed.
+  Base64EncodedStr := base64.EncodeStringBase64(AString);
+  if Length(Base64EncodedStr) > 0 then
+    Result.WriteBuffer(Base64EncodedStr[1], Length(Base64EncodedStr));
   Result.Position := 0;
 end;
 
 function StreamToBase64String(AStream: TMemoryStream): string;
 var
-  LBytes: TBytes;
+  RawStr: string;
 begin
-  SetLength(LBytes, AStream.Size);
+  if AStream.Size = 0 then
+    Exit('');
+  // BOLT OPTIMIZATION: Removed intermediate TBytes and TEncoding.UTF8 usage to reduce memory allocations and improve speed.
+  SetLength(RawStr, AStream.Size);
   AStream.Position := 0;
-  AStream.Read(LBytes[0], AStream.Size);
-  Result := base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes));
+  AStream.ReadBuffer(RawStr[1], AStream.Size);
+  Result := base64.EncodeStringBase64(RawStr);
 end;
 
 function FileToStringBase64(const FileName: string; const Apagar: Boolean; out size: integer): string;
@@ -73,4 +79,3 @@ begin
 end;
 
 end.
-
