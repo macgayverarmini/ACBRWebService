@@ -1,0 +1,4 @@
+## 2026-06-08 - Fix race condition and path disclosure in debug logging
+**Vulnerability:** A global file descriptor (`var F: TextFile;`) was used in a route module (`routes/route.acbr.nfe.pas`) to write to a hardcoded Windows debug path (`C:\NFMonitor\src\bin\log_debug.txt`).
+**Learning:** This introduces a concurrency/DoS vulnerability in a multi-threaded web server where concurrent requests attempt to acquire and write to the same file descriptor. Furthermore, hardcoded file paths disclose information about the server's directory structure and should never exist in production code.
+**Prevention:** Avoid defining global/module-level mutable variables (such as file handles) in route handlers to prevent race conditions. Use proper asynchronous, concurrency-safe logging mechanisms configured via centralized, environment-aware constants (e.g., `RSDefaultCertPath`).
