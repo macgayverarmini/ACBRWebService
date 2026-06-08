@@ -1,0 +1,3 @@
+## 2024-06-08 - Prevent redundant base64 encoding and string round-trips
+**Learning:** Found that string-to-bytes conversions via TEncoding.UTF8 are redundant when dealing with operations that natively accept string inputs, such as base64.EncodeStringBase64, and repeating function calls as array index and string length parameters can be optimized by evaluating the function once into a local variable. Found that native stream buffering works faster directly on strings via ReadBuffer.
+**Action:** Always verify if intermediate TBytes allocations and recurrent string-to-bytes-to-string conversions can be refactored into direct string processing using native index 1-based buffering, and assign repetitive function evaluations to a local variable.
