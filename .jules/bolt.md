@@ -1,0 +1,3 @@
+## 2026-06-09 - Avoid Redundant Function Calls in WriteBuffer Arguments
+**Learning:** In Free Pascal/Lazarus, passing the same inline function call multiple times as arguments to a procedure (e.g., `WriteBuffer(Func()[1], Length(Func()))`) causes the compiler to evaluate the function redundantly. Additionally, avoid intermediate `TBytes` arrays when reading from streams; read directly into native strings to prevent unnecessary memory allocation.
+**Action:** Always store the result of expensive computations (like base64 encoding or string conversion) in a local variable before using it in multiple places. Prefer `ReadBuffer` into native strings (`str[1]`) over `TBytes` for streams.
