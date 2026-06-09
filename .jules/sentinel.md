@@ -1,0 +1,4 @@
+## 2024-06-09 - Remove legacy hardcoded debugging logs to prevent DoS and info exposure
+**Vulnerability:** A global file descriptor `var F: TextFile;` and hardcoded path `C:\NFMonitor\src\bin\log_debug.txt` were used inside `try...except` blocks within the `PostNFe` web route in `routes/route.acbr.nfe.pas`.
+**Learning:** Using global file descriptors in route handlers creates concurrency issues that can lead to Denial of Service (DoS) under load. Furthermore, writing to hardcoded external paths like `C:\NFMonitor\...` without proper configuration risks unauthorized information disclosure and path errors in deployment.
+**Prevention:** Remove legacy local debugging mechanisms from production code. If logging is needed, use standard asynchronous logging libraries without globally shared non-thread-safe resources and rely on configurable paths.
