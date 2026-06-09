@@ -29,3 +29,5 @@ docs/
 cteValidoDemo.xml
 *.svn-base
 acbr_local_copy/
+*.pyc
+__pycache__/
