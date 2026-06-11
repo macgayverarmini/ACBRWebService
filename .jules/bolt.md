@@ -1,0 +1,3 @@
+## 2024-06-11 - Stream/String Base64 Optimization
+**Learning:** In Free Pascal/Lazarus, allocating intermediate `TBytes` arrays and converting strings back and forth using `TEncoding.UTF8` during Stream read/write operations is inefficient. Redundant function evaluations inside `Length()` and inline parameter calls exacerbate performance issues.
+**Action:** Use native string types directly with `TStream.ReadBuffer` and `WriteBuffer` (e.g., `AStream.ReadBuffer(str[1], AStream.Size)`). Evaluate expensive encoding functions once and store the result in a local variable before using it for writing to streams.
