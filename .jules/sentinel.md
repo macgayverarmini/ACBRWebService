@@ -1,0 +1,4 @@
+## 2024-05-18 - Fix DoS risk from global file descriptor
+**Vulnerability:** A global file descriptor `var F: TextFile;` was being used concurrently by the `PostNFe` endpoint in `routes/route.acbr.nfe.pas` to log debug output to a hardcoded path `C:\NFMonitor\src\bin\log_debug.txt`.
+**Learning:** Using global variables for IO operations in async web frameworks (like Horse) creates severe race conditions. Concurrent requests could corrupt the file, crash the thread, or cause a denial-of-service (DoS). Additionally, the hardcoded file path leaked system path assumptions and could be exploited if an attacker could write to that location.
+**Prevention:** Avoid global state for I/O in web endpoints. Remove legacy debug code that writes to hardcoded files. If logging is required, use a proper thread-safe logging library or localized context rather than a global `TextFile` handle.
