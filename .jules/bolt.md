@@ -1,0 +1,3 @@
+## 2024-05-24 - Optimize TMemoryStream read/write by avoiding TBytes intermediate arrays
+**Learning:** Using `TBytes` as an intermediate buffer when reading from or writing to `TMemoryStream` creates unnecessary memory allocations and string conversion overhead in Free Pascal/Lazarus. Also, calling an expensive function like `EncodeStringBase64` multiple times in a single method call like `WriteBuffer` causes redundant O(N) evaluation.
+**Action:** Always read/write directly to native string types using their 1-based index (e.g. `LStr[1]`) and ensure the result of expensive computations are stored in local variables before being passed to methods expecting multiple parameters derived from it.
