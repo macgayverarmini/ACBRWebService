@@ -1,0 +1,4 @@
+## 2024-06-12 - Critical DoS and Info Disclosure in ACBR NFe Routes
+**Vulnerability:** Globally declared `TextFile` variables used within HTTP request handlers and hardcoded local debug file paths (`C:\NFMonitor\src\bin\log_debug.txt`).
+**Learning:** In a web application processing concurrent HTTP requests, sharing a global file descriptor (e.g., `var F: TextFile;`) causes race conditions that can crash the service or lead to Denial of Service (DoS). Additionally, dumping request execution flow to a fixed, guessable hardcoded path leaks sensitive operational information and is vulnerable to path traversal or arbitrary file overwrite.
+**Prevention:** Always encapsulate file operations within local scope (or avoid them entirely in production HTTP routes) and never use hardcoded absolute file paths. Use configurable, dynamic, and secure logging mechanisms instead.
