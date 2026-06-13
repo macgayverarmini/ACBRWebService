@@ -1,0 +1,5 @@
+
+## 2024-06-13 - [Concurrency and Path Disclosure Risks in Global File Descriptors]
+**Vulnerability:** A global file descriptor (`var F: TextFile;`) and hardcoded file paths (`C:\NFMonitor\src\bin\log_debug.txt`) within legacy `try..except` debugging blocks were present in `routes/route.acbr.nfe.pas`. This created severe concurrency risks/DoS vulnerabilities in the Horse web framework by allowing race conditions on file writes across multiple requests, and it also posed an information disclosure risk due to hardcoded paths.
+**Learning:** Legacy debugging code left in production route handlers can lead to race conditions when global state is modified concurrently. File paths should be configurable, and logging should utilize the framework's native solutions or thread-safe loggers to prevent blocking the event loop or file-in-use exceptions.
+**Prevention:** Avoid declaring file descriptors globally in web route implementations. Remove temporary debugging code before merging, and never use hardcoded absolute file paths.
