@@ -16,34 +16,38 @@ implementation
 
 function Base64StreamToString(AStream: TMemoryStream): string;
 var
-  LBytes: TBytes;
   strBase64: string;
 begin
-  SetLength(LBytes, AStream.Size);
+  // ⚡ Bolt: Avoid intermediate TBytes array and UTF8 decoding overhead by reading directly into string
+  SetLength(strBase64, AStream.Size);
   AStream.Position := 0;
-  AStream.Read(LBytes[0], AStream.Size);
-  strBase64 := TEncoding.UTF8.GetString(LBytes);
+  if AStream.Size > 0 then
+    AStream.ReadBuffer(strBase64[1], AStream.Size);
   Result := base64.DecodeStringBase64(strBase64);
 end;
 
 function StringToBase64Stream(AString: string): TMemoryStream;
 var
-  LBytes: TBytes;
+  EncodedStr: string;
 begin
-  LBytes := TEncoding.UTF8.GetBytes(AString);
   Result := TMemoryStream.Create;
-  Result.WriteBuffer(base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes))[1], Length(base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes))));
+  // ⚡ Bolt: Avoid round-trip TEncoding.UTF8.GetBytes/GetString and redundant function evaluations
+  EncodedStr := base64.EncodeStringBase64(AString);
+  if Length(EncodedStr) > 0 then
+    Result.WriteBuffer(EncodedStr[1], Length(EncodedStr));
   Result.Position := 0;
 end;
 
 function StreamToBase64String(AStream: TMemoryStream): string;
 var
-  LBytes: TBytes;
+  StrData: string;
 begin
-  SetLength(LBytes, AStream.Size);
+  // ⚡ Bolt: Avoid intermediate TBytes array and UTF8 decoding overhead by reading directly into string
+  SetLength(StrData, AStream.Size);
   AStream.Position := 0;
-  AStream.Read(LBytes[0], AStream.Size);
-  Result := base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes));
+  if AStream.Size > 0 then
+    AStream.ReadBuffer(StrData[1], AStream.Size);
+  Result := base64.EncodeStringBase64(StrData);
 end;
 
 function FileToStringBase64(const FileName: string; const Apagar: Boolean; out size: integer): string;
@@ -73,4 +77,3 @@ begin
 end;
 
 end.
-

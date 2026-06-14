@@ -1,0 +1,4 @@
+## 2025-02-23 - Optimize FreePascal Streams Buffer allocations
+
+**Learning:** When interacting with `TStream` in FreePascal/Delphi, translating `String` directly to and from `TBytes` intermediate arrays (e.g., via `TEncoding.UTF8.GetBytes/GetString`) introduces overhead. Additionally, passing inline function calls multiple times as arguments to a procedure like `WriteBuffer` causes the compiler to evaluate the function redundantly.
+**Action:** Avoid allocating `TBytes` entirely when exact buffer sizes are known. Pre-allocate strings (`SetLength`) and use `AStream.ReadBuffer(str[1], AStream.Size)` or `AStream.WriteBuffer(str[1], Length(str))` to interact natively with native memory blocks. When using inline functions inside `WriteBuffer` or similarly, compute the result to a local variable once before usage.
