@@ -1,0 +1,3 @@
+## 2024-05-24 - Stream and Base64 String Optimizations
+**Learning:** Native Pascal strings can be used directly with `TMemoryStream.ReadBuffer` and `WriteBuffer` (e.g., `AStream.ReadBuffer(str[1], AStream.Size)`), avoiding intermediate `TBytes` array allocations and expensive `TEncoding.UTF8` conversions. Also, passing inline function calls like `base64.EncodeStringBase64` multiple times to `WriteBuffer` causes redundant evaluations.
+**Action:** Always read/write streams directly into string buffers when dealing with base64/text streams, and store results of expensive inline function calls in local variables before using them as arguments to `WriteBuffer`.
