@@ -1,0 +1,4 @@
+## 2024-06-15 - Concurrent file access and path traversal risk in web routes
+**Vulnerability:** A global file descriptor (`var F: TextFile;`) and hardcoded file path (`C:\NFMonitor\src\bin\log_debug.txt`) were used for debugging in the `PostNFe` web route handler.
+**Learning:** In a multi-threaded web environment (like Horse), global variables used for I/O create concurrency issues and potential DoS risks. Hardcoded absolute Windows paths in legacy code can cause path traversal issues, file not found errors in other environments, and potentially sensitive information disclosure in arbitrary locations.
+**Prevention:** Avoid global variables in web route handlers. Do not leave temporary file-based debugging blocks in production code. Use configurable paths or standard logging frameworks instead of hardcoded paths.
