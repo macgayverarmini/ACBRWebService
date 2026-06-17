@@ -1,0 +1,4 @@
+## 2024-05-24 - Race Condition and Path Predictability in Logging Blocks
+**Vulnerability:** Found legacy `try..except` debugging blocks in web routes (`routes/route.acbr.nfe.pas`) that used a global file descriptor (`var F: TextFile;`) and wrote to hardcoded absolute paths (`C:\NFMonitor\src\bin\log_debug.txt`).
+**Learning:** Using global file descriptors in web frameworks (like Horse) handling concurrent requests leads to race conditions, file locking errors, and potential DoS. Furthermore, hardcoded absolute paths (especially those for a different OS/environment like Windows on Linux) can lead to predictable path vulnerabilities and access denial, allowing attackers to potentially control log files or crash the app.
+**Prevention:** Remove all left-over legacy global variables and hardcoded debugging blocks. Use standard configurable logging mechanisms that handle concurrency safely, and never rely on hardcoded paths.
