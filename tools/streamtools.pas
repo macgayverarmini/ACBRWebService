@@ -16,34 +16,50 @@ implementation
 
 function Base64StreamToString(AStream: TMemoryStream): string;
 var
-  LBytes: TBytes;
   strBase64: string;
 begin
-  SetLength(LBytes, AStream.Size);
+  // ⚡ Bolt: Prevent index out of bounds on empty streams and bypass TEncoding round-trips
+  if AStream.Size = 0 then
+    Exit('');
+
+  SetLength(strBase64, AStream.Size);
   AStream.Position := 0;
-  AStream.Read(LBytes[0], AStream.Size);
-  strBase64 := TEncoding.UTF8.GetString(LBytes);
+  // ⚡ Bolt: Read directly into string buffer to avoid allocating intermediate TBytes array
+  AStream.ReadBuffer(strBase64[1], AStream.Size);
   Result := base64.DecodeStringBase64(strBase64);
 end;
 
 function StringToBase64Stream(AString: string): TMemoryStream;
 var
-  LBytes: TBytes;
+  encodedStr: string;
 begin
-  LBytes := TEncoding.UTF8.GetBytes(AString);
   Result := TMemoryStream.Create;
-  Result.WriteBuffer(base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes))[1], Length(base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes))));
+  if Length(AString) = 0 then
+    Exit;
+
+  // ⚡ Bolt: Store the encoded result in a variable to avoid evaluating it twice in WriteBuffer.
+  // ⚡ Bolt: Use AString directly to avoid unnecessary string-to-bytes-to-string round-trips.
+  encodedStr := base64.EncodeStringBase64(AString);
+
+  // ⚡ Bolt: Write directly using the string to avoid TEncoding conversions.
+  if Length(encodedStr) > 0 then
+    Result.WriteBuffer(encodedStr[1], Length(encodedStr));
   Result.Position := 0;
 end;
 
 function StreamToBase64String(AStream: TMemoryStream): string;
 var
-  LBytes: TBytes;
+  strRaw: string;
 begin
-  SetLength(LBytes, AStream.Size);
+  // ⚡ Bolt: Prevent index out of bounds on empty streams
+  if AStream.Size = 0 then
+    Exit('');
+
+  SetLength(strRaw, AStream.Size);
   AStream.Position := 0;
-  AStream.Read(LBytes[0], AStream.Size);
-  Result := base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes));
+  // ⚡ Bolt: Read directly into string buffer to avoid allocating intermediate TBytes array
+  AStream.ReadBuffer(strRaw[1], AStream.Size);
+  Result := base64.EncodeStringBase64(strRaw);
 end;
 
 function FileToStringBase64(const FileName: string; const Apagar: Boolean; out size: integer): string;
@@ -73,4 +89,3 @@ begin
 end;
 
 end.
-
