@@ -243,3 +243,10 @@ O projeto ACBRWebService é licenciado sob a mesma licença do projeto ACBR.
 
 O nome "ACBR" pertence ao [Projeto ACBr](https://www.projetoacbr.com.br/). Este projeto não tem vínculo oficial.
 A ACBR agora também possui uma API própria — confira em [acbr.api.br](https://www.acbr.api.br/).
+
+---
+
+## 🤖 Regras para Inteligência Artificial
+
+Este repositório possui diretrizes rigorosas para agentes de IA para evitar a geração de arquivos indesejados e vazamentos. 
+Consulte o arquivo **[docs/ai_rules.md](docs/ai_rules.md)** para entender os limites de workspace e o uso obrigatório de diretórios temporários (`/tmp`).

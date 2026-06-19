@@ -66,6 +66,8 @@ resourcestring
   RSModeloNFSeConsultarNFSeRoute = '/modelo/nfse/consultarnfse';
   RSModeloNFSeCancelarRoute = '/modelo/nfse/cancelar';
   RSModeloNFSeSubstituirRoute = '/modelo/nfse/substituir';
+  RSModeloNFSeNFSeFromXMLRoute = '/modelo/nfse/nfse-from-xml';
+  RSModeloNFSeNFSeToXMLRoute = '/modelo/nfse/nfse-to-xml';
   RSNFSeEmitirRoute = '/nfse/emitir';
   RSNFSeGerarRoute = '/nfse/gerar';
   RSNFSeConsultarSituacaoRoute = '/nfse/consultarsituacao';
@@ -76,6 +78,8 @@ resourcestring
   RSNFSeSubstituirRoute = '/nfse/substituir';
   RSNFSeDANFSeRoute = '/nfse/danfse';
   RSNFSeDistribuicaoRoute = '/nfse/distribuicao';
+  RSNFSeNFSeFromXMLRoute = '/nfse/nfse-from-xml';
+  RSNFSeNFSeToXMLRoute = '/nfse/nfse-to-xml';
   // Rotas - MDFe
   RSModeloMDFeConfigRoute = '/modelo/mdfe/config';
   RSModeloMDFeEventoRoute = '/modelo/mdfe/evento';

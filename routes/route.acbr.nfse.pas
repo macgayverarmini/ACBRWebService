@@ -18,6 +18,8 @@ procedure GetModeloConsultarNFSePorRps(Req: THorseRequest; Res: THorseResponse; 
 procedure GetModeloConsultarNFSe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure GetModeloCancelar(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure GetModeloSubstituir(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloNFSeFromXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloNFSeToXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
 // Post
 procedure PostEmitir(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
@@ -30,6 +32,8 @@ procedure PostCancelar(Req: THorseRequest; Res: THorseResponse; Next: TNextProc)
 procedure PostSubstituir(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostDANFSe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostDistribuicao(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostNFSeFromXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostNFSeToXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
 procedure regRouter;
 
@@ -397,6 +401,84 @@ begin
     try
       Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
     finally
+       LJson.Free;
+    end;
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
+procedure GetModeloNFSeFromXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  Ac: TACBRModelosJSONNFSe;
+  LJson: TJSONObject;
+begin
+  Ac := TACBRModelosJSONNFSe.Create('');
+  try
+    LJson := AC.ModelNFSeFromXML;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    Ac.Free;
+  end;
+end;
+
+procedure GetModeloNFSeToXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  Ac: TACBRModelosJSONNFSe;
+  LJson: TJSONObject;
+begin
+  Ac := TACBRModelosJSONNFSe.Create('');
+  try
+    LJson := AC.ModelNFSeToXML;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    Ac.Free;
+  end;
+end;
+
+procedure PostNFSeFromXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O: TJSONObject;
+  Ac: TACBRBridgeNFSe;
+  LJson: TJSONObject;
+begin
+  O := GetJSON(Req.Body) as TJSONObject;
+  Ac := TACBRBridgeNFSe.Create(ExtractConfig(O, RSConfigField));
+  try
+    LJson := Ac.NFSeFromXML(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
+procedure PostNFSeToXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O: TJSONObject;
+  Ac: TACBRBridgeNFSe;
+  LJson: TJSONObject;
+begin
+  O := GetJSON(Req.Body) as TJSONObject;
+  Ac := TACBRBridgeNFSe.Create(ExtractConfig(O, RSConfigField));
+  try
+    LJson := Ac.NFSeToXML(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
       LJson.Free;
     end;
   finally
@@ -415,6 +497,8 @@ begin
   THorse.Get(RSModeloNFSeConsultarNFSeRoute, GetModeloConsultarNFSe);
   THorse.Get(RSModeloNFSeCancelarRoute, GetModeloCancelar);
   THorse.Get(RSModeloNFSeSubstituirRoute, GetModeloSubstituir);
+  THorse.Get(RSModeloNFSeNFSeFromXMLRoute, GetModeloNFSeFromXML);
+  THorse.Get(RSModeloNFSeNFSeToXMLRoute, GetModeloNFSeToXML);
 
   THorse.Post(RSNFSeEmitirRoute, PostEmitir);
   THorse.Post(RSNFSeGerarRoute, PostGerar);
@@ -426,6 +510,8 @@ begin
   THorse.Post(RSNFSeSubstituirRoute, PostSubstituir);
   THorse.Post(RSNFSeDANFSeRoute, PostDANFSe);
   THorse.Post(RSNFSeDistribuicaoRoute, PostDistribuicao);
+  THorse.Post(RSNFSeNFSeFromXMLRoute, PostNFSeFromXML);
+  THorse.Post(RSNFSeNFSeToXMLRoute, PostNFSeToXML);
 end;
 
 end.

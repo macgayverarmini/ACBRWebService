@@ -10,6 +10,7 @@ Interface
 Uses streamtools,
 RTTI,
 ACBrNFSeX,
+ACBrNFSeXNotasFiscais,
 ACBrNFSeXWebservicesResponse,
 ACBrNFSeXWebserviceBase,
 ACBrNFSeXConversao,
@@ -18,6 +19,7 @@ ACBrMail,
 ACBrDFeSSL,
 ACBrDFeConfiguracoes,
 ACBrNFSeXConfiguracoes,
+synacode,
 StrUtils,
 Variants,
 fpjson, jsonconvert,
@@ -65,6 +67,10 @@ Type
       Function Substituir(Const jSubstituir: TJSONObject): TJSONObject;
       // Distribuicao DFe (Nacional)
       Function Distribuicao(Const jDistribuicao: TJSONObject): TJSONObject;
+      // XML para JSON
+      Function NFSeFromXML(Const jXML: TJSONObject): TJSONObject;
+      // JSON para XML
+      Function NFSeToXML(Const jNFSe: TJSONObject): TJSONObject;
       
       // Teste a configuraÃ§Ã£o passada em JSON
       Function TesteConfig: boolean;
@@ -85,6 +91,8 @@ Type
       Function ModelConsultarNFSe: TJSONObject;
       Function ModelCancelar: TJSONObject;
       Function ModelSubstituir: TJSONObject;
+      Function ModelNFSeFromXML: TJSONObject;
+      Function ModelNFSeToXML: TJSONObject;
   End;
 
 Implementation
@@ -120,38 +128,70 @@ Begin
 End;
 
 Function TACBRModelosJSONNFSe.ModelEmitir: TJSONObject;
+Var
+  Nota: TNotaFiscal;
 Begin
-  Result := TJSONObject.Create;
+  facbr.NotasFiscais.Clear;
+  Nota := facbr.NotasFiscais.New;
+  Result := TJSONTools.ObjToJson(Nota);
+  facbr.NotasFiscais.Clear;
 End;
 
 Function TACBRModelosJSONNFSe.ModelConsultarSituacao: TJSONObject;
 Begin
   Result := TJSONObject.Create;
+  Result.Add('Protocolo', 'Preencha com o Protocolo');
+  Result.Add('NumLote', 'Preencha com o Numero do Lote');
 End;
 
 Function TACBRModelosJSONNFSe.ModelConsultarLote: TJSONObject;
 Begin
   Result := TJSONObject.Create;
+  Result.Add('Protocolo', 'Preencha com o Protocolo');
+  Result.Add('NumLote', 'Preencha com o Numero do Lote');
 End;
 
 Function TACBRModelosJSONNFSe.ModelConsultarNFSePorRps: TJSONObject;
 Begin
   Result := TJSONObject.Create;
+  Result.Add('NumeroRps', 'Preencha com o Numero do RPS');
+  Result.Add('Serie', 'Preencha com a Serie');
+  Result.Add('Tipo', 'Preencha com o Tipo (ex: 1)');
+  Result.Add('CodVerificacao', 'Preencha com o Codigo de Verificacao (Opcional)');
 End;
 
 Function TACBRModelosJSONNFSe.ModelConsultarNFSe: TJSONObject;
 Begin
   Result := TJSONObject.Create;
+  Result.Add('DataInicial', 'AAAA-MM-DD');
+  Result.Add('DataFinal', 'AAAA-MM-DD');
+  Result.Add('Pagina', '1');
 End;
 
 Function TACBRModelosJSONNFSe.ModelCancelar: TJSONObject;
+Var
+  InfCancelamento: TInfCancelamento;
 Begin
-  Result := TJSONObject.Create;
+  InfCancelamento := TInfCancelamento.Create;
+  Try
+    Result := TJSONTools.ObjToJson(InfCancelamento);
+  Finally
+    InfCancelamento.Free;
+  End;
 End;
 
 Function TACBRModelosJSONNFSe.ModelSubstituir: TJSONObject;
+Var
+  Nota: TNotaFiscal;
 Begin
-  Result := TJSONObject.Create;
+  facbr.NotasFiscais.Clear;
+  Nota := facbr.NotasFiscais.New;
+  Result := TJSONTools.ObjToJson(Nota);
+  Result.Add('NumeroNFSe', 'Numero da NFSe a ser substituida');
+  Result.Add('CodigoCancelamento', 'Codigo de Cancelamento');
+  Result.Add('MotivoCancelamento', 'Motivo do Cancelamento');
+  Result.Add('ChaveNFSe', 'Chave da NFSe (se provedor exigir)');
+  facbr.NotasFiscais.Clear;
 End;
 
 
@@ -159,7 +199,9 @@ End;
 
 Procedure TACBRBridgeNFSe.CarregaConfig;
 Var 
-  O: TJSONObject;
+  O, CertConfig: TJSONObject;
+  tempData: TJSONData;
+  b64String: String;
 Begin
   if (fcfg = '') or (fcfg = '') then
     raise Exception.Create('Configuracao vazia ou nao informada.');
@@ -168,6 +210,17 @@ Begin
     O := GetJSON(fcfg) as TJSONObject;
       Try
         TJSONTools.JsonToObj(O, facbr.Configuracoes);
+        
+        tempData := O.Find('Certificados');
+        if Assigned(tempData) and (tempData.JSONType = jtObject) then
+        begin
+          CertConfig := TJSONObject(tempData);
+          b64String := CertConfig.Get('DadosPFXBase64', '');
+          if b64String <> '' then
+          begin
+            facbr.Configuracoes.Certificados.DadosPFX := synacode.DecodeBase64(AnsiString(b64String));
+          end;
+        end;
       Finally
         O.Free;
       End;
@@ -175,6 +228,10 @@ Begin
     on E: Exception do
       raise Exception.Create('Erro na leitura da configuracao: ' + E.Message);
   end;
+
+  // Garante PathSchemas padrão para NFSe se não foi informado
+  if facbr.Configuracoes.Arquivos.PathSchemas = '' then
+    facbr.Configuracoes.Arquivos.PathSchemas := ExtractFilePath(ParamStr(0)) + 'Schemas' + PathDelim + 'NFSe';
 
   fcfg := '';
 End;
@@ -221,12 +278,15 @@ End;
 Function TACBRBridgeNFSe.Emitir(Const jNFSe: TJSONObject): TJSONObject;
 Var 
   Lote: integer;
+  Nota: TNotaFiscal;
 Begin
   CarregaConfig;
   Result := TJSONObject.Create;
   Lote := 1;
+  facbr.NotasFiscais.Clear;
+  Nota := facbr.NotasFiscais.New;
   Try
-    TJSONTools.JsonToObj(jNFSe, facbr.NotasFiscais);
+    TJSONTools.JsonToObj(jNFSe, Nota);
   Except
     on E: Exception Do
           Begin
@@ -254,12 +314,15 @@ End;
 Function TACBRBridgeNFSe.Gerar(Const jNFSe: TJSONObject): TJSONObject;
 Var 
   Lote: integer;
+  Nota: TNotaFiscal;
 Begin
   CarregaConfig;
   Result := TJSONObject.Create;
   Lote := 1;
+  facbr.NotasFiscais.Clear;
+  Nota := facbr.NotasFiscais.New;
   Try
-    TJSONTools.JsonToObj(jNFSe, facbr.NotasFiscais);
+    TJSONTools.JsonToObj(jNFSe, Nota);
   Except
     on E: Exception Do
           Begin
@@ -440,13 +503,16 @@ End;
 Function TACBRBridgeNFSe.Substituir(Const jSubstituir: TJSONObject): TJSONObject;
 Var
   CodigoCancelamento, MotivoCancelamento, NumeroNFSe, ChaveNFSe: TJSONData;
+  Nota: TNotaFiscal;
 Begin
   CarregaConfig;
   Result := TJSONObject.Create;
 
-  // Carrega RPS contida no JSON para SubstituiÃ§Ã£o
+  // Carrega RPS contida no JSON para Substituição
+  facbr.NotasFiscais.Clear;
+  Nota := facbr.NotasFiscais.New;
   Try
-    TJSONTools.JsonToObj(jSubstituir, facbr.NotasFiscais);
+    TJSONTools.JsonToObj(jSubstituir, Nota);
   Except
     on E: Exception Do
     Begin
@@ -546,6 +612,12 @@ Begin
 
   stringXml := '';
 
+  If facbr.NotasFiscais.Count = 0 Then
+  Begin
+    Result.Add(RSErrorField, 'Nenhuma NFS-e carregada a partir do XML.');
+    Exit;
+  End;
+
   fdanfse.MostraPreview := False;
   fdanfse.MostraStatus := False;
   fdanfse.MostraSetup := False;
@@ -585,6 +657,108 @@ Begin
   If xmlData.Find(RSIDField, id) Then
     Result.Add(RSIDField, id);
 
+End;
+
+Function TACBRBridgeNFSe.NFSeFromXML(Const jXML: TJSONObject): TJSONObject;
+Var 
+  stringXml: string;
+Begin
+  CarregaConfig;
+  Result := TJSONObject.Create;
+
+  Try
+    stringXml := ReadXMLFromJSON(jXML);
+  Except
+    on E: Exception Do
+          Begin
+            Result.Add(RSErrorField, E.Message);
+            Exit;
+          End;
+  End;
+
+  Try
+    facbr.NotasFiscais.LoadFromString(stringXml);
+  Except
+    on E: Exception Do
+          Begin
+            Result.Add(RSErrorField, RSXMLReadError + E.Message);
+            Exit;
+          End;
+  End;
+
+  stringXml := '';
+
+  If facbr.NotasFiscais.Count = 0 Then
+  Begin
+    Result.Add(RSErrorField, 'Nenhuma NFS-e carregada a partir do XML.');
+    Exit;
+  End;
+
+  Try
+    Result := TJSONTools.ObjToJson(facbr.NotasFiscais.Items[0]);
+    Result.Delete(RSXMLField);
+    Result.Delete(RSXMLOriginalField);
+    Result.Delete(RSNomeArqField);
+    Result.Delete(RSErroValidacaoCompletoField);
+    Result.Delete(RSErroValidacaoField);
+    Result.Delete(RSErroRegrasdeNegociosField);
+    Result.Delete(RSAlertasField);
+  Except
+    on E: Exception Do
+    Begin
+      Result.Free;
+      Result := TJSONTools.SafeObjToJson(nil, 'Erro ao converter objeto para JSON: ' + E.Message);
+    End;
+  End;
+
+  facbr.NotasFiscais.Clear;
+End;
+
+Function TACBRBridgeNFSe.NFSeToXML(Const jNFSe: TJSONObject): TJSONObject;
+Var
+  Nota: TNotaFiscal;
+  xmlString: string;
+Begin
+  CarregaConfig;
+  Result := TJSONObject.Create;
+
+  facbr.NotasFiscais.Clear;
+  Nota := facbr.NotasFiscais.New;
+  Try
+    TJSONTools.JsonToObj(jNFSe, Nota);
+  Except
+    on E: Exception Do
+    Begin
+      Result.Add(RSStatusField, RSStatusErro);
+      Result.Add(RSMessageField, RSErrorReadingJSON + E.Message);
+      facbr.NotasFiscais.Clear;
+      Exit;
+    End;
+  End;
+
+  Try
+    xmlString := Nota.GerarXML;
+    Result.Add('xml', EncodeStringBase64(xmlString));
+  Except
+    on E: Exception Do
+    Begin
+      Result.Add(RSStatusField, RSStatusErro);
+      Result.Add(RSMessageField, 'Erro ao gerar XML: ' + E.Message);
+    End;
+  End;
+
+  facbr.NotasFiscais.Clear;
+End;
+
+Function TACBRModelosJSONNFSe.ModelNFSeFromXML: TJSONObject;
+Begin
+  Result := TJSONObject.Create;
+  Result.Add('xml', 'XML da NFS-e em Base64 — retorna a NFS-e como JSON');
+End;
+
+Function TACBRModelosJSONNFSe.ModelNFSeToXML: TJSONObject;
+Begin
+  Result := ModelEmitir;
 End;
 
 Function TACBRBridgeNFSe.TesteConfig: boolean;
