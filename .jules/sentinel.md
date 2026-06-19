@@ -1,0 +1,4 @@
+## 2024-05-24 - DoS Risk and Information Disclosure via Global File Descriptors
+**Vulnerability:** A global `TextFile` descriptor (`var F: TextFile;`) was being used concurrently by web routes to log debug information to a hardcoded local file path (`C:\NFMonitor\src\bin\log_debug.txt`).
+**Learning:** In concurrent frameworks like Horse, declaring a file descriptor globally leads to race conditions and potential Denial of Service (DoS) during concurrent requests. Furthermore, hardcoded Windows paths in production systems pose path traversal or simple I/O failure risks, as well as exposing internal deployment paths.
+**Prevention:** Avoid global variables for request handling state. Remove legacy debugging blocks that write to hardcoded locations. Use established logging frameworks (like `Horse.Logger`) and configurable log paths instead of direct `AssignFile` / `Rewrite` operations in route handlers.
