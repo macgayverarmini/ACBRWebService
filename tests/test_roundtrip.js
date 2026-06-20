@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const dir = 'C:\\Users\\macga\\Downloads\\encemissodectedesubcontrataodt530043885510101';
+const dir = './tests/';
 const files = fs.readdirSync(dir).filter(f => f.endsWith('.xml'));
 
 async function testRoundTrip() {
