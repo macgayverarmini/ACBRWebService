@@ -1,0 +1,3 @@
+## 2024-05-24 - Optimize Base64 Stream Conversions
+**Learning:** In Free Pascal/Delphi, performing string conversions to `TBytes` (`TEncoding.UTF8.GetBytes` / `GetString`) when writing or reading from streams adds redundant O(N) allocation overhead. Furthermore, executing expensive functions like `EncodeStringBase64` inline within a procedure call like `WriteBuffer(Func()[1], Length(Func()))` causes redundant evaluation.
+**Action:** Always read streams directly into native strings using `ReadBuffer(str[1], AStream.Size)`, verify empty sizes to avoid bounds errors, and cache expensive function returns in local variables before referencing their lengths or elements.
