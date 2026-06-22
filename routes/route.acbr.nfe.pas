@@ -44,7 +44,6 @@ procedure PostDebugConfig(Req: THorseRequest; Res: THorseResponse; Next: TNextPr
 procedure PostNFeLote(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
 implementation
-var F: TextFile;
 
 
 function ExtractConfig(O: TJSONObject; const Field: string): string;
@@ -175,26 +174,14 @@ begin
   try
     Step := 'ParseJSONBody';
     O := GetJSON(Req.Body) as TJSONObject;
-    
+
     Step := 'CreateTACBRBridgeNFe';
     Ac := TACBRBridgeNFe.Create(ExtractConfig(O, RSConfigField));
     try
       Step := 'CallAcNFe';
-      try
-        AssignFile(F, 'C:\NFMonitor\src\bin\log_debug.txt');
-        if FileExists('C:\NFMonitor\src\bin\log_debug.txt') then Append(F) else Rewrite(F);
-        WriteLn(F, FormatDateTime('hh:nn:ss.zzz', Now) + ' - PostNFe: Chamando Ac.NFe...');
-        CloseFile(F);
-      except end;
 
       LJson := Ac.NFe(O);
 
-      try
-        AssignFile(F, 'C:\NFMonitor\src\bin\log_debug.txt');
-        if FileExists('C:\NFMonitor\src\bin\log_debug.txt') then Append(F) else Rewrite(F);
-        WriteLn(F, FormatDateTime('hh:nn:ss.zzz', Now) + ' - PostNFe: Ac.NFe retornou!');
-        CloseFile(F);
-      except end;
 
       try
         Step := 'SendResponse';
