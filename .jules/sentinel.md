@@ -1,0 +1,5 @@
+
+## 2024-05-24 - High: Path Traversal & Information Exposure in Debug Logs
+**Vulnerability:** Found hardcoded absolute path (`C:\NFMonitor\src\bin\log_debug.txt`) used with `AssignFile` for debug logging in the web route handler `routes/route.acbr.nfe.pas`, along with a globally declared file descriptor variable (`var F: TextFile;`).
+**Learning:** This pattern poses a severe security risk. The hardcoded path allows arbitrary file write vulnerabilities and directory traversal attacks if the file paths become user-configurable. Furthermore, using a global variable for file descriptors in web routes introduces race conditions during concurrent requests, leading to potentially critical application crashes (DoS).
+**Prevention:** Avoid declaring `TextFile` variables globally. For debug logging, either use standard asynchronous logging libraries, output to standard streams handled by a container, or ensure paths are tightly controlled through safe configuration variables instead of being hardcoded into the application logic. Ensure file I/O operations are localized and thread-safe.
