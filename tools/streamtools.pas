@@ -16,34 +16,45 @@ implementation
 
 function Base64StreamToString(AStream: TMemoryStream): string;
 var
-  LBytes: TBytes;
   strBase64: string;
 begin
-  SetLength(LBytes, AStream.Size);
+  Result := '';
+  if AStream.Size = 0 then Exit;
+
+  SetLength(strBase64, AStream.Size);
   AStream.Position := 0;
-  AStream.Read(LBytes[0], AStream.Size);
-  strBase64 := TEncoding.UTF8.GetString(LBytes);
+  // ⚡ Bolt: Read directly into native string buffer to avoid TBytes allocations
+  // ⚡ Bolt: Use ReadBuffer instead of Read for safer error handling
+  AStream.ReadBuffer(strBase64[1], AStream.Size);
   Result := base64.DecodeStringBase64(strBase64);
 end;
 
 function StringToBase64Stream(AString: string): TMemoryStream;
 var
-  LBytes: TBytes;
+  EncodedStr: string;
 begin
-  LBytes := TEncoding.UTF8.GetBytes(AString);
   Result := TMemoryStream.Create;
-  Result.WriteBuffer(base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes))[1], Length(base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes))));
+  // ⚡ Bolt: Store expensive EncodeStringBase64 result in local var to avoid redundant calls
+  // ⚡ Bolt: Avoided unnecessary TEncoding.UTF8 round trips
+  EncodedStr := base64.EncodeStringBase64(AString);
+  if Length(EncodedStr) > 0 then
+    Result.WriteBuffer(EncodedStr[1], Length(EncodedStr));
   Result.Position := 0;
 end;
 
 function StreamToBase64String(AStream: TMemoryStream): string;
 var
-  LBytes: TBytes;
+  strStream: string;
 begin
-  SetLength(LBytes, AStream.Size);
+  Result := '';
+  if AStream.Size = 0 then Exit;
+
+  SetLength(strStream, AStream.Size);
   AStream.Position := 0;
-  AStream.Read(LBytes[0], AStream.Size);
-  Result := base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes));
+  // ⚡ Bolt: Read directly into native string buffer to avoid TBytes allocations
+  // ⚡ Bolt: Use ReadBuffer instead of Read for safer error handling
+  AStream.ReadBuffer(strStream[1], AStream.Size);
+  Result := base64.EncodeStringBase64(strStream);
 end;
 
 function FileToStringBase64(const FileName: string; const Apagar: Boolean; out size: integer): string;
@@ -73,4 +84,3 @@ begin
 end;
 
 end.
-
