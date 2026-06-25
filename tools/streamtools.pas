@@ -16,34 +16,47 @@ implementation
 
 function Base64StreamToString(AStream: TMemoryStream): string;
 var
-  LBytes: TBytes;
   strBase64: string;
 begin
-  SetLength(LBytes, AStream.Size);
+  // Bolt optimization: Directly read into native string, avoiding TBytes allocation via TEncoding.UTF8
   AStream.Position := 0;
-  AStream.Read(LBytes[0], AStream.Size);
-  strBase64 := TEncoding.UTF8.GetString(LBytes);
+  if AStream.Size > 0 then
+  begin
+    SetLength(strBase64, AStream.Size);
+    AStream.ReadBuffer(strBase64[1], AStream.Size);
+  end
+  else
+    strBase64 := '';
+
   Result := base64.DecodeStringBase64(strBase64);
 end;
 
 function StringToBase64Stream(AString: string): TMemoryStream;
 var
-  LBytes: TBytes;
+  EncodedStr: string;
 begin
-  LBytes := TEncoding.UTF8.GetBytes(AString);
   Result := TMemoryStream.Create;
-  Result.WriteBuffer(base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes))[1], Length(base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes))));
+  // Bolt optimization: Pre-compute encoded string to avoid redundant processing, write string directly to buffer
+  EncodedStr := base64.EncodeStringBase64(AString);
+  if Length(EncodedStr) > 0 then
+    Result.WriteBuffer(EncodedStr[1], Length(EncodedStr));
   Result.Position := 0;
 end;
 
 function StreamToBase64String(AStream: TMemoryStream): string;
 var
-  LBytes: TBytes;
+  strContent: string;
 begin
-  SetLength(LBytes, AStream.Size);
+  // Bolt optimization: Read directly into native string instead of intermediate TBytes
   AStream.Position := 0;
-  AStream.Read(LBytes[0], AStream.Size);
-  Result := base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes));
+  if AStream.Size > 0 then
+  begin
+    SetLength(strContent, AStream.Size);
+    AStream.ReadBuffer(strContent[1], AStream.Size);
+    Result := base64.EncodeStringBase64(strContent);
+  end
+  else
+    Result := '';
 end;
 
 function FileToStringBase64(const FileName: string; const Apagar: Boolean; out size: integer): string;
@@ -73,4 +86,3 @@ begin
 end;
 
 end.
-
