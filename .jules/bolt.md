@@ -1,0 +1,3 @@
+## 2024-05-20 - Stream Handling Optimizations
+**Learning:** In Lazarus/FPC, interacting with streams via `TEncoding.UTF8.GetBytes` and `TEncoding.UTF8.GetString` introduces unnecessary overhead by allocating intermediate `TBytes` arrays. Also, passing the same inline function call multiple times as arguments causes the compiler to evaluate the function redundantly.
+**Action:** When handling stream parsing for basic encoded content like Base64, directly allocate string lengths and use `ReadBuffer(str[1], AStream.Size)` and `WriteBuffer(str[1], Length(str))` to avoid array copies. Cache expensive function results in local variables.
