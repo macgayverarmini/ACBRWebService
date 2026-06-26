@@ -1,0 +1,4 @@
+## 2024-06-26 - Hardcoded Absolute File Path Logging Vulnerability
+**Vulnerability:** A hardcoded absolute file path `C:\NFMonitor\src\bin\log_debug.txt` was used within `try...except` debugging blocks in `routes/route.acbr.nfe.pas`, coupled with a global file descriptor `var F: TextFile;`.
+**Learning:** Using global file descriptors combined with hardcoded file paths in web route handlers creates severe concurrency issues, potential denial-of-service risks (due to file locking), and exposes sensitive path structures, violating security principles for production environments.
+**Prevention:** Avoid hardcoded file paths and global file descriptors in route handlers. Use robust, configurable, and thread-safe logging mechanisms, or completely remove debugging blocks before production deployment.
