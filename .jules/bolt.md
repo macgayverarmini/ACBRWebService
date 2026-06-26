@@ -1,0 +1,3 @@
+## 2024-06-26 - Stream Buffer Direct String Manipulation
+**Learning:** Using `TEncoding.UTF8.GetBytes` and `GetString` to convert between streams and strings involves creating intermediate `TBytes` arrays and performing unnecessary string round-trips. Furthermore, making redundant inline calls to encoding/decoding functions as arguments to `WriteBuffer` forces O(N) evaluation twice.
+**Action:** Always prefer direct string buffer manipulation (`ReadBuffer(str[1], Size)` and `WriteBuffer(str[1], Length)`) to avoid intermediate array allocations. Also, cache the results of encoding functions into local variables before passing them to avoid redundant inline evaluations.
