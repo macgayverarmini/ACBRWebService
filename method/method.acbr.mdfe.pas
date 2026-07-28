@@ -1,4 +1,4 @@
-{%RunFlags MESSAGES+}
+﻿{%RunFlags MESSAGES+}
 
 unit method.acbr.mdfe;
 
@@ -25,7 +25,9 @@ uses
   ACBrDFeConfiguracoes,
   ACBrMDFeConfiguracoes,
   Classes, SysUtils,
-  resource.strings.global;
+  resource.strings.global,
+  synacode,
+  resource.strings.msg;
 
 type
 
@@ -44,8 +46,9 @@ type
 
     function Evento(const jEventos: TJSONArray): string;
     function Distribuicao(const jDistribuicao: TJSONObject): TJSONObject;
-    function Damdfe(const xmlData: TJSONObject): TJSONObject;
-    function MDFe(const jMDFe: TJSONObject): TJSONObject;
+    function Damdfe(const xmlData: TJSONObject; const OnlyURL: Boolean = False): TJSONObject;    function DamdfeEvento(const xmlEvento: TJSONObject): TJSONObject;
+    function MDFe(const jMDFe: TJSONObject): TJSONObject;    function MDFeFromXML(const jXML: TJSONObject): TJSONObject;
+    function MDFeToXML(const jMDFe: TJSONObject): TJSONObject;
 
     function TesteConfig: boolean;
   end;
@@ -58,7 +61,8 @@ type
     function ModelConfig: TJSONObject;
     function ModelEvento: TJSONObject;
     function ModelDistribuicao: string;
-    function ModelMDFe: TJSONObject;
+    function ModelMDFe: TJSONObject;    function ModelMDFeFromXML: TJSONObject;
+    function ModelMDFeToXML: TJSONObject;
   end;
 
 implementation
@@ -241,12 +245,25 @@ function TACBRModelosJSONMDFe.ModelDistribuicao: string;
 begin
   Result := TJSONTools.SafeObjToJsonString(facbr.WebServices.DistribuicaoDFe);
 end;
+function TACBRModelosJSONMDFe.ModelMDFeFromXML: TJSONObject;
+begin
+  Result := TJSONObject.Create;
+  Result.Add('xml', 'BASE64_DO_XML_MDFE_AQUI');
+end;
+
+function TACBRModelosJSONMDFe.ModelMDFeToXML: TJSONObject;
+begin
+  Result := ModelMDFe;
+end;
+
 
 { TACBRBridgeMDFe }
 
 procedure TACBRBridgeMDFe.CarregaConfig;
 var
-  O: TJSONObject;
+  O, CertConfig: TJSONObject;
+  tempData: TJSONData;
+  b64String: string;
 begin
   if (fcfg = '') or (fcfg = '') then
     raise Exception.Create('Configuracao vazia ou nao informada.');
@@ -255,6 +272,17 @@ begin
     O := GetJSON(fcfg) as TJSONObject;
       try
         TJSONTools.JsonToObj(O, facbr.Configuracoes);
+
+        tempData := O.Find('Certificados');
+        if Assigned(tempData) and (tempData.JSONType = jtObject) then
+        begin
+          CertConfig := TJSONObject(tempData);
+          b64String := CertConfig.Get('DadosPFXBase64', '');
+          if b64String <> '' then
+          begin
+            facbr.Configuracoes.Certificados.DadosPFX := synacode.DecodeBase64(AnsiString(b64String));
+          end;
+        end;
       finally
         O.Free;
       end;
@@ -262,6 +290,10 @@ begin
     on E: Exception do
       raise Exception.Create('Erro na leitura da configuracao: ' + E.Message);
   end;
+
+  if facbr.Configuracoes.Arquivos.PathSchemas = '' then
+    facbr.Configuracoes.Arquivos.PathSchemas := ExtractFilePath(ParamStr(0)) + 'Schemas' + PathDelim + 'MDFe';
+
   fcfg := '';
 end;
 
@@ -409,13 +441,15 @@ begin
   Result := TJSONObject(TJSONTools.ObjToJson(objDistribuicao.RetDistDFeInt));
 end;
 
-function TACBRBridgeMDFe.Damdfe(const xmlData: TJSONObject): TJSONObject;
+function TACBRBridgeMDFe.Damdfe(const xmlData: TJSONObject; const OnlyURL: Boolean = False): TJSONObject;
 var
   arquivofinal: string;
   stringXml: string;
   tamanho: integer;
   id: TJSONString;
   fileName: string;
+  pdfDir: string;
+  chClean: string;
 begin
   CarregaConfig;
   Result := TJSONObject.Create;
@@ -425,8 +459,7 @@ begin
   except
     on E: Exception do
     begin
-      Result.Add('status', 'erro');
-      Result.Add('message', E.Message);
+      Result.Add(RSErrorField, E.Message);
       Exit;
     end;
   end;
@@ -436,8 +469,7 @@ begin
   except
     on E: Exception do
     begin
-      Result.Add('status', 'erro');
-      Result.Add('message', 'Erro na leitura do XML do MDF-e: ' + E.Message);
+      Result.Add(RSErrorField, RSXMLReadError + E.Message);
       Exit;
     end;
   end;
@@ -446,7 +478,107 @@ begin
 
   if facbr.Manifestos.Count = 0 then
   begin
-    Result.Add('error', 'Nenhum MDF-e foi carregado a partir do XML.');
+    Result.Add(RSErrorField, 'Nenhum MDF-e foi carregado a partir do XML.');
+    Exit;
+  end;
+
+  fdamdfe.Cancelada := (facbr.Manifestos.Items[0].MDFe.procMDFe.cStat = 101);
+
+  fdamdfe.MostraPreview := False;
+  fdamdfe.MostraStatus := False;
+  fdamdfe.MostraSetup := False;
+
+  pdfDir := ExtractFilePath(ParamStr(0)) + 'pdf' + PathDelim;
+  if not DirectoryExists(pdfDir) then
+    CreateDir(pdfDir);
+
+  try
+    fdamdfe.PathPDF := pdfDir;
+    facbr.DAMDFE := fdamdfe;
+    facbr.Manifestos.ImprimirPDF;
+
+    fileName := fdamdfe.ArquivoPDF;
+    if (fileName = '') or (not FileExists(fileName)) then
+    begin
+      fileName := pdfDir + facbr.Manifestos.Items[0].MDFe.infMDFe.ID + '-mdfe.pdf';
+      if not FileExists(fileName) then
+        fileName := pdfDir + StringReplace(facbr.Manifestos.Items[0].MDFe.infMDFe.ID, 'MDFe', '', [rfIgnoreCase]) + '-mdfe.pdf';
+    end;
+
+    if not FileExists(fileName) then
+    begin
+      Result.Add(RSErrorField, RSPDFGenerationError + ': Arquivo PDF nao foi gerado pelo ACBr.');
+      Exit;
+    end;
+  except
+    on E: Exception do
+    begin
+      Result.Add(RSErrorField, RSPDFGenerationError + ': ' + E.Message);
+      Exit;
+    end;
+  end;
+
+  chClean := StringReplace(facbr.Manifestos.Items[0].MDFe.infMDFe.ID, 'MDFe', '', [rfIgnoreCase]);
+
+  if not OnlyURL then
+  begin
+    try
+      arquivofinal := FileToStringBase64(fileName, False, tamanho);
+      Result.Add(RSPDFField, arquivofinal);
+      Result.Add(RSTamanhoField, tamanho.ToString);
+    except
+      on E: Exception do
+      begin
+        Result.Add(RSErrorField, E.Message);
+        Exit;
+      end;
+    end;
+  end;
+
+  Result.Add(RSChaveField, chClean);
+  Result.Add('url', '/mdfe/pdf/' + chClean);
+
+  if xmlData.Find(RSIDField, id) then
+    Result.Add(RSIDField, id);
+end;
+
+function TACBRBridgeMDFe.DamdfeEvento(const xmlEvento: TJSONObject): TJSONObject;
+var
+  arquivofinal: string;
+  stringXml: string;
+  tamanho: integer;
+  id: TJSONString;
+  fileName: string;
+  pdfDir: string;
+begin
+  CarregaConfig;
+  Result := TJSONObject.Create;
+
+  try
+    stringXml := ReadXMLFromJSON(xmlEvento);
+  except
+    on E: Exception do
+    begin
+      Result.Add(RSErrorField, E.Message);
+      Exit;
+    end;
+  end;
+
+  try
+    facbr.EventoMDFe.LerXMLFromString(stringXml);
+  except
+    on E: Exception do
+    begin
+      Result.Add(RSErrorField, 'Erro ao carregar XML de evento MDF-e: ' + E.Message);
+      Exit;
+    end;
+  end;
+
+  stringXml := '';
+
+  if facbr.EventoMDFe.Evento.Count = 0 then
+  begin
+    Result.Add(RSErrorField, 'Nenhum evento MDF-e foi carregado a partir do XML.');
     Exit;
   end;
 
@@ -454,42 +586,127 @@ begin
   fdamdfe.MostraStatus := False;
   fdamdfe.MostraSetup := False;
 
-  fileName := GetTempFileName;
+  pdfDir := ExtractFilePath(ParamStr(0)) + 'pdf' + PathDelim;
+  if not DirectoryExists(pdfDir) then
+    CreateDir(pdfDir);
 
   try
-    fdamdfe.PathPDF := filename;
-    facbr.Manifestos.ImprimirPDF;
-    filename := fdamdfe.ArquivoPDF;
-  except
+    fdamdfe.PathPDF := pdfDir;
+    facbr.DAMDFE := fdamdfe;
+    facbr.ImprimirEventoPDF;
+
+    fileName := fdamdfe.ArquivoPDF;
+    if (fileName = '') or (not FileExists(fileName)) then
     begin
-      Result.Add('error', 'Falha ao gerar o PDF.');
+      fileName := pdfDir + facbr.EventoMDFe.Evento.Items[0].InfEvento.chMDFe + '-procEventoMDFe.pdf';
+    end;
+
+    if not FileExists(fileName) then
+    begin
+      Result.Add(RSErrorField, RSPDFGenerationError + ': Arquivo PDF de evento nao foi gerado.');
       Exit;
     end;
-  end;
-
-  // Converte o arquivo para base64
-  try
-    arquivofinal := FileToStringBase64(filename, True, tamanho);
   except
     on E: Exception do
     begin
-      Result.Add('error', E.Message);
+      Result.Add(RSErrorField, RSPDFGenerationError + ': ' + E.Message);
       Exit;
     end;
   end;
 
-  // Converte a stream do relatÃƒÂ³rio para base64
-  Result.Add('pdf', arquivofinal);
-  // Chave de Acesso da NF-e
-  Result.Add('chave', facbr.Manifestos.Items[0].MDFe.infMDFe.ID);
-  // Tamanho em Bytes
-  Result.Add('tamanho', tamanho.ToString);
-  // Adiciona o identificador ÃƒÂºnico se ele existir
-  if xmlData.Find('id', id) then
-    Result.Add('id', id);
+  try
+    arquivofinal := FileToStringBase64(fileName, False, tamanho);
+  except
+    on E: Exception do
+    begin
+      Result.Add(RSErrorField, E.Message);
+      Exit;
+    end;
+  end;
 
+  Result.Add(RSPDFField, arquivofinal);
+  Result.Add(RSChaveField, facbr.EventoMDFe.Evento.Items[0].InfEvento.chMDFe);
+  Result.Add(RSTamanhoField, tamanho.ToString);
+
+  if xmlEvento.Find(RSIDField, id) then
+    Result.Add(RSIDField, id);
 end;
 
+
+function TACBRBridgeMDFe.MDFeFromXML(const jXML: TJSONObject): TJSONObject;
+var
+  xmlBase64: string;
+begin
+  CarregaConfig;
+  try
+    xmlBase64 := ReadXMLFromJSON(jXML);
+    try
+      facbr.Manifestos.LoadFromString(xmlBase64);
+    except
+      on E: Exception do
+        raise Exception.Create('Falha no LoadFromString: ' + E.Message);
+    end;
+
+    if facbr.Manifestos.Count > 0 then
+    begin
+      try
+        Result := TJSONTools.SafeObjToJson(facbr.Manifestos.Items[0].MDFe, 'Erro no SafeObjToJson');
+      except
+        on E: Exception do
+          raise Exception.Create('Falha no SafeObjToJson interno: ' + E.Message);
+      end;
+
+      if Result.Find(RSStatusField) = nil then
+      begin
+        Result.Delete('XML');
+        Result.Delete('XMLOriginal');
+        Result.Delete('NomeArq');
+        Result.Delete('Protocolo');
+      end;
+    end
+    else
+      Result := TJSONTools.SafeObjToJson(nil, 'Nenhum MDFe carregado do XML.');
+  except
+    on E: Exception do
+      Result := TJSONTools.SafeObjToJson(nil, 'GLOBAL ERROR: ' + E.Message);
+  end;
+  facbr.Manifestos.Clear;
+end;
+
+function TACBRBridgeMDFe.MDFeToXML(const jMDFe: TJSONObject): TJSONObject;
+var
+  ManifestoMDFe: TManifesto;
+  xmlString: string;
+begin
+  CarregaConfig;
+
+  try
+    ManifestoMDFe := facbr.Manifestos.Add;
+    TJSONTools.JsonToObj(jMDFe, ManifestoMDFe);
+  except
+    on E: Exception do
+    begin
+      Result := TJSONTools.SafeObjToJson(nil, 'Erro na leitura do objeto JSON para MDFe: ' + E.Message);
+      if Assigned(facbr.Manifestos) then facbr.Manifestos.Clear;
+      Exit;
+    end;
+  end;
+
+  try
+    facbr.Manifestos.GerarMDFe;
+    xmlString := facbr.Manifestos.Items[0].XMLOriginal;
+    if xmlString = '' then
+      xmlString := facbr.Manifestos.Items[0].XML;
+
+    Result := TJSONObject.Create;
+    Result.Add('xml', EncodeStringBase64(xmlString));
+  except
+    on E: Exception do
+      Result := TJSONTools.SafeObjToJson(nil, 'Erro ao gerar XML do MDFe: ' + E.Message);
+  end;
+
+  if Assigned(facbr.Manifestos) then facbr.Manifestos.Clear;
+end;
 function TACBRBridgeMDFe.TesteConfig: boolean;
 begin
   try

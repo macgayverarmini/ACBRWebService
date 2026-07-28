@@ -93,7 +93,8 @@ def resolve_constants(paths, strings_file):
     return resolved_paths
 
 def generate_swagger():
-    src_dir = os.path.dirname(os.path.abspath(__file__))
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    src_dir = os.path.dirname(script_dir)
     routes_dir = os.path.join(src_dir, 'routes')
     strings_file = os.path.join(src_dir, 'resources', 'resource.strings.routes.pas')
     output_file = os.path.join(src_dir, 'resources', 'swagger.json')

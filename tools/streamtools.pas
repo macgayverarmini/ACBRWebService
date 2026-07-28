@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, Base64;
 
 function StreamToBase64String(AStream: TMemoryStream): string;
-function FileToStringBase64(const FileName: string; const Apagar: Boolean; out size: integer): string;
+function FileToStringBase64(const FileName: string; const Apagar: Boolean; out size: integer): string;function GetFileSize(const FileName: string): Int64;
 function Base64StreamToString(AStream: TMemoryStream): string;
 function StringToBase64Stream(AString: string): TMemoryStream;
 
@@ -38,12 +38,13 @@ end;
 
 function StreamToBase64String(AStream: TMemoryStream): string;
 var
-  LBytes: TBytes;
+  S: RawByteString;
 begin
-  SetLength(LBytes, AStream.Size);
+  SetLength(S, AStream.Size);
   AStream.Position := 0;
-  AStream.Read(LBytes[0], AStream.Size);
-  Result := base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes));
+  if AStream.Size > 0 then
+    AStream.Read(S[1], AStream.Size);
+  Result := base64.EncodeStringBase64(S);
 end;
 
 function FileToStringBase64(const FileName: string; const Apagar: Boolean; out size: integer): string;
@@ -69,6 +70,21 @@ begin
     size := streamPdf.Size;
   finally
     streamPdf.Free;
+  end;
+end;
+function GetFileSize(const FileName: string): Int64;
+var
+  FS: TFileStream;
+begin
+  Result := 0;
+  if FileExists(FileName) then
+  begin
+    FS := TFileStream.Create(FileName, fmOpenRead or fmShareDenyNone);
+    try
+      Result := FS.Size;
+    finally
+      FS.Free;
+    end;
   end;
 end;
 

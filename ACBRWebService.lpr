@@ -7,6 +7,7 @@ uses
   {$endif}
   Interfaces,
   SysUtils,
+  Math,
   Classes,
   Horse,
   Horse.HandleException,
@@ -43,7 +44,9 @@ const
 {$DEFINE UseGenerics}
 
 begin
-
+  {$ifdef unix}
+  SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
+  {$endif}
 
   WriteLn(RSSeparatorLine);
   LogInfo(RSStartingApplication);

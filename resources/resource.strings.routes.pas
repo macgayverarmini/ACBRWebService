@@ -1,4 +1,4 @@
-unit resource.strings.routes;
+﻿unit resource.strings.routes;
 
 {$mode Delphi}{$H+}
 
@@ -88,7 +88,14 @@ resourcestring
   RSMDFeMDFeRoute = '/mdfe/mdfe';
   RSMDFeEventosRoute = '/mdfe/eventos';
   RSMDFeDAMDFeRoute = '/mdfe/damdfe';
-  RSMDFeDistribuicaoRoute = '/mdfe/distribuicao';
+  RSMDFeDistribuicaoRoute = '/mdfe/distribuicao';  RSModeloMDFeMDFeFromXMLRoute = '/modelo/mdfe/mdfe-from-xml';
+  RSModeloMDFeMDFeToXMLRoute = '/modelo/mdfe/mdfe-to-xml';
+  RSMDFeMDFeFromXMLRoute = '/mdfe/mdfe-from-xml';
+  RSMDFeMDFeToXMLRoute = '/mdfe/mdfe-to-xml';  RSMDFeDAMDFeEventoRoute = '/mdfe/damdfe-evento';
+  RSMDFePDFRoute = '/mdfe/pdf/:chave';  RSMDFeDAMDFeURLRoute = '/mdfe/damdfe-url';
+  RSCTeDACTEURLRoute = '/cte/dacte-url';
+  RSNFeDANFeURLRoute = '/nfe/danfe-url';
+  RSNFSeDANFSeURLRoute = '/nfse/danfse-url';
   
   // Rotas - Certificados
   RSCertificadosUploadRoute = '/certificados/upload';

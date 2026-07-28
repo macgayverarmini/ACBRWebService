@@ -20,7 +20,7 @@
     <VersionInfo>
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
-      <BuildNr Value="73"/>
+      <BuildNr Value="100"/>
       <Language Value="0416"/>
       <Attributes pvaDebug="True"/>
     </VersionInfo>
@@ -35,6 +35,12 @@
       <FormatVersion Value="2"/>
     </RunParams>
     <RequiredPackages>
+      <Item>
+        <PackageName Value="ACBrDFeComum"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBrLibXML2"/>
+      </Item>
       <Item>
         <PackageName Value="ACBr_CIOT"/>
       </Item>
@@ -185,7 +191,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="..\horse-master\src;routes;method;..\handle-exception\src;tools;..\jhonson\src;resources;..\acbr\Fontes\ACBrDFe\ACBrMDFe\PCNMDFe;..\acbr\Fontes\Terceiros\synalist"/>
+      <OtherUnitFiles Value="..\horse-master\src;routes;method;..\handle-exception\src;tools;..\jhonson\src;resources;..\acbr\Fontes\ACBrDFe\ACBrMDFe\PCNMDFe;..\acbr\Fontes\ACBrLibXML2;..\acbr\Fontes\ACBrComum;..\acbr\Fontes\ACBrDFe;..\acbr\Fontes\ACBrDFe\ACBrNFe;..\acbr\Fontes\ACBrDFe\ACBrCTe;..\acbr\Fontes\ACBrDFe\ACBrCTe\DACTE\FPDF;..\acbr\Fontes\ACBrDFe\ACBrCTe\DACTE;..\acbr\Fontes\ACBrDFe\ACBrCTe\Base;..\acbr\Fontes\ACBrDFe\ACBrCTe\Base\Servicos;..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE;..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe;..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFe\FPDF;..\acbr\Fontes\Terceiros\synalist"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <CodeGeneration>

@@ -1,4 +1,4 @@
-unit route.acbr.cte;
+﻿unit route.acbr.cte;
 
 {$mode Delphi}{$H+}
 
@@ -21,13 +21,14 @@ procedure GetModeloCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc)
 procedure GetModeloCancelamento(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure GetModeloCTeFromXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure GetModeloCTeToXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetCTePDFFile(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
 procedure PostEventosCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostStatusServico(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostConsulta(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostInutilizacao(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostDistCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
-procedure PostDACTE(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostDACTE(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);procedure PostDACTEURL(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostCancelamento(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostCTeFromXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
@@ -101,6 +102,24 @@ begin
   end;
 end;
 
+procedure GetCTePDFFile(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  Chave, FilePath, PdfDir: string;
+begin
+  Chave := Req.Params['chave'];
+  Chave := StringReplace(Chave, 'CTe', '', [rfIgnoreCase]);
+  PdfDir := ExtractFilePath(ParamStr(0)) + 'pdf' + PathDelim;
+
+  FilePath := PdfDir + 'CTe' + Chave + '-cte.pdf';
+  if not FileExists(FilePath) then
+    FilePath := PdfDir + Chave + '-cte.pdf';
+
+  if FileExists(FilePath) then
+    Res.Download(FilePath, 'dacte.pdf')
+  else
+    Res.Status(404).Send('PDF do CT-e nao encontrado');
+end;
+
 procedure PostEventosCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   O: TJSONObject;
@@ -127,6 +146,21 @@ begin
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
       .Send(Ac.DACTE(O).AsJSON);
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+procedure PostDACTEURL(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O: TJSONObject;
+  Ac: TACBRBridgeCTe;
+begin
+  O := GetJSON(Req.Body) as TJSONObject;
+  Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
+  try
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+      .Send(Ac.DACTE(O, True).AsJSON);
   finally
     O.Free;
     Ac.Free;
@@ -490,6 +524,8 @@ begin
   THorse.Post(RSCTeInutilizacaoRoute, PostInutilizacao);
   THorse.Post(RSCTeDistribuicaoRoute, PostDistCTe);
   THorse.Post(RSCTeDACTERoute, PostDACTE);
+  THorse.Post(RSCTeDACTEURLRoute, PostDACTEURL);
+  THorse.Get('/cte/pdf/:chave', GetCTePDFFile);
   THorse.Post(RSCTeCTeRoute, PostCTe);
   THorse.Post(RSCTeCancelamentoRoute, PostCancelamento);
   THorse.Post(RSCTeCTeFromXMLRoute, PostCTeFromXML);

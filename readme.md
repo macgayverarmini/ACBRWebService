@@ -22,6 +22,72 @@ O ACBRWebService expõe o poder da [ACBR](https://www.projetoacbr.com.br/) atrav
 
 ---
 
+## 🚛 Documento Auxiliar do CT-e (DACTE)
+
+O **ACBRWebService** oferece suporte completo para a geração e download do **DACTE (Documento Auxiliar do Conhecimento de Transporte Eletrônico)** em formato PDF, integrado à biblioteca ACBr.
+
+### 📍 Endpoints da API DACTE
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `POST` | `/cte/dacte` | Gera o PDF do DACTE a partir do XML e retorna a chave, tamanho, URL de download e o PDF codificado em **Base64**. |
+| `POST` | `/cte/dacte-url` | **Versão otimizada**: Gera o PDF no servidor e retorna apenas a chave e a URL de download `/cte/pdf/:chave` (sem o payload pesado de Base64). |
+| `GET`  | `/cte/pdf/:chave` | Download direto do arquivo PDF (`dacte.pdf`) pela chave de 44 dígitos do CT-e. |
+| `POST` | `/cte/dacte-evento` | Gera o PDF do DACTE para eventos de CT-e (ex: Cancelamento, Carta de Correção - CC-e). |
+| `GET`  | `/modelo/cte/dacte-evento` | Retorna o modelo JSON de exemplo para a requisição de evento DACTE. |
+
+---
+
+### 📥 Exemplo de Requisição (`POST /cte/dacte` ou `/cte/dacte-url`)
+
+```json
+{
+  "id": "req-12345",
+  "xml": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48Y1RlUHJvYy...==",
+  "config": {
+    "SSLLib": 4,
+    "Arquivos": {
+      "PathSalvar": "C:\\NFMonitor\\src\\bin\\Docs"
+    }
+  }
+}
+```
+
+> **Nota:** O campo `xml` aceita o XML do CT-e em Base64 ou a string XML direta.
+
+---
+
+### 📤 Exemplo de Resposta (`POST /cte/dacte`)
+
+```json
+{
+  "id": "req-12345",
+  "chave": "35210403911545000148570010000001011000001018",
+  "url": "/cte/pdf/35210403911545000148570010000001011000001018",
+  "tamanho": "142850",
+  "pdf": "JVBERi0xLjQ... (Base64 do PDF) ..."
+}
+```
+
+---
+
+### ⚡ Dica de Alta Performance: Geração Leve via `/cte/dacte-url`
+
+Para evitar tráfego excessivo em redes ou na integração com **N8N** / **Zapier**, utilize a rota `/cte/dacte-url`. O PDF é gerado no servidor e você recebe diretamente a URL de download.
+
+```bash
+# Geração leve via URL
+curl -X POST http://localhost:8080/cte/dacte-url \
+  -H "Content-Type: application/json" \
+  -d '{"xml": "<xml_base64_ou_string>"}'
+
+# Baixar o PDF diretamente
+curl -o dacte.pdf http://localhost:8080/cte/pdf/35210403911545000148570010000001011000001018
+```
+
+---
+
+
 ## 📋 Requisitos
 
 | Requisito | Versão / Link |

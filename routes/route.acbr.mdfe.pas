@@ -1,4 +1,4 @@
-unit route.acbr.mdfe;
+﻿unit route.acbr.mdfe;
 
 {$mode Delphi}{$H+}
 
@@ -15,13 +15,15 @@ uses
 procedure GetModeloConfigMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure GetModeloEventoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure GetModeloMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
-procedure GetModeloDistribuicaoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloDistribuicaoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);procedure GetModeloMDFeFromXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloMDFeToXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);procedure GetMDFePDFFile(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
 // --- Handlers para Endpoints de Operações (POST) ---
 procedure PostEnviarMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostEventosMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
-procedure PostDamdfeMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
-procedure PostDistribuicaoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostDamdfeMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);procedure PostDamdfeURLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostDistribuicaoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);procedure PostMDFeFromXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostMDFeToXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);procedure PostDamdfeEventoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
 // Procedure para registrar todas as rotas no Horse
 procedure regRouter;
@@ -111,6 +113,58 @@ begin
     AcM.Free;
   end;
 end;
+procedure GetModeloMDFeFromXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  AcM: TACBRModelosJSONMDFe;
+  LJson: TJSONObject;
+begin
+  AcM := TACBRModelosJSONMDFe.Create('');
+  try
+    LJson := AcM.ModelMDFeFromXML;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    AcM.Free;
+  end;
+end;
+
+procedure GetModeloMDFeToXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  AcM: TACBRModelosJSONMDFe;
+  LJson: TJSONObject;
+begin
+  AcM := TACBRModelosJSONMDFe.Create('');
+  try
+    LJson := AcM.ModelMDFeToXML;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    AcM.Free;
+  end;
+end;
+procedure GetMDFePDFFile(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  Chave, FilePath, PdfDir: string;
+begin
+  Chave := Req.Params['chave'];
+  Chave := StringReplace(Chave, 'MDFe', '', [rfIgnoreCase]);
+
+  PdfDir := ExtractFilePath(ParamStr(0)) + 'pdf' + PathDelim;
+  FilePath := PdfDir + 'MDFe' + Chave + '-mdfe.pdf';
+  if not FileExists(FilePath) then
+    FilePath := PdfDir + Chave + '-mdfe.pdf';
+
+  if FileExists(FilePath) then
+    Res.Download(FilePath, 'damdfe.pdf')
+  else
+    Res.Status(404).Send('PDF do MDF-e nao encontrado');
+end;
 
 // --- Implementação dos Handlers de Operações (POST) ---
 
@@ -197,6 +251,62 @@ begin
     Ac.Free;
   end;
 end;
+procedure PostDamdfeURLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O, LJson: TJSONObject;
+  Ac: TACBRBridgeMDFe;
+begin
+  try
+    O := GetJSON(Req.Body) as TJSONObject;
+  except
+    on E: Exception do
+    begin
+      Res.Status(400).Send(TJSONObject.Create(['message', 'Corpo da requisição JSON inválido: ' + E.Message]).AsJSON);
+      Exit;
+    end;
+  end;
+
+  Ac := TACBRBridgeMDFe.Create(ExtractConfig(O, 'config'));
+  try
+    LJson := Ac.Damdfe(O, True);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+procedure PostDamdfeEventoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O, LJson: TJSONObject;
+  Ac: TACBRBridgeMDFe;
+begin
+  try
+    O := GetJSON(Req.Body) as TJSONObject;
+  except
+    on E: Exception do
+    begin
+      Res.Status(400).Send(TJSONObject.Create(['message', 'Corpo da requisição JSON inválido: ' + E.Message]).AsJSON);
+      Exit;
+    end;
+  end;
+
+  Ac := TACBRBridgeMDFe.Create(ExtractConfig(O, 'config'));
+  try
+    LJson := Ac.DamdfeEvento(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
 
 procedure PostDistribuicaoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
@@ -227,6 +337,63 @@ begin
     Ac.Free;
   end;
 end;
+procedure PostMDFeFromXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O, LJson: TJSONObject;
+  Ac: TACBRBridgeMDFe;
+begin
+  try
+    O := GetJSON(Req.Body) as TJSONObject;
+  except
+    on E: Exception do
+    begin
+      Res.Status(400).Send(TJSONObject.Create(['message', 'Corpo da requisição JSON inválido: ' + E.Message]).AsJSON);
+      Exit;
+    end;
+  end;
+
+  Ac := TACBRBridgeMDFe.Create(ExtractConfig(O, 'config'));
+  try
+    LJson := Ac.MDFeFromXML(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
+procedure PostMDFeToXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O, LJson: TJSONObject;
+  Ac: TACBRBridgeMDFe;
+begin
+  try
+    O := GetJSON(Req.Body) as TJSONObject;
+  except
+    on E: Exception do
+    begin
+      Res.Status(400).Send(TJSONObject.Create(['message', 'Corpo da requisição JSON inválido: ' + E.Message]).AsJSON);
+      Exit;
+    end;
+  end;
+
+  Ac := TACBRBridgeMDFe.Create(ExtractConfig(O, 'config'));
+  try
+    LJson := Ac.MDFeToXML(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
 
 // --- Registro das Rotas ---
 
@@ -236,13 +403,15 @@ begin
   THorse.Get(RSModeloMDFeConfigRoute, GetModeloConfigMDFe);
   THorse.Get(RSModeloMDFeEventoRoute, GetModeloEventoMDFe);
   THorse.Get(RSModeloMDFeMDFeRoute, GetModeloMDFe);
-  THorse.Get(RSModeloMDFeDistribuicaoRoute, GetModeloDistribuicaoMDFe);
+  THorse.Get(RSModeloMDFeDistribuicaoRoute, GetModeloDistribuicaoMDFe);  THorse.Get(RSModeloMDFeMDFeFromXMLRoute, GetModeloMDFeFromXMLMDFe);
+  THorse.Get(RSModeloMDFeMDFeToXMLRoute, GetModeloMDFeToXMLMDFe);  THorse.Get(RSMDFePDFRoute, GetMDFePDFFile);
 
   // Endpoints de Operações (POST)
   THorse.Post(RSMDFeMDFeRoute, PostEnviarMDFe);
   THorse.Post(RSMDFeEventosRoute, PostEventosMDFe);
-  THorse.Post(RSMDFeDAMDFeRoute, PostDamdfeMDFe);
-  THorse.Post(RSMDFeDistribuicaoRoute, PostDistribuicaoMDFe);
+  THorse.Post(RSMDFeDAMDFeRoute, PostDamdfeMDFe);  THorse.Post(RSMDFeDAMDFeURLRoute, PostDamdfeURLMDFe);
+  THorse.Post(RSMDFeDistribuicaoRoute, PostDistribuicaoMDFe);  THorse.Post(RSMDFeMDFeFromXMLRoute, PostMDFeFromXMLMDFe);
+  THorse.Post(RSMDFeMDFeToXMLRoute, PostMDFeToXMLMDFe);  THorse.Post(RSMDFeDAMDFeEventoRoute, PostDamdfeEventoMDFe);
 end;
 
 end.

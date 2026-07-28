@@ -59,7 +59,7 @@ type
     function Cancelamento(const jCancelamento: TJSONObject): TJSONObject;
     function CTeFromXML(const jXML: TJSONObject): TJSONObject;
     function CTeToXML(const jCTe: TJSONObject): TJSONObject;
-    function DACTE(const xmlData: TJSONObject): TJSONObject;
+    function DACTE(const xmlData: TJSONObject; const OnlyURL: Boolean = False): TJSONObject;
     function ValidarRegras(const jCTe: TJSONObject): TJSONObject;
     function DACTEEvento(const xmlEvento: TJSONObject): TJSONObject;
 
@@ -315,9 +315,10 @@ begin
           end;
         end;
 
-        // Força configurações de SSL para OpenSSL
+        // Força configurações de SSL para OpenSSL e ModeloDF para moCTe
         with facbr.Configuracoes.Geral do
         begin
+          ModeloDF := moCTe;
           SSLLib := libNone; // Forca recriacao
           SSLLib := libOpenSSL;
           SSLCryptLib := cryOpenSSL;
@@ -333,6 +334,9 @@ begin
       raise Exception.Create('Erro na leitura da configuracao: ' + E.Message);
   end;
 
+  if facbr.Configuracoes.WebServices.UF = '' then
+    facbr.Configuracoes.WebServices.UF := 'ES';
+
   // Garante PathSchemas padrao para CTe se nao foi informado
   if facbr.Configuracoes.Arquivos.PathSchemas = '' then
     facbr.Configuracoes.Arquivos.PathSchemas := ExtractFilePath(ParamStr(0)) + 'Schemas' + PathDelim + 'CTe';
@@ -343,21 +347,27 @@ end;
 
 function TACBRBridgeCTe.ReadXMLFromJSON(const jsonData: TJSONObject): string;
 var
-  xmlBase64JSON: TJSONString;
-  xmlBase64: string;
+  xmlData: TJSONData;
+  xmlStr: string;
 begin
-  if not jsonData.Find('xml', xmlBase64JSON) then
-    raise Exception.Create('Parmetro "xml" (string Base64) no encontrado no JSON.');
+  xmlData := jsonData.Find('xml');
+  if not Assigned(xmlData) then
+    raise Exception.Create('Parametro "xml" nao encontrado no JSON.');
 
-  xmlBase64 := xmlBase64JSON.AsString;
-  if xmlBase64 = '' then
-    raise Exception.Create('Parmetro "xml" est vazio no JSON.');
+  xmlStr := Trim(xmlData.AsString);
+  if xmlStr = '' then
+    raise Exception.Create('Parametro "xml" esta vazio no JSON.');
 
-  try
-    Result := DecodeStringBase64(xmlBase64); // Funo de Classes ou Base64 unit
-  except
-    on E: Exception do
-      raise Exception.Create(RSInvalidBase64XML + E.Message);
+  if (Length(xmlStr) > 0) and (xmlStr[1] = '<') then
+    Result := xmlStr
+  else
+  begin
+    try
+      Result := DecodeStringBase64(xmlStr);
+    except
+      on E: Exception do
+        raise Exception.Create(RSInvalidBase64XML + E.Message);
+    end;
   end;
 end;
 
@@ -434,13 +444,13 @@ begin
     end;
     
     Writeln('--> Chamando facbr.SSL.Assinar');
-    Item.XML := facbr.SSL.Assinar(String(Item.XML), 'CTe', 'infCte');
+    Item.Assinar;
     
     Writeln('--> Chamando Validar');
     facbr.Conhecimentos.Validar;
     
     Writeln('--> Chamando Envia');
-    facbr.WebServices.Envia(Lote, False);
+    facbr.WebServices.Envia(Lote, True);
     Writeln('--> Envia OK');
     Result := TJSONTools.SafeObjToJson(facbr.WebServices.Retorno, 'Erro ao enviar CTe');
   finally
@@ -472,6 +482,7 @@ begin
     TJSONTools.JsonToObj(oEvento, objEvento);
   end;
 
+  facbr.SSL.CarregarCertificado;
   facbr.EnviarEvento(1);
   Result := TJSONTools.ObjToJsonString(
     facbr.WebServices.EnvEvento.EventoRetorno.retEvento);
@@ -585,40 +596,45 @@ end;
 
 function TACBRBridgeCTe.Cancelamento(const jCancelamento: TJSONObject): TJSONObject;
 var
-  idLote: Integer;
+  chCTe, nProt, xJust, xmlPath: string;
+  CancObj: TJSONObject;
 begin
   CarregaConfig;
   Result := TJSONObject.Create;
-  idLote := 1;
-  facbr.EventoCTe.Evento.Clear;
-  facbr.EventoCTe.idLote := idLote;
+
+  CancObj := jCancelamento.Extract('cancelamento') as TJSONObject;
+  if not Assigned(CancObj) then CancObj := jCancelamento;
 
   try
-    // Popula o objeto evento diretamente do JSON
-    TJSONTools.JsonToObj(jCancelamento, facbr.EventoCTe.Evento.New);
-  except
-     on E: Exception do
-     begin
-       Result.Add('status', 'erro');
-       Result.Add('message', 'Erro ao converter JSON para Evento: ' + E.Message);
-       Exit;
-     end;
-  end;
+    try
+      chCTe := CancObj.Get('chCTe', '');
+      nProt := CancObj.Get('nProt', '');
+      xJust := CancObj.Get('xJust', '');
 
-  // Garante tipo de evento cancelamento e data se falhar
-  with facbr.EventoCTe.Evento.Items[0].InfEvento do
-  begin
-     if tpEvento <> teCancelamento then tpEvento := teCancelamento;
-     if dhEvento = 0 then dhEvento := Now;
-     if CNPJ = '' then CNPJ := Copy(chCTe, 7, 14);
-  end;
+      if chCTe = '' then chCTe := CancObj.Get('chave', '');
+      if xJust = '' then xJust := CancObj.Get('justificativa', '');
 
-  try
-    facbr.EnviarEvento(idLote);
-    Result := TJSONTools.SafeObjToJson(facbr.WebServices.EnvEvento.EventoRetorno.retEvento, 'Erro ao enviar evento de cancelamento');
-  except
-    on E: Exception do
-      Result := TJSONTools.SafeObjToJson(nil, 'Erro ao enviar evento de cancelamento: ' + E.Message);
+      facbr.Conhecimentos.Clear;
+      xmlPath := ExtractFilePath(ParamStr(0)) + 'Docs' + PathDelim + chCTe + '-cte.xml';
+      if not FileExists(xmlPath) then
+        xmlPath := 'C:\NFMonitor\src\bin\Docs\' + chCTe + '-cte.xml';
+
+      if FileExists(xmlPath) then
+        facbr.Conhecimentos.LoadFromFile(xmlPath);
+
+      facbr.SSL.CarregarCertificado;
+
+      if facbr.Cancelamento(xJust, 1) then
+        Result := TJSONTools.SafeObjToJson(facbr.WebServices.EnvEvento.EventoRetorno.retEvento, 'Cancelamento processado')
+      else
+        Result := TJSONTools.SafeObjToJson(facbr.WebServices.EnvEvento.EventoRetorno.retEvento, 'Falha ao cancelar CT-e');
+    except
+      on E: Exception do
+        Result := TJSONTools.SafeObjToJson(nil, 'Erro no cancelamento: ' + E.Message);
+    end;
+  finally
+    if (CancObj <> jCancelamento) and Assigned(CancObj) then CancObj.Free;
+    facbr.Conhecimentos.Clear;
   end;
 end;
 
@@ -700,13 +716,15 @@ begin
   if Assigned(facbr.Conhecimentos) then facbr.Conhecimentos.Clear;
 end;
 
-function TACBRBridgeCTe.DACTE(const xmlData: TJSONObject): TJSONObject;
+function TACBRBridgeCTe.DACTE(const xmlData: TJSONObject; const OnlyURL: Boolean = False): TJSONObject;
 var
   arquivofinal: string;
   stringXml: string;
   tamanho: integer;
   id: TJSONString;
   fileName: string;
+  pdfDir: string;
+  chClean: string;
 begin
   CarregaConfig;
   Result := TJSONObject.Create;
@@ -747,43 +765,61 @@ begin
   else
     fdacte.TipoDACTE := tiPaisagem;
 
-  // Como  um aplicativo console, jamais a propriedade MostraStatus deve ser true.
+  // Como eh um aplicativo console, jamais a propriedade MostraStatus deve ser true.
   fdacte.MostraPreview := False;
   fdacte.MostraStatus := False;
   fdacte.MostraSetup := False;
 
-  //Gerando arquivo temporrio
-  fileName := GetTempFileName;
-  // Realiza o processo de transformar o XML em PDF (Danfe)
+  pdfDir := ExtractFilePath(ParamStr(0)) + 'pdf' + PathDelim;
+  if not DirectoryExists(pdfDir) then
+    CreateDir(pdfDir);
+
   try
-    fdacte.PathPDF := filename;
+    fdacte.PathPDF := pdfDir;
+    facbr.DACTE := fdacte;
     facbr.Conhecimentos.ImprimirPDF;
-    filename := fdacte.ArquivoPDF;
-  except
+
+    fileName := fdacte.ArquivoPDF;
+    if (fileName = '') or (not FileExists(fileName)) then
     begin
-      Result.Add('error', 'Falha ao gerar o PDF.');
+      fileName := pdfDir + facbr.Conhecimentos.Items[0].CTe.infCTe.ID + '-cte.pdf';
+      if not FileExists(fileName) then
+        fileName := pdfDir + StringReplace(facbr.Conhecimentos.Items[0].CTe.infCTe.ID, 'CTe', '', [rfIgnoreCase]) + '-cte.pdf';
+    end;
+
+    if not FileExists(fileName) then
+    begin
+      Result.Add('error', 'Arquivo PDF nao foi gerado pelo ACBr em: ' + fileName);
       Exit;
     end;
-  end;
-
-  // Converte o arquivo para base64
-  try
-    arquivofinal := FileToStringBase64(filename, True, tamanho);
   except
     on E: Exception do
     begin
-      Result.Add('error', E.Message);
+      Result.Add('error', 'Falha ao gerar o PDF: ' + E.Message);
       Exit;
     end;
   end;
 
-  // Converte a stream do relatrio para base64
-  Result.Add('pdf', arquivofinal);
-  // Chave de Acesso da NF-e
-  Result.Add('chave', facbr.Conhecimentos.Items[0].CTe.infCTe.ID);
-  // Tamanho em Bytes
-  Result.Add('tamanho', tamanho.ToString);
-  // Adiciona o identificador nico se ele existir
+  chClean := StringReplace(facbr.Conhecimentos.Items[0].CTe.infCTe.ID, 'CTe', '', [rfIgnoreCase]);
+
+  if not OnlyURL then
+  begin
+    try
+      arquivofinal := FileToStringBase64(fileName, False, tamanho);
+      Result.Add('pdf', arquivofinal);
+      Result.Add('tamanho', tamanho.ToString);
+    except
+      on E: Exception do
+      begin
+        Result.Add('error', E.Message);
+        Exit;
+      end;
+    end;
+  end;
+
+  Result.Add('chave', chClean);
+  Result.Add('url', '/cte/pdf/' + chClean);
+
   if xmlData.Find('id', id) then
     Result.Add('id', id);
 

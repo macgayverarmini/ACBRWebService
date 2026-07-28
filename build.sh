@@ -84,6 +84,10 @@ log "OK: lazbuild encontrado em $LAZBUILD_CMD"
 # Flags globais: apontar diretórios explicitamente (evita depender do XML)
 FPC_COMPILER="${FPC_COMPILER:-/home/datalider/development/fpc/bin/x86_64-linux/fpc}"
 LAZBUILD_OPTS="--lazarusdir=$LAZARUS_DIR --compiler=$FPC_COMPILER"
+if [ -d "/home/datalider/vps_libs" ]; then
+    LAZBUILD_OPTS="$LAZBUILD_OPTS --opt=-Fl/home/datalider/vps_libs --opt=-k-L/home/datalider/vps_libs --opt=-k-rpath-link=/home/datalider/vps_libs"
+    log "INFO: Using custom VPS libraries in /home/datalider/vps_libs for compatibility."
+fi
 log "FPC Compiler: $FPC_COMPILER"
 log "Lazarus Dir : $LAZARUS_DIR"
 
@@ -122,13 +126,13 @@ log "Pacotes registrados: $PKG_COUNT | Ignorados: $PKG_SKIP"
 
 # --- PASSO 3: Rebuild da IDE ---
 separator
-log "PASSO 3/5 — Recompilação da IDE Lazarus (pode levar vários minutos)"
+log "PASSO 3/5 — Recompilação da IDE Lazarus (pular)"
 separator
 
-STEP_START=$(date +%s)
-"$LAZBUILD_CMD" $LAZBUILD_OPTS --build-ide= 2>&1 | tee -a "$BUILD_LOG"
-STEP_ELAPSED=$(( $(date +%s) - STEP_START ))
-log "IDE recompilada em ${STEP_ELAPSED}s"
+# STEP_START=$(date +%s)
+# "$LAZBUILD_CMD" $LAZBUILD_OPTS --build-ide= 2>&1 | tee -a "$BUILD_LOG"
+# STEP_ELAPSED=$(( $(date +%s) - STEP_START ))
+# log "IDE recompilada em ${STEP_ELAPSED}s"
 
 # --- PASSO 3.5: Recursos (se existir) ---
 if [ -f "compile_resources.py" ]; then

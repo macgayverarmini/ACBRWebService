@@ -1,4 +1,4 @@
-unit TestMDFe;
+﻿unit TestMDFe;
 
 {$mode objfpc}{$H+}
 
@@ -15,13 +15,17 @@ type
     procedure TestGetModeloConfig;
     procedure TestGetModeloEvento;
     procedure TestGetModeloMDFe;
-    procedure TestGetModeloDistribuicao;
+    procedure TestGetModeloDistribuicao;    procedure TestGetModeloMDFeFromXML;
+    procedure TestGetModeloMDFeToXML;
+    procedure TestPostMDFeFromXML;
+    procedure TestPostMDFeToXML;
 
     // POST
     procedure TestPostEnviar;
     procedure TestPostEventos;
     procedure TestPostDACTE; // Actually Damdfe
-    procedure TestPostDistribuicao;
+    procedure TestPostDistribuicao;    procedure TestPostDAMDFEEvento;
+    procedure TestGetPDF;
   end;
 
 implementation
@@ -48,6 +52,25 @@ end;
 procedure TTestMDFe.TestGetModeloDistribuicao;
 begin
   ExecuteGetTest('/modelo/mdfe/distribuicao');
+end;
+procedure TTestMDFe.TestGetModeloMDFeFromXML;
+begin
+  ExecuteGetTest('/modelo/mdfe/mdfe-from-xml');
+end;
+
+procedure TTestMDFe.TestGetModeloMDFeToXML;
+begin
+  ExecuteGetTest('/modelo/mdfe/mdfe-to-xml');
+end;
+
+procedure TTestMDFe.TestPostMDFeFromXML;
+begin
+  ExecutePostTest('/mdfe/mdfe-from-xml');
+end;
+
+procedure TTestMDFe.TestPostMDFeToXML;
+begin
+  ExecutePostTest('/mdfe/mdfe-to-xml');
 end;
 
 // --- POST Tests ---
@@ -92,6 +115,15 @@ end;
 procedure TTestMDFe.TestPostDistribuicao;
 begin
   ExecutePostTest('/mdfe/distribuicao');
+end;
+procedure TTestMDFe.TestPostDAMDFEEvento;
+begin
+  ExecutePostTest('/mdfe/damdfe-evento');
+end;
+
+procedure TTestMDFe.TestGetPDF;
+begin
+  ExecuteGetTest('/mdfe/pdf/35110803911545000148570010000001011000001018', 404);
 end;
 
 initialization

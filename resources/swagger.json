@@ -6,6 +6,99 @@
     "version": "1.0.0"
   },
   "paths": {
+    "/modelo/bpe/config": {
+      "get": {
+        "tags": [
+          "BPE"
+        ],
+        "summary": "GET GetModeloConfigBPe",
+        "description": "Endpoint handled by GetModeloConfigBPe",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        }
+      }
+    },
+    "/bpe/bpe": {
+      "post": {
+        "tags": [
+          "BPE"
+        ],
+        "summary": "POST PostBPe",
+        "description": "Endpoint handled by PostBPe",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "requestBody": {
+          "description": "Payload com as configurações do ACBr e dados do documento",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "type": "object",
+                    "description": "Configurações do ACBr (Certificado, Arquivos, etc)"
+                  },
+                  "dados": {
+                    "type": "string",
+                    "description": "XML ou dados estruturados em Base64 ou Texto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bpe/enviar": {
+      "post": {
+        "tags": [
+          "BPE"
+        ],
+        "summary": "POST PostEnviar",
+        "description": "Endpoint handled by PostEnviar",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "requestBody": {
+          "description": "Payload com as configurações do ACBr e dados do documento",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "type": "object",
+                    "description": "Configurações do ACBr (Certificado, Arquivos, etc)"
+                  },
+                  "dados": {
+                    "type": "string",
+                    "description": "XML ou dados estruturados em Base64 ou Texto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/certificados/upload": {
       "get": {
         "tags": [
@@ -66,6 +159,99 @@
         ],
         "summary": "POST PostLerDadosCertificado",
         "description": "Endpoint handled by PostLerDadosCertificado",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "requestBody": {
+          "description": "Payload com as configurações do ACBr e dados do documento",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "type": "object",
+                    "description": "Configurações do ACBr (Certificado, Arquivos, etc)"
+                  },
+                  "dados": {
+                    "type": "string",
+                    "description": "XML ou dados estruturados em Base64 ou Texto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/modelo/ciot/config": {
+      "get": {
+        "tags": [
+          "CIOT"
+        ],
+        "summary": "GET GetModeloConfigCIOT",
+        "description": "Endpoint handled by GetModeloConfigCIOT",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        }
+      }
+    },
+    "/ciot/ciot": {
+      "post": {
+        "tags": [
+          "CIOT"
+        ],
+        "summary": "POST PostCIOT",
+        "description": "Endpoint handled by PostCIOT",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "requestBody": {
+          "description": "Payload com as configurações do ACBr e dados do documento",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "type": "object",
+                    "description": "Configurações do ACBr (Certificado, Arquivos, etc)"
+                  },
+                  "dados": {
+                    "type": "string",
+                    "description": "XML ou dados estruturados em Base64 ou Texto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ciot/enviar": {
+      "post": {
+        "tags": [
+          "CIOT"
+        ],
+        "summary": "POST PostEnviar",
+        "description": "Endpoint handled by PostEnviar",
         "responses": {
           "200": {
             "description": "Sucesso"
@@ -457,10 +643,10 @@
         }
       }
     },
-    "/cte/danfe": {
+    "/cte/dacte": {
       "post": {
         "tags": [
-          "ROUTER.ACBR.CTE"
+          "CTE"
         ],
         "summary": "POST PostDACTE",
         "description": "Endpoint handled by PostDACTE",
@@ -495,10 +681,65 @@
         }
       }
     },
-    "/cte/nfe": {
+    "/cte/dacte-url": {
       "post": {
         "tags": [
-          "ROUTER.ACBR.CTE"
+          "CTE"
+        ],
+        "summary": "POST PostDACTEURL",
+        "description": "Endpoint handled by PostDACTEURL",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "requestBody": {
+          "description": "Payload com as configurações do ACBr e dados do documento",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "type": "object",
+                    "description": "Configurações do ACBr (Certificado, Arquivos, etc)"
+                  },
+                  "dados": {
+                    "type": "string",
+                    "description": "XML ou dados estruturados em Base64 ou Texto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cte/pdf/:chave": {
+      "get": {
+        "tags": [
+          "CTE"
+        ],
+        "summary": "GET GetCTePDFFile",
+        "description": "Endpoint handled by GetCTePDFFile",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        }
+      }
+    },
+    "/cte/cte": {
+      "post": {
+        "tags": [
+          "CTE"
         ],
         "summary": "POST PostCTe",
         "description": "Endpoint handled by PostCTe",
@@ -723,6 +964,82 @@
         }
       }
     },
+    "/cte/debug-config": {
+      "post": {
+        "tags": [
+          "CTE"
+        ],
+        "summary": "POST PostDebugConfig",
+        "description": "Endpoint handled by PostDebugConfig",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "requestBody": {
+          "description": "Payload com as configurações do ACBr e dados do documento",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "type": "object",
+                    "description": "Configurações do ACBr (Certificado, Arquivos, etc)"
+                  },
+                  "dados": {
+                    "type": "string",
+                    "description": "XML ou dados estruturados em Base64 ou Texto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cte/debug-cte": {
+      "post": {
+        "tags": [
+          "CTE"
+        ],
+        "summary": "POST PostDebugCTe",
+        "description": "Endpoint handled by PostDebugCTe",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "requestBody": {
+          "description": "Payload com as configurações do ACBr e dados do documento",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "type": "object",
+                    "description": "Configurações do ACBr (Certificado, Arquivos, etc)"
+                  },
+                  "dados": {
+                    "type": "string",
+                    "description": "XML ou dados estruturados em Base64 ou Texto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/modelo/cte/validar-regras": {
       "get": {
         "tags": [
@@ -809,11 +1126,11 @@
       }
     },
     "/diversos/validador": {
-      "get": {
+      "post": {
         "tags": [
           "DIVERSOS.VALIDADOR"
         ],
-        "summary": "GET GetValidar",
+        "summary": "POST GetValidar",
         "description": "Endpoint handled by GetValidar",
         "responses": {
           "200": {
@@ -821,6 +1138,154 @@
           },
           "500": {
             "description": "Erro interno do servidor"
+          }
+        },
+        "requestBody": {
+          "description": "Payload com as configurações do ACBr e dados do documento",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "type": "object",
+                    "description": "Configurações do ACBr (Certificado, Arquivos, etc)"
+                  },
+                  "dados": {
+                    "type": "string",
+                    "description": "XML ou dados estruturados em Base64 ou Texto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/modelo/escpos/config": {
+      "get": {
+        "tags": [
+          "ESCPOS"
+        ],
+        "summary": "GET GetModeloConfigEscPos",
+        "description": "Endpoint handled by GetModeloConfigEscPos",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        }
+      }
+    },
+    "/escpos/portas": {
+      "get": {
+        "tags": [
+          "ESCPOS"
+        ],
+        "summary": "GET GetPortasDisponiveis",
+        "description": "Endpoint handled by GetPortasDisponiveis",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        }
+      }
+    },
+    "/escpos/escpos": {
+      "post": {
+        "tags": [
+          "ESCPOS"
+        ],
+        "summary": "POST PostEscPos",
+        "description": "Endpoint handled by PostEscPos",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "requestBody": {
+          "description": "Payload com as configurações do ACBr e dados do documento",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "type": "object",
+                    "description": "Configurações do ACBr (Certificado, Arquivos, etc)"
+                  },
+                  "dados": {
+                    "type": "string",
+                    "description": "XML ou dados estruturados em Base64 ou Texto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/modelo/esocial/config": {
+      "get": {
+        "tags": [
+          "ESOCIAL"
+        ],
+        "summary": "GET GetModeloConfigeSocial",
+        "description": "Endpoint handled by GetModeloConfigeSocial",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        }
+      }
+    },
+    "/esocial/esocial": {
+      "post": {
+        "tags": [
+          "ESOCIAL"
+        ],
+        "summary": "POST PosteSocial",
+        "description": "Endpoint handled by PosteSocial",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "requestBody": {
+          "description": "Payload com as configurações do ACBr e dados do documento",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "type": "object",
+                    "description": "Configurações do ACBr (Certificado, Arquivos, etc)"
+                  },
+                  "dados": {
+                    "type": "string",
+                    "description": "XML ou dados estruturados em Base64 ou Texto"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -893,7 +1358,58 @@
         }
       }
     },
-    "/mdfe/enviar": {
+    "/modelo/mdfe/mdfe-from-xml": {
+      "get": {
+        "tags": [
+          "MDFE"
+        ],
+        "summary": "GET GetModeloMDFeFromXMLMDFe",
+        "description": "Endpoint handled by GetModeloMDFeFromXMLMDFe",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        }
+      }
+    },
+    "/modelo/mdfe/mdfe-to-xml": {
+      "get": {
+        "tags": [
+          "MDFE"
+        ],
+        "summary": "GET GetModeloMDFeToXMLMDFe",
+        "description": "Endpoint handled by GetModeloMDFeToXMLMDFe",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        }
+      }
+    },
+    "/mdfe/pdf/:chave": {
+      "get": {
+        "tags": [
+          "MDFE"
+        ],
+        "summary": "GET GetMDFePDFFile",
+        "description": "Endpoint handled by GetMDFePDFFile",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        }
+      }
+    },
+    "/mdfe/mdfe": {
       "post": {
         "tags": [
           "MDFE"
@@ -1007,6 +1523,44 @@
         }
       }
     },
+    "/mdfe/damdfe-url": {
+      "post": {
+        "tags": [
+          "MDFE"
+        ],
+        "summary": "POST PostDamdfeURLMDFe",
+        "description": "Endpoint handled by PostDamdfeURLMDFe",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "requestBody": {
+          "description": "Payload com as configurações do ACBr e dados do documento",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "type": "object",
+                    "description": "Configurações do ACBr (Certificado, Arquivos, etc)"
+                  },
+                  "dados": {
+                    "type": "string",
+                    "description": "XML ou dados estruturados em Base64 ou Texto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/mdfe/distribuicao": {
       "post": {
         "tags": [
@@ -1014,6 +1568,120 @@
         ],
         "summary": "POST PostDistribuicaoMDFe",
         "description": "Endpoint handled by PostDistribuicaoMDFe",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "requestBody": {
+          "description": "Payload com as configurações do ACBr e dados do documento",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "type": "object",
+                    "description": "Configurações do ACBr (Certificado, Arquivos, etc)"
+                  },
+                  "dados": {
+                    "type": "string",
+                    "description": "XML ou dados estruturados em Base64 ou Texto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mdfe/mdfe-from-xml": {
+      "post": {
+        "tags": [
+          "MDFE"
+        ],
+        "summary": "POST PostMDFeFromXMLMDFe",
+        "description": "Endpoint handled by PostMDFeFromXMLMDFe",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "requestBody": {
+          "description": "Payload com as configurações do ACBr e dados do documento",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "type": "object",
+                    "description": "Configurações do ACBr (Certificado, Arquivos, etc)"
+                  },
+                  "dados": {
+                    "type": "string",
+                    "description": "XML ou dados estruturados em Base64 ou Texto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mdfe/mdfe-to-xml": {
+      "post": {
+        "tags": [
+          "MDFE"
+        ],
+        "summary": "POST PostMDFeToXMLMDFe",
+        "description": "Endpoint handled by PostMDFeToXMLMDFe",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "requestBody": {
+          "description": "Payload com as configurações do ACBr e dados do documento",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "type": "object",
+                    "description": "Configurações do ACBr (Certificado, Arquivos, etc)"
+                  },
+                  "dados": {
+                    "type": "string",
+                    "description": "XML ou dados estruturados em Base64 ou Texto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mdfe/damdfe-evento": {
+      "post": {
+        "tags": [
+          "MDFE"
+        ],
+        "summary": "POST PostDamdfeEventoMDFe",
+        "description": "Endpoint handled by PostDamdfeEventoMDFe",
         "responses": {
           "200": {
             "description": "Sucesso"
@@ -1477,6 +2145,44 @@
         }
       }
     },
+    "/nfe/consulta-recibo": {
+      "post": {
+        "tags": [
+          "NFE"
+        ],
+        "summary": "POST PostConsultaReciboNFe",
+        "description": "Endpoint handled by PostConsultaReciboNFe",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "requestBody": {
+          "description": "Payload com as configurações do ACBr e dados do documento",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "type": "object",
+                    "description": "Configurações do ACBr (Certificado, Arquivos, etc)"
+                  },
+                  "dados": {
+                    "type": "string",
+                    "description": "XML ou dados estruturados em Base64 ou Texto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/nfe/inutilizacao": {
       "post": {
         "tags": [
@@ -1705,6 +2411,82 @@
         }
       }
     },
+    "/nfe/debug-config": {
+      "post": {
+        "tags": [
+          "NFE"
+        ],
+        "summary": "POST PostDebugConfig",
+        "description": "Endpoint handled by PostDebugConfig",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "requestBody": {
+          "description": "Payload com as configurações do ACBr e dados do documento",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "type": "object",
+                    "description": "Configurações do ACBr (Certificado, Arquivos, etc)"
+                  },
+                  "dados": {
+                    "type": "string",
+                    "description": "XML ou dados estruturados em Base64 ou Texto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/nfe/nfe-lote": {
+      "post": {
+        "tags": [
+          "NFE"
+        ],
+        "summary": "POST PostNFeLote",
+        "description": "Endpoint handled by PostNFeLote",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "requestBody": {
+          "description": "Payload com as configurações do ACBr e dados do documento",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "type": "object",
+                    "description": "Configurações do ACBr (Certificado, Arquivos, etc)"
+                  },
+                  "dados": {
+                    "type": "string",
+                    "description": "XML ou dados estruturados em Base64 ou Texto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/modelo/nfse/config": {
       "get": {
         "tags": [
@@ -1831,6 +2613,40 @@
         ],
         "summary": "GET GetModeloSubstituir",
         "description": "Endpoint handled by GetModeloSubstituir",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        }
+      }
+    },
+    "/modelo/nfse/nfse-from-xml": {
+      "get": {
+        "tags": [
+          "NFSE"
+        ],
+        "summary": "GET GetModeloNFSeFromXML",
+        "description": "Endpoint handled by GetModeloNFSeFromXML",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        }
+      }
+    },
+    "/modelo/nfse/nfse-to-xml": {
+      "get": {
+        "tags": [
+          "NFSE"
+        ],
+        "summary": "GET GetModeloNFSeToXML",
+        "description": "Endpoint handled by GetModeloNFSeToXML",
         "responses": {
           "200": {
             "description": "Sucesso"
@@ -2152,6 +2968,382 @@
         ],
         "summary": "POST PostDANFSe",
         "description": "Endpoint handled by PostDANFSe",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "requestBody": {
+          "description": "Payload com as configurações do ACBr e dados do documento",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "type": "object",
+                    "description": "Configurações do ACBr (Certificado, Arquivos, etc)"
+                  },
+                  "dados": {
+                    "type": "string",
+                    "description": "XML ou dados estruturados em Base64 ou Texto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/nfse/distribuicao": {
+      "post": {
+        "tags": [
+          "NFSE"
+        ],
+        "summary": "POST PostDistribuicao",
+        "description": "Endpoint handled by PostDistribuicao",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "requestBody": {
+          "description": "Payload com as configurações do ACBr e dados do documento",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "type": "object",
+                    "description": "Configurações do ACBr (Certificado, Arquivos, etc)"
+                  },
+                  "dados": {
+                    "type": "string",
+                    "description": "XML ou dados estruturados em Base64 ou Texto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/nfse/nfse-from-xml": {
+      "post": {
+        "tags": [
+          "NFSE"
+        ],
+        "summary": "POST PostNFSeFromXML",
+        "description": "Endpoint handled by PostNFSeFromXML",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "requestBody": {
+          "description": "Payload com as configurações do ACBr e dados do documento",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "type": "object",
+                    "description": "Configurações do ACBr (Certificado, Arquivos, etc)"
+                  },
+                  "dados": {
+                    "type": "string",
+                    "description": "XML ou dados estruturados em Base64 ou Texto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/nfse/nfse-to-xml": {
+      "post": {
+        "tags": [
+          "NFSE"
+        ],
+        "summary": "POST PostNFSeToXML",
+        "description": "Endpoint handled by PostNFSeToXML",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "requestBody": {
+          "description": "Payload com as configurações do ACBr e dados do documento",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "type": "object",
+                    "description": "Configurações do ACBr (Certificado, Arquivos, etc)"
+                  },
+                  "dados": {
+                    "type": "string",
+                    "description": "XML ou dados estruturados em Base64 ou Texto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/modelo/sintegra/config": {
+      "get": {
+        "tags": [
+          "SINTEGRA"
+        ],
+        "summary": "GET GetModeloConfigSintegra",
+        "description": "Endpoint handled by GetModeloConfigSintegra",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        }
+      }
+    },
+    "/sintegra/sintegra": {
+      "post": {
+        "tags": [
+          "SINTEGRA"
+        ],
+        "summary": "POST PostSintegra",
+        "description": "Endpoint handled by PostSintegra",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "requestBody": {
+          "description": "Payload com as configurações do ACBr e dados do documento",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "type": "object",
+                    "description": "Configurações do ACBr (Certificado, Arquivos, etc)"
+                  },
+                  "dados": {
+                    "type": "string",
+                    "description": "XML ou dados estruturados em Base64 ou Texto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sintegra/gerar": {
+      "post": {
+        "tags": [
+          "SINTEGRA"
+        ],
+        "summary": "POST PostGerar",
+        "description": "Endpoint handled by PostGerar",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "requestBody": {
+          "description": "Payload com as configurações do ACBr e dados do documento",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "type": "object",
+                    "description": "Configurações do ACBr (Certificado, Arquivos, etc)"
+                  },
+                  "dados": {
+                    "type": "string",
+                    "description": "XML ou dados estruturados em Base64 ou Texto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/modelo/sped/config": {
+      "get": {
+        "tags": [
+          "SPED"
+        ],
+        "summary": "GET GetModeloConfigSPED",
+        "description": "Endpoint handled by GetModeloConfigSPED",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        }
+      }
+    },
+    "/sped/sped": {
+      "post": {
+        "tags": [
+          "SPED"
+        ],
+        "summary": "POST PostSPED",
+        "description": "Endpoint handled by PostSPED",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "requestBody": {
+          "description": "Payload com as configurações do ACBr e dados do documento",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "type": "object",
+                    "description": "Configurações do ACBr (Certificado, Arquivos, etc)"
+                  },
+                  "dados": {
+                    "type": "string",
+                    "description": "XML ou dados estruturados em Base64 ou Texto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sped/gerar": {
+      "post": {
+        "tags": [
+          "SPED"
+        ],
+        "summary": "POST PostGerar",
+        "description": "Endpoint handled by PostGerar",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "requestBody": {
+          "description": "Payload com as configurações do ACBr e dados do documento",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "type": "object",
+                    "description": "Configurações do ACBr (Certificado, Arquivos, etc)"
+                  },
+                  "dados": {
+                    "type": "string",
+                    "description": "XML ou dados estruturados em Base64 ou Texto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cte/danfe": {
+      "post": {
+        "tags": [
+          "ROUTER.ACBR.CTE"
+        ],
+        "summary": "POST PostDACTE",
+        "description": "Endpoint handled by PostDACTE",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        },
+        "requestBody": {
+          "description": "Payload com as configurações do ACBr e dados do documento",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "type": "object",
+                    "description": "Configurações do ACBr (Certificado, Arquivos, etc)"
+                  },
+                  "dados": {
+                    "type": "string",
+                    "description": "XML ou dados estruturados em Base64 ou Texto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cte/nfe": {
+      "post": {
+        "tags": [
+          "ROUTER.ACBR.CTE"
+        ],
+        "summary": "POST PostCTe",
+        "description": "Endpoint handled by PostCTe",
         "responses": {
           "200": {
             "description": "Sucesso"
