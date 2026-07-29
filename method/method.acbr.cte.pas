@@ -393,6 +393,7 @@ var
   Lote: integer;
 begin
   CarregaConfig;
+  facbr.Conhecimentos.Clear;
 
   try
     Item := facbr.Conhecimentos.Add;
