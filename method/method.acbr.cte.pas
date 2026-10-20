@@ -1,4 +1,4 @@
-unit method.acbr.cte;
+﻿unit method.acbr.cte;
 
 {$mode Delphi}
 {$M+}
@@ -410,50 +410,15 @@ begin
   end;
 
   try
-    Writeln('Config.WebServices.UF: ', facbr.Configuracoes.WebServices.UF);
-    Writeln('Config.Geral.VersaoDF: ', Integer(facbr.Configuracoes.Geral.VersaoDF));
-    Writeln('Ide.cUF: ', Item.CTe.Ide.cUF);
-    Writeln('Ide.UFEnv: ', Item.CTe.Ide.UFEnv);
-    Writeln('infCTe.versao: ', Item.CTe.infCTe.versao);
-    
-    Writeln('--> Chamando GerarCTe');
     facbr.Conhecimentos.GerarCTe;
-    Writeln('XML gerado (tamanho): ', Length(facbr.Conhecimentos.Items[0].XML));
-    facbr.Conhecimentos.Items[0].GravarXML('C:\NFMonitor\src\tmp\dump_cte.xml');
-    Writeln('ArquivoPFX: ', facbr.Configuracoes.Certificados.ArquivoPFX);
-    Writeln('Senha length: ', Length(facbr.Configuracoes.Certificados.Senha));
-    Writeln('SSLCryptLib: ', Integer(facbr.Configuracoes.Geral.SSLCryptLib));
-    
-    Writeln('--> Chamando CarregarCertificado');
     facbr.SSL.CarregarCertificado;
-    
-    if Assigned(facbr.Conhecimentos.Items[0].CTe.Emit) then
-      Writeln('CNPJ Emitente: ', facbr.Conhecimentos.Items[0].CTe.Emit.CNPJ)
-    else
-      Writeln('Emitente nao assinado ou nulo!');
-      
-    Writeln('--> Chamando ValidarCNPJCertificado');
-    try
-      facbr.SSL.ValidarCNPJCertificado(Item.CTe.Emit.CNPJ);
-      Writeln('--> Validou CNPJ com sucesso');
-    except
-      on E: Exception do
-      begin
-        Writeln('--> Erro ValidarCNPJ: ', E.ClassName, ' - ', E.Message);
-        raise;
-      end;
-    end;
-    
-    Writeln('--> Chamando facbr.SSL.Assinar');
+    facbr.SSL.ValidarCNPJCertificado(Item.CTe.Emit.CNPJ);
     Item.Assinar;
-    
-    Writeln('--> Chamando Validar');
     facbr.Conhecimentos.Validar;
-    
-    Writeln('--> Chamando Envia');
     facbr.WebServices.Envia(Lote, True);
-    Writeln('--> Envia OK');
     Result := TJSONTools.SafeObjToJson(facbr.WebServices.Retorno, 'Erro ao enviar CTe');
+    if facbr.Conhecimentos.Count > 0 then
+      Result.Add('xml_autorizado', EncodeStringBase64(facbr.Conhecimentos.Items[0].XML));
   finally
     if Assigned(facbr.Conhecimentos) then facbr.Conhecimentos.Clear;
   end;
@@ -741,89 +706,85 @@ begin
     end;
   end;
 
+  facbr.Conhecimentos.Clear;
   try
-    facbr.Conhecimentos.LoadFromString(stringXml);
-  except
-    on E: Exception do
-    begin
-      Result.Add('error', 'Erro na leitura do XML: ' + E.Message);
-      Exit;
-    end;
-  end;
-
-  // Esvazia a string para liberar da memria logo o xml
-  stringXml := '';
-
-  if facbr.Conhecimentos.Count = 0 then
-  begin
-    Result.Add('error', 'Nenhum CT-e foi carregado a partir do XML.');
-    Exit;
-  end;
-
-  // O acesso a propriedade TipoDanfe se faz somente diretamente pelo objeto.
-  if facbr.Conhecimentos.Items[0].CTe.Ide.tpImp <> TpcnTipoImpressao.tiPaisagem then
-    fdacte.TipoDACTE := tiRetrato
-  else
-    fdacte.TipoDACTE := tiPaisagem;
-
-  // Como eh um aplicativo console, jamais a propriedade MostraStatus deve ser true.
-  fdacte.MostraPreview := False;
-  fdacte.MostraStatus := False;
-  fdacte.MostraSetup := False;
-
-  pdfDir := ExtractFilePath(ParamStr(0)) + 'pdf' + PathDelim;
-  if not DirectoryExists(pdfDir) then
-    CreateDir(pdfDir);
-
-  try
-    fdacte.PathPDF := pdfDir;
-    facbr.DACTE := fdacte;
-    facbr.Conhecimentos.ImprimirPDF;
-
-    fileName := fdacte.ArquivoPDF;
-    if (fileName = '') or (not FileExists(fileName)) then
-    begin
-      fileName := pdfDir + facbr.Conhecimentos.Items[0].CTe.infCTe.ID + '-cte.pdf';
-      if not FileExists(fileName) then
-        fileName := pdfDir + StringReplace(facbr.Conhecimentos.Items[0].CTe.infCTe.ID, 'CTe', '', [rfIgnoreCase]) + '-cte.pdf';
-    end;
-
-    if not FileExists(fileName) then
-    begin
-      Result.Add('error', 'Arquivo PDF nao foi gerado pelo ACBr em: ' + fileName);
-      Exit;
-    end;
-  except
-    on E: Exception do
-    begin
-      Result.Add('error', 'Falha ao gerar o PDF: ' + E.Message);
-      Exit;
-    end;
-  end;
-
-  chClean := StringReplace(facbr.Conhecimentos.Items[0].CTe.infCTe.ID, 'CTe', '', [rfIgnoreCase]);
-
-  if not OnlyURL then
-  begin
     try
-      arquivofinal := FileToStringBase64(fileName, False, tamanho);
-      Result.Add('pdf', arquivofinal);
-      Result.Add('tamanho', tamanho.ToString);
+      facbr.Conhecimentos.LoadFromString(stringXml);
     except
       on E: Exception do
       begin
-        Result.Add('error', E.Message);
+        Result.Add('error', 'Erro na leitura do XML: ' + E.Message);
         Exit;
       end;
     end;
+
+    stringXml := '';
+
+    if facbr.Conhecimentos.Count = 0 then
+    begin
+      Result.Add('error', 'Nenhum CT-e foi carregado a partir do XML.');
+      Exit;
+    end;
+
+    chClean := StringReplace(facbr.Conhecimentos.Items[0].CTe.infCTe.ID, 'CTe', '', [rfIgnoreCase]);
+
+    if facbr.Conhecimentos.Items[0].CTe.Ide.tpImp <> TpcnTipoImpressao.tiPaisagem then
+      fdacte.TipoDACTE := tiRetrato
+    else
+      fdacte.TipoDACTE := tiPaisagem;
+
+    fdacte.Cancelada := (facbr.Conhecimentos.Items[0].CTe.procCTe.cStat in [101, 151, 155]);
+    fdacte.MostraPreview := False;
+    fdacte.MostraStatus := False;
+    fdacte.MostraSetup := False;
+
+    pdfDir := ExtractFilePath(ParamStr(0)) + 'pdf' + PathDelim;
+    if not DirectoryExists(pdfDir) then
+      CreateDir(pdfDir);
+
+    fileName := pdfDir + chClean + '-cte.pdf';
+    if FileExists(fileName) then
+      SysUtils.DeleteFile(fileName);
+
+    try
+      fdacte.PathPDF := pdfDir;
+      facbr.DACTE := fdacte;
+      facbr.Conhecimentos.ImprimirPDF;
+
+      if not FileExists(fileName) then
+        fileName := fdacte.ArquivoPDF;
+
+      if not FileExists(fileName) then
+        fileName := pdfDir + facbr.Conhecimentos.Items[0].CTe.infCTe.ID + '-cte.pdf';
+
+      if not FileExists(fileName) then
+      begin
+        Result.Add('error', 'Arquivo PDF nao foi gerado em disco pelo ACBr.');
+        Exit;
+      end;
+
+      if not OnlyURL then
+      begin
+        arquivofinal := FileToStringBase64(fileName, False, tamanho);
+        Result.Add('pdf', arquivofinal);
+        Result.Add('tamanho', tamanho.ToString);
+      end;
+    except
+      on E: Exception do
+      begin
+        Result.Add('error', 'Falha ao gerar o PDF no ACBr: ' + E.Message);
+        Exit;
+      end;
+    end;
+
+    Result.Add('chave', chClean);
+    Result.Add('url', '/cte/pdf/' + chClean);
+
+    if xmlData.Find('id', id) then
+      Result.Add('id', id);
+  finally
+    facbr.Conhecimentos.Clear;
   end;
-
-  Result.Add('chave', chClean);
-  Result.Add('url', '/cte/pdf/' + chClean);
-
-  if xmlData.Find('id', id) then
-    Result.Add('id', id);
-
 end;
 
 // function TACBRBridgeCTe.ConsultaSituacaoServico removida
@@ -884,53 +845,71 @@ end;
 function TACBRBridgeCTe.DACTEEvento(const xmlEvento: TJSONObject): TJSONObject;
 var
   arquivofinal: string;
-  stringXml, fileName: string;
+  stringXml, fileName, pdfDir: string;
   tamanho: integer;
 begin
   CarregaConfig;
   Result := TJSONObject.Create;
 
-  // 1. Carregar o XML do Evento (ProcEventoCTe)
   try
     stringXml := ReadXMLFromJSON(xmlEvento);
   except
     on E: Exception do
     begin
       Result.Add('status', 'erro');
+      Result.Add('error', E.Message);
       Result.Add('message', E.Message);
       Exit;
     end;
   end;
 
+  facbr.Conhecimentos.Clear;
+  facbr.EventoCTe.Evento.Clear;
   try
-    // Carrega o XML do evento no componente
-    facbr.EventoCTe.Evento.Clear;
-    facbr.EventoCTe.LerXMLFromString(stringXml);
+    try
+      facbr.EventoCTe.LerXMLFromString(stringXml);
 
-    // ConfiguraÃƒÂ§ÃƒÂµes visuais bÃƒÂ¡sicas
-    fdacte.MostraPreview := False;
-    fdacte.MostraStatus := False;
+      if facbr.EventoCTe.Evento.Count = 0 then
+      begin
+        Result.Add('status', 'erro');
+        Result.Add('error', 'Nenhum evento CT-e foi carregado a partir do XML.');
+        Result.Add('message', 'Nenhum evento CT-e foi carregado a partir do XML.');
+        Exit;
+      end;
 
-    fileName := GetTempFileName;
-    fdacte.PathPDF := fileName;
+      if facbr.Conhecimentos.Count = 0 then
+        facbr.Conhecimentos.Add.CTe.infCTe.ID := 'CTe' + facbr.EventoCTe.Evento.Items[0].InfEvento.chCTe;
 
-    // Chama a impressÃƒÂ£o do evento
-    facbr.ImprimirEventoPDF;
-    fileName := fdacte.ArquivoPDF;
+      fdacte.MostraPreview := False;
+      fdacte.MostraStatus := False;
+      fdacte.MostraSetup := False;
 
-    // Converte para Base64
-    arquivofinal := FileToStringBase64(fileName, True, tamanho);
+      pdfDir := ExtractFilePath(ParamStr(0)) + 'pdf' + PathDelim;
+      if not DirectoryExists(pdfDir) then
+        CreateDir(pdfDir);
 
-    Result.Add('pdf', arquivofinal);
-    Result.Add('tamanho', tamanho.ToString);
-    Result.Add('status', 'sucesso');
+      fdacte.PathPDF := pdfDir;
+      facbr.DACTE := fdacte;
+      facbr.ImprimirEventoPDF;
+      fileName := fdacte.ArquivoPDF;
 
-  except
-    on E: Exception do
-    begin
-      Result.Add('status', 'erro');
-      Result.Add('message', 'Erro ao gerar PDF do Evento: ' + E.Message);
+      arquivofinal := FileToStringBase64(fileName, False, tamanho);
+
+      Result.Add('pdf', arquivofinal);
+      Result.Add('tamanho', tamanho.ToString);
+      Result.Add('chave', facbr.EventoCTe.Evento.Items[0].InfEvento.chCTe);
+      Result.Add('status', 'sucesso');
+    except
+      on E: Exception do
+      begin
+        Result.Add('status', 'erro');
+        Result.Add('error', 'Erro ao gerar PDF do Evento: ' + E.Message);
+        Result.Add('message', 'Erro ao gerar PDF do Evento: ' + E.Message);
+      end;
     end;
+  finally
+    facbr.EventoCTe.Evento.Clear;
+    facbr.Conhecimentos.Clear;
   end;
 end;
 

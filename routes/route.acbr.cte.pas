@@ -138,17 +138,29 @@ end;
 
 procedure PostDACTE(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O: TJSONObject;
+  O, LJson: TJSONObject;
   Ac: TACBRBridgeCTe;
 begin
-  O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
-      .Send(Ac.DACTE(O).AsJSON);
-  finally
-    O.Free;
-    Ac.Free;
+    O := GetJSON(Req.Body) as TJSONObject;
+    Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
+    try
+      LJson := Ac.DACTE(O);
+      try
+        Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+          .Send(LJson.AsJSON);
+      finally
+        LJson.Free;
+      end;
+    finally
+      O.Free;
+      Ac.Free;
+    end;
+  except
+    on E: Exception do
+    begin
+      Res.Status(500).Send('{"error": "' + StringReplace(E.Message, '"', '\"', [rfReplaceAll]) + '"}');
+    end;
   end;
 end;
 procedure PostDACTEURL(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
@@ -364,10 +376,7 @@ var
   ConfigData: TJSONData;
   ConfigStr: string;
 begin
-  Writeln('PostCTeFromXML: Begin');
-  Writeln('Body length: ', Length(Req.Body));
   O := GetJSON(Req.Body) as TJSONObject;
-  Writeln('PostCTeFromXML: Config Extract');
   ConfigStr := '';
   ConfigData := O.Extract(RSConfigField);
   if Assigned(ConfigData) then
@@ -377,19 +386,15 @@ begin
   end;
   Ac := TACBRBridgeCTe.Create(ConfigStr);
   try
-    Writeln('PostCTeFromXML: Calling Ac.CTeFromXML');
     ORes := Ac.CTeFromXML(O);
     try
-      Writeln('PostCTeFromXML: Sending response');
       Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(ORes.AsJSON);
     finally
       ORes.Free;
     end;
   finally
-    Writeln('PostCTeFromXML: Freeing Ac and O');
     O.Free;
     Ac.Free;
-    Writeln('PostCTeFromXML: End');
   end;
 end;
 

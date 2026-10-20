@@ -49,24 +49,38 @@ end;
 
 function FileToStringBase64(const FileName: string; const Apagar: Boolean; out size: integer): string;
 var
+   FS: TFileStream;
    streamPdf: TMemoryStream;
 begin
+  Result := '';
+  size := 0;
   streamPdf := TMemoryStream.Create;
   try
-    streamPdf.LoadFromFile(fileName);
+    if FileExists(FileName) then
+    begin
+      FS := TFileStream.Create(FileName, fmOpenRead or fmShareDenyNone);
+      try
+        streamPdf.CopyFrom(FS, 0);
+      finally
+        FS.Free;
+      end;
+    end;
 
     if Apagar then
+    begin
+      try
         DeleteFile(fileName);
+      except
+      end;
+    end;
 
     if streamPdf.Size = 0 then
     begin
-      raise exception.Create('O arquivo gerado não parece ser válido.');
+      raise Exception.Create('O arquivo gerado não parece ser válido.');
       Exit;
     end;
 
-    // Converte a stream do relatório para base64
     Result := StreamToBase64String(streamPdf);
-    // Tamanho em Bytes
     size := streamPdf.Size;
   finally
     streamPdf.Free;
