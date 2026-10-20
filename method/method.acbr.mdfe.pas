@@ -17,7 +17,7 @@ uses
   ACBrMDFe.EnvEvento,
   ACBrDFeSSL,
   ACBrMDFeWebServices,
-  pmdfeConversaoMDFe,
+  ACBrMDFe.Conversao,
   pcnConversao,
   Variants,
   fpjson, jsonconvert,

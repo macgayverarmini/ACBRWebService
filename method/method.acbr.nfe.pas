@@ -23,7 +23,7 @@ ACBrNFeConfiguracoes,
 ACBrNFe.Classes,
 pcnConversaoNFe,
 pcnConversao,
-pcnProcNFe,
+ACBrDFeComum.Proc,
 StrUtils,
 Variants,
 fpjson, jsonconvert,
@@ -264,8 +264,6 @@ Function TACBRBridgeNFe.NFe(Const jNFe: TJSONObject): TJSONObject;
 Var 
   Nota: NotaFiscal;
   Lote: integer;
-  // Unit pcnProcNFe
-  RetWS: TProcNFe;
 Begin
   CarregaConfig;
 
