@@ -1,4 +1,4 @@
-{%RunFlags MESSAGES+}
+﻿{%RunFlags MESSAGES+}
 
 Unit method.acbr.nfse;
 
@@ -71,6 +71,8 @@ Type
       Function NFSeFromXML(Const jXML: TJSONObject): TJSONObject;
       // JSON para XML
       Function NFSeToXML(Const jNFSe: TJSONObject): TJSONObject;
+      // Enviar Evento NFSe Padrao Nacional
+      Function EnviarEvento(Const jEvento: TJSONObject): TJSONObject;
       
       // Teste a configuraÃ§Ã£o passada em JSON
       Function TesteConfig: boolean;
@@ -93,6 +95,7 @@ Type
       Function ModelSubstituir: TJSONObject;
       Function ModelNFSeFromXML: TJSONObject;
       Function ModelNFSeToXML: TJSONObject;
+      Function ModelEvento: TJSONObject;
   End;
 
 Implementation
@@ -221,6 +224,15 @@ Begin
             facbr.Configuracoes.Certificados.DadosPFX := synacode.DecodeBase64(AnsiString(b64String));
           end;
         end;
+
+        with facbr.Configuracoes.Geral do
+        begin
+          SSLLib := libNone;
+          SSLLib := libOpenSSL;
+          SSLCryptLib := cryOpenSSL;
+          SSLHttpLib := httpOpenSSL;
+          SSLXmlSignLib := xsLibXml2;
+        end;
       Finally
         O.Free;
       End;
@@ -238,16 +250,24 @@ End;
 
 Function TACBRBridgeNFSe.ReadXMLFromJSON(Const jsonData: TJSONObject): string;
 Var 
+  xmlData: TJSONData;
   xmlBase64: string;
 Begin
-  Try
-    xmlBase64 := jsonData.Extract('xml').AsString;
-  Except
-    on E: Exception Do
-          Begin
-            raise Exception.Create(RSErrorReadingXMLParam + E.Message);
-          End;
-  End;
+  xmlData := jsonData.Find('xml');
+  if not Assigned(xmlData) then
+    xmlData := jsonData.Find('XML');
+  if not Assigned(xmlData) then
+    raise Exception.Create(RSErrorReadingXMLParam + 'Parametro "xml" nao encontrado no JSON.');
+
+  xmlBase64 := Trim(xmlData.AsString);
+  if xmlBase64 = '' then
+    raise Exception.Create(RSErrorReadingXMLParam + 'Parametro "xml" esta vazio no JSON.');
+
+  if (Length(xmlBase64) > 0) and (xmlBase64[1] = '<') then
+  begin
+    Result := xmlBase64;
+    Exit;
+  end;
 
   Try
     Result := DecodeStringBase64(xmlBase64);
@@ -299,7 +319,15 @@ Begin
 
   Try
     facbr.Emitir(Lote.ToString);
+    Result.Free;
     Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebService.Emite));
+    if facbr.NotasFiscais.Count > 0 then
+    begin
+      if facbr.NotasFiscais.Items[0].XmlNfse <> '' then
+        Result.Add('xml_autorizado', EncodeStringBase64(facbr.NotasFiscais.Items[0].XmlNfse))
+      else if facbr.NotasFiscais.Items[0].XmlRps <> '' then
+        Result.Add('xml_autorizado', EncodeStringBase64(facbr.NotasFiscais.Items[0].XmlRps));
+    end;
   Except
     on E: Exception Do
     Begin
@@ -335,7 +363,15 @@ Begin
 
   Try
     facbr.GerarLote(Lote.ToString, 50, meAutomatico);
+    Result.Free;
     Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebService.Gerar));
+    if facbr.NotasFiscais.Count > 0 then
+    begin
+      if facbr.NotasFiscais.Items[0].XmlNfse <> '' then
+        Result.Add('xml_autorizado', EncodeStringBase64(facbr.NotasFiscais.Items[0].XmlNfse))
+      else if facbr.NotasFiscais.Items[0].XmlRps <> '' then
+        Result.Add('xml_autorizado', EncodeStringBase64(facbr.NotasFiscais.Items[0].XmlRps));
+    end;
   Except
     on E: Exception Do
     Begin
@@ -622,7 +658,9 @@ Begin
   fdanfse.MostraStatus := False;
   fdanfse.MostraSetup := False;
 
-  fileName := GetTempFileName;
+  fileName := ExtractFilePath(ParamStr(0)) + 'pdf' + PathDelim;
+  if not DirectoryExists(fileName) then
+    CreateDir(fileName);
   Try
     fdanfse.Cancelada := facbr.NotasFiscais.Items[0].NFSe.NfseCancelamento.DataHora <> 0;
     fdanfse.PathPDF := filename;
@@ -636,7 +674,7 @@ Begin
   End;
 
   Try
-    arquivofinal := FileToStringBase64(filename, True, tamanho);
+    arquivofinal := FileToStringBase64(filename, False, tamanho);
   Except
     on E: Exception Do
           Begin
@@ -657,6 +695,7 @@ Begin
   If xmlData.Find(RSIDField, id) Then
     Result.Add(RSIDField, id);
 
+  facbr.NotasFiscais.Clear;
 End;
 
 Function TACBRBridgeNFSe.NFSeFromXML(Const jXML: TJSONObject): TJSONObject;
@@ -770,5 +809,96 @@ Begin
     Result := False;
   End;
 End;
+
+
+Function TACBRBridgeNFSe.EnviarEvento(Const jEvento: TJSONObject): TJSONObject;
+Var
+  Evento: TInfEvento;
+  tpEventoStr, chNFSe, chSub, xMotivo: string;
+  cMotivo: Integer;
+Begin
+  CarregaConfig;
+  Result := TJSONObject.Create;
+
+  Evento := TInfEvento.Create;
+  Try
+    Try
+      TJSONTools.JsonToObj(jEvento, Evento);
+      if jEvento.Find('pedRegEvento') <> nil then
+        TJSONTools.JsonToObj(jEvento.Objects['pedRegEvento'], Evento.pedRegEvento);
+
+      chNFSe := jEvento.Get('chNFSe', '');
+      if chNFSe <> '' then
+        Evento.pedRegEvento.chNFSe := chNFSe;
+
+      chSub := jEvento.Get('chSubstituta', '');
+      if chSub <> '' then
+        Evento.pedRegEvento.chSubstituta := chSub;
+
+      cMotivo := jEvento.Get('cMotivo', 0);
+      if cMotivo > 0 then
+        Evento.pedRegEvento.cMotivo := cMotivo;
+
+      xMotivo := jEvento.Get('xMotivo', '');
+      if xMotivo = '' then
+        xMotivo := jEvento.Get('justificativa', '');
+      if xMotivo <> '' then
+        Evento.pedRegEvento.xMotivo := xMotivo;
+
+      tpEventoStr := jEvento.Get('tpEvento', '');
+      if tpEventoStr = 'e101101' then
+        Evento.pedRegEvento.tpEvento := ACBrNFSeXConversao.teCancelamento
+      else if tpEventoStr = 'e105102' then
+        Evento.pedRegEvento.tpEvento := ACBrNFSeXConversao.teCancelamentoSubstituicao
+      else if tpEventoStr = 'e101103' then
+        Evento.pedRegEvento.tpEvento := ACBrNFSeXConversao.teAnaliseParaCancelamento
+      else if tpEventoStr = 'e202201' then
+        Evento.pedRegEvento.tpEvento := ACBrNFSeXConversao.teConfirmacaoPrestador
+      else if tpEventoStr = 'e202205' then
+        Evento.pedRegEvento.tpEvento := ACBrNFSeXConversao.teRejeicaoPrestador;
+
+      if Evento.pedRegEvento.dhEvento = 0 then
+        Evento.pedRegEvento.dhEvento := Now;
+      if Evento.pedRegEvento.nPedRegEvento = 0 then
+        Evento.pedRegEvento.nPedRegEvento := 1;
+      if Evento.pedRegEvento.verAplic = '' then
+        Evento.pedRegEvento.verAplic := 'DataLiderERP';
+      if Evento.pedRegEvento.tpAmb = 0 then
+      begin
+        if facbr.Configuracoes.WebServices.Ambiente = taProducao then
+          Evento.pedRegEvento.tpAmb := 1
+        else
+          Evento.pedRegEvento.tpAmb := 2;
+      end;
+
+      facbr.EnviarEvento(Evento);
+      Result.Free;
+      Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebService.EnviarEvento));
+    Except
+      on E: Exception Do
+      Begin
+        Result.Add(RSStatusField, RSStatusErro);
+        Result.Add(RSMessageField, 'Erro ao enviar evento NFSe: ' + E.Message);
+      End;
+    End;
+  Finally
+    Evento.Free;
+  End;
+End;
+
+
+
+Function TACBRModelosJSONNFSe.ModelEvento: TJSONObject;
+Var
+  Evento: TInfEvento;
+Begin
+  Evento := TInfEvento.Create;
+  Try
+    Result := TJSONTools.ObjToJson(Evento);
+  Finally
+    Evento.Free;
+  End;
+End;
+
 
 End.

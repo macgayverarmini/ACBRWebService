@@ -22,6 +22,9 @@ resourcestring
   RSNFeNFeToXMLRoute = '/nfe/nfe-to-xml';
   RSNFeValidarRegrasRoute = '/nfe/validar-regras';
   RSNFeDanfeEventoRoute = '/nfe/danfe-evento';
+  RSNFeDanfeEscPosRoute = '/nfe/danfe-escpos';
+  RSNFeConsultaCadastroRoute = '/nfe/consulta-cadastro';
+  RSNFeEmailRoute = '/nfe/email';
   RSModeloNFeStatusRoute = '/modelo/nfe/status';
   RSModeloNFeConsultaRoute = '/modelo/nfe/consulta';
   RSModeloNFeInutilizacaoRoute = '/modelo/nfe/inutilizacao';
@@ -30,6 +33,9 @@ resourcestring
   RSModeloNFeNFeToXMLRoute = '/modelo/nfe/nfe-to-xml';
   RSModeloNFeValidarRegrasRoute = '/modelo/nfe/validar-regras';
   RSModeloNFeDanfeEventoRoute = '/modelo/nfe/danfe-evento';
+  RSModeloNFeDanfeEscPosRoute = '/modelo/nfe/danfe-escpos';
+  RSModeloNFeConsultaCadastroRoute = '/modelo/nfe/consulta-cadastro';
+  RSModeloNFeEmailRoute = '/modelo/nfe/email';
   
   // Rotas - CTe
   RSModeloCTeConfigRoute = '/modelo/cte/config';
@@ -126,6 +132,7 @@ resourcestring
   RSModeloSPEDConfigRoute = '/modelo/sped/config';
   RSSPEDRoute = '/sped/sped';
   RSSPEDGerarRoute = '/sped/gerar';
+  RSSPEDFiscalImportarRoute = '/sped/importar';
 
   // Rotas - Sintegra
   RSModeloSintegraConfigRoute = '/modelo/sintegra/config';
@@ -152,6 +159,8 @@ resourcestring
   // Rotas Adicionais - SPED PIS/COFINS
   RSModeloSPEDPisCofinsConfigRoute = '/modelo/sped/piscofins/config';
   RSSPEDPisCofinsGerarRoute = '/sped/piscofins/gerar';
+  RSSPEDPisCofinsImportarRoute = '/sped/piscofins/importar';
+  RSSPEDPisCofinsConsolidarRoute = '/sped/piscofins/consolidar';
 
   // Rotas - Boleto Bancario
   RSModeloBoletoConfigRoute = '/modelo/boleto/config';
@@ -159,6 +168,9 @@ resourcestring
   RSBoletoPDFRoute = '/boleto/pdf';
   RSBoletoRemessaRoute = '/boleto/remessa';
   RSBoletoRetornoRoute = '/boleto/retorno';
+  RSBoletoEnviarRoute = '/boleto/enviar';
+  RSModeloBoletoPixQRCodeRoute = '/modelo/boleto/pix-qrcode';
+  RSBoletoPixQRCodeRoute = '/boleto/pix-qrcode';
 
   // Rotas - EFD-Reinf
   RSModeloReinfConfigRoute = '/modelo/reinf/config';
@@ -180,6 +192,18 @@ resourcestring
   RSDiversosCargaBalRoute = '/diversos/balanca/carga';
   RSModeloDiversosIBPTRoute = '/modelo/diversos/ibpt/config';
   RSDiversosIBPTLerTabelaRoute = '/diversos/ibpt/ler-tabela';
+  RSNFePDFRoute = '/nfe/pdf/:chave';
+  RSNFSeEventoRoute = '/nfse/evento';
+  RSModeloNFSeEventoRoute = '/modelo/nfse/evento';
+  RSModeloSPEDPisCofinsImportarRoute = '/modelo/sped/piscofins/importar';
+  RSBoletoPixEMVRoute = '/boleto/pix-emv';
+  RSModeloBoletoPixEMVRoute = '/modelo/boleto/pix-emv';
+  RSModeloDiversosEADRoute = '/modelo/diversos/ead';
+  RSDiversosEADRoute = '/diversos/ead';
+  RSModeloDiversosCalcDigitoRoute = '/modelo/diversos/calc-digito';
+  RSDiversosCalcDigitoRoute = '/diversos/calc-digito';
+  RSModeloDiversosMailRoute = '/modelo/diversos/mail';
+  RSDiversosMailRoute = '/diversos/mail';
 
 implementation
 

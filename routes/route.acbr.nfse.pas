@@ -1,4 +1,4 @@
-unit route.acbr.nfse;
+﻿unit route.acbr.nfse;
 
 {$mode Delphi}{$H+}
 
@@ -34,6 +34,8 @@ procedure PostDANFSe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostDistribuicao(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostNFSeFromXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostNFSeToXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloEventoNFSe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostEventoNFSe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
 procedure regRouter;
 
@@ -487,6 +489,44 @@ begin
   end;
 end;
 
+procedure GetModeloEventoNFSe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  Ac: TACBRModelosJSONNFSe;
+  LJson: TJSONObject;
+begin
+  Ac := TACBRModelosJSONNFSe.Create('');
+  try
+    LJson := Ac.ModelEvento;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    Ac.Free;
+  end;
+end;
+
+procedure PostEventoNFSe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O, LJson: TJSONObject;
+  Ac: TACBRBridgeNFSe;
+begin
+  O := GetJSON(Req.Body) as TJSONObject;
+  Ac := TACBRBridgeNFSe.Create(ExtractConfig(O, RSConfigField));
+  try
+    LJson := Ac.EnviarEvento(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
 procedure regRouter;
 begin
   THorse.Get(RSModeloNFSeConfigRoute, GetModeloConfig);
@@ -499,6 +539,7 @@ begin
   THorse.Get(RSModeloNFSeSubstituirRoute, GetModeloSubstituir);
   THorse.Get(RSModeloNFSeNFSeFromXMLRoute, GetModeloNFSeFromXML);
   THorse.Get(RSModeloNFSeNFSeToXMLRoute, GetModeloNFSeToXML);
+  THorse.Get(RSModeloNFSeEventoRoute, GetModeloEventoNFSe);
 
   THorse.Post(RSNFSeEmitirRoute, PostEmitir);
   THorse.Post(RSNFSeGerarRoute, PostGerar);
@@ -512,6 +553,7 @@ begin
   THorse.Post(RSNFSeDistribuicaoRoute, PostDistribuicao);
   THorse.Post(RSNFSeNFSeFromXMLRoute, PostNFSeFromXML);
   THorse.Post(RSNFSeNFSeToXMLRoute, PostNFSeToXML);
+  THorse.Post(RSNFSeEventoRoute, PostEventoNFSe);
 end;
 
 end.

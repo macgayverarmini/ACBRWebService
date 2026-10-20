@@ -1,4 +1,4 @@
-{%RunFlags MESSAGES+}
+﻿{%RunFlags MESSAGES+}
 
 Unit method.acbr.nfe;
 
@@ -31,7 +31,10 @@ Base64, synacode,
 jsonparser,
 Classes, SysUtils,
 resource.strings.global,
-resource.strings.msg;
+resource.strings.msg,
+  ACBrNFCeDANFeFPDF,
+  ACBrNFeDANFeESCPOS,
+  ACBrPosPrinter;
 
 Type 
 
@@ -77,6 +80,12 @@ Type
       Function ValidarRegras(Const jNFe: TJSONObject): TJSONObject;
       // PDF de Evento
       Function DanfeEvento(Const xmlEvento: TJSONObject): TJSONObject;
+      // Impressão Térmica EscPos do DANFE / DANFCe
+      Function DanfeEscPos(Const xmlData: TJSONObject): TJSONObject;
+      // Consulta Cadastro de Contribuinte na SEFAZ (UF + CNPJ/CPF/IE)
+      Function ConsultaCadastro(Const jConsulta: TJSONObject): TJSONObject;
+      // Envio de NF-e/NFC-e por E-mail via TACBrMail
+      Function EnviarEmail(Const jEmail: TJSONObject): TJSONObject;
 
       // Teste a configuraÃƒÂ§ÃƒÂ£o passada em JSON
       Function TesteConfig: boolean;
@@ -268,7 +277,10 @@ Begin
   
   // Alimenta o objeto Nota com os valores passandos por JSON
   Try
-    TJSONTools.JsonToObj(jNFe, Nota);
+    if Assigned(jNFe.Find('NFe')) then
+      TJSONTools.JsonToObj(jNFe, Nota)
+    else
+      TJSONTools.JsonToObj(jNFe, Nota.NFe);
     Nota.NFe.infNFe.Versao := pcnConversaoNFe.VersaoDFToDbl(facbr.Configuracoes.Geral.VersaoDF);
   Except
     on E: Exception Do
@@ -286,6 +298,11 @@ Begin
     // Pede a ACBR para transmitir os dados (síncrono obrigatório)
     facbr.WebServices.Envia(Lote, True, False);
     Result := TJSONTools.SafeObjToJson(facbr.WebServices.Enviar, 'Erro ao enviar NFe');
+    if facbr.NotasFiscais.Count > 0 then
+    begin
+      Result.Add('xml_autorizado', EncodeStringBase64(facbr.NotasFiscais.Items[0].XML));
+      Result.Add('chave', StringReplace(facbr.NotasFiscais.Items[0].NFe.infNFe.ID, 'NFe', '', [rfIgnoreCase]));
+    end;
   Finally
   facbr.NotasFiscais.Clear;
 End;
@@ -309,7 +326,10 @@ Begin
     jNFe := jLote.Objects[i];
     Nota := facbr.NotasFiscais.Add;
     Try
-      TJSONTools.JsonToObj(jNFe, Nota);
+      if Assigned(jNFe.Find('NFe')) then
+        TJSONTools.JsonToObj(jNFe, Nota)
+      else
+        TJSONTools.JsonToObj(jNFe, Nota.NFe);
       Nota.NFe.infNFe.Versao := pcnConversaoNFe.VersaoDFToDbl(facbr.Configuracoes.Geral.VersaoDF);
     Except
       on E: Exception Do
@@ -329,6 +349,8 @@ Begin
     // Envia lote assíncrono (segundo parâmetro = False)
     facbr.WebServices.Envia(Lote, False, False);
     Result := TJSONTools.SafeObjToJson(facbr.WebServices.Retorno, 'Erro ao enviar lote');
+    if facbr.NotasFiscais.Count > 0 then
+      Result.Add('xml_autorizado', EncodeStringBase64(facbr.NotasFiscais.Items[0].XML));
   Finally
     facbr.NotasFiscais.Clear;
   End;
@@ -360,6 +382,15 @@ Begin
       end;
     end;
 
+    with facbr.Configuracoes.Geral do
+    begin
+      SSLLib := libNone;
+      SSLLib := libOpenSSL;
+      SSLCryptLib := cryOpenSSL;
+      SSLHttpLib := httpOpenSSL;
+      SSLXmlSignLib := xsLibXml2;
+    end;
+
   Finally
     O.Free;
   End;
@@ -373,18 +404,36 @@ End;
 
 Function TACBRBridgeNFe.ReadXMLFromJSON(Const jsonData: TJSONObject): string;
 Var 
-  xmlBase64: string;
-  xmlBase64JSON: TJSONString;
+  xmlRawOrB64: string;
+  xmlData: TJSONData;
 Begin
-  If not jsonData.Find('xml', xmlBase64JSON) Then
+  xmlData := jsonData.Find('xml');
+  if not Assigned(xmlData) then
+    xmlData := jsonData.Find('XML');
+  if not Assigned(xmlData) then
+    xmlData := jsonData.Find('XMLEvento');
+  if not Assigned(xmlData) then
+    xmlData := jsonData.Find('xml_evento');
+  if not Assigned(xmlData) then
+    xmlData := jsonData.Find('xml_nfe');
+  if not Assigned(xmlData) then
+    xmlData := jsonData.Find('NFeXML');
+
+  If not Assigned(xmlData) Then
     raise Exception.Create(RSErrorReadingXMLParam + 'Parâmetro "xml" não encontrado.');
 
-  xmlBase64 := xmlBase64JSON.AsString;
-  If xmlBase64 = '' Then
+  xmlRawOrB64 := Trim(xmlData.AsString);
+  If xmlRawOrB64 = '' Then
     raise Exception.Create(RSErrorReadingXMLParam + 'Parâmetro "xml" está vazio.');
 
+  if (Length(xmlRawOrB64) > 0) and (xmlRawOrB64[1] = '<') then
+  begin
+    Result := xmlRawOrB64;
+    Exit;
+  end;
+
   Try
-    Result := DecodeStringBase64(xmlBase64);
+    Result := DecodeStringBase64(xmlRawOrB64);
   Except
     on E: Exception Do
           Begin
@@ -414,24 +463,49 @@ Var
   objEvento: TInfEventoCollectionItem;
   oEvento: TJSONObject;
   I: integer;
+  InfEventoData, XmlData: TJSONData;
   InfEvento: TJSONObject;
-  XmlBase64: TJSONString;
+  xmlStr: string;
 Begin
   CarregaConfig;
   Result := '';
-
-
+  facbr.EventoNFe.Evento.Clear;
 
   For I := 0 To jEventos.Count - 1 Do
     Begin
       oEvento := jEventos.Items[i] as TJSONObject;
-      InfEvento := oEvento.Extract(RSInfEventoField) as TJSONObject;
-      If InfEvento.Find(RSLoadXMLField, XmlBase64) Then
-        facbr.NotasFiscais.LoadFromString(Base64.DecodeStringBase64(XmlBase64.
-                                          AsString));
+      InfEventoData := oEvento.Find(RSInfEventoField);
+      if not Assigned(InfEventoData) then
+        InfEventoData := oEvento.Find('infEvento');
+
+      if Assigned(InfEventoData) and (InfEventoData.JSONType = jtObject) then
+      begin
+        InfEvento := TJSONObject(InfEventoData);
+        XmlData := InfEvento.Find(RSLoadXMLField);
+      end
+      else
+        XmlData := oEvento.Find(RSLoadXMLField);
+
+      if Assigned(XmlData) and (Trim(XmlData.AsString) <> '') then
+      begin
+        xmlStr := Trim(XmlData.AsString);
+        if xmlStr[1] <> '<' then
+          xmlStr := Base64.DecodeStringBase64(xmlStr);
+        facbr.NotasFiscais.LoadFromString(xmlStr);
+      end;
 
       objEvento := facbr.EventoNFe.Evento.New;
-      TJSONTools.JsonToObj(oEvento, objEvento);
+      if Assigned(InfEventoData) and (InfEventoData.JSONType = jtObject) then
+        TJSONTools.JsonToObj(oEvento, objEvento)
+      else
+        TJSONTools.JsonToObj(oEvento, objEvento.InfEvento);
+
+      with objEvento.InfEvento do
+      begin
+        if dhEvento = 0 then dhEvento := Now;
+        if (CNPJ = '') and (Length(chNFe) >= 20) then CNPJ := Copy(chNFe, 7, 14);
+        if nSeqEvento <= 0 then nSeqEvento := 1;
+      end;
     End;
 
   facbr.EnviarEvento(1);
@@ -509,6 +583,10 @@ Var
   tamanho: integer;
   id: TJSONString;
   fileName: string;
+  pdfDir: string;
+  chClean: string;
+  danfeNFCe: TACBrNFCeDANFeFPDF;
+  isNFCe: Boolean;
 Begin
   CarregaConfig;
   Result := TJSONObject.Create;
@@ -542,36 +620,71 @@ Begin
   Exit;
 End;
 
-// O acesso a propriedade TipoDanfe se faz somente diretamente pelo objeto.
-If facbr.NotasFiscais.Items[0].NFe.Ide.tpImp <> TpcnTipoImpressao.tiPaisagem
-  Then
-  fdanfe.TipoDANFE := tiRetrato
+pdfDir := ExtractFilePath(ParamStr(0)) + 'pdf' + PathDelim;
+If Not DirectoryExists(pdfDir) Then
+  CreateDir(pdfDir);
+
+chClean := StringReplace(facbr.NotasFiscais.Items[0].NFe.infNFe.ID, 'NFe', '', [rfIgnoreCase]);
+fileName := pdfDir + chClean + '-nfe.pdf';
+If FileExists(fileName) Then
+  SysUtils.DeleteFile(fileName);
+isNFCe := (facbr.NotasFiscais.Items[0].NFe.Ide.modelo = 65) or
+          (facbr.NotasFiscais.Items[0].NFe.Ide.tpImp = TpcnTipoImpressao.tiNFCe);
+
+If isNFCe Then
+Begin
+  danfeNFCe := TACBrNFCeDANFeFPDF.Create(Nil);
+  Try
+    danfeNFCe.MostraPreview := False;
+    danfeNFCe.MostraStatus := False;
+    danfeNFCe.MostraSetup := False;
+    danfeNFCe.PathPDF := pdfDir;
+    facbr.DANFE := danfeNFCe;
+    Try
+      facbr.NotasFiscais.ImprimirPDF;
+      filename := danfeNFCe.ArquivoPDF;
+    Except
+      Begin
+        facbr.DANFE := fdanfe;
+        Result.Add(RSErrorField, RSPDFGenerationError);
+        Exit;
+      End;
+    End;
+  Finally
+    facbr.DANFE := fdanfe;
+    danfeNFCe.Free;
+  End;
+End
 Else
-  fdanfe.TipoDANFE := tiPaisagem;
+Begin
+  If facbr.NotasFiscais.Items[0].NFe.Ide.tpImp <> TpcnTipoImpressao.tiPaisagem Then
+    fdanfe.TipoDANFE := tiRetrato
+  Else
+    fdanfe.TipoDANFE := tiPaisagem;
 
+  fdanfe.MostraPreview := False;
+  fdanfe.MostraStatus := False;
+  fdanfe.MostraSetup := False;
 
-// Como ÃƒÂ© um aplicativo console, jamais a propriedade MostraStatus deve ser true.
-fdanfe.MostraPreview := False;
-fdanfe.MostraStatus := False;
-fdanfe.MostraSetup := False;
-
-//Gerando arquivo temporÃƒÂ¡rio
-fileName := GetTempFileName;
-// Realiza o processo de transformar o XML em PDF (Danfe)
-Try
-  fDAnFe.PathPDF := filename;
-  facbr.NotasFiscais.ImprimirPDF;
-  filename := fdanfe.ArquivoPDF;
-Except
-  Begin
-    Result.Add(RSErrorField, RSPDFGenerationError);
-    Exit;
+  Try
+    fDAnFe.PathPDF := pdfDir;
+    facbr.DANFE := fdanfe;
+    facbr.NotasFiscais.ImprimirPDF;
+    filename := fdanfe.ArquivoPDF;
+  Except
+    Begin
+      Result.Add(RSErrorField, RSPDFGenerationError);
+      Exit;
+    End;
   End;
 End;
 
-// Converte o arquivo para base64
+If (filename = '') or (Not FileExists(filename)) Then
+  filename := pdfDir + chClean + '-nfe.pdf';
+
+// Converte o arquivo para base64 preservando em disco para GET /nfe/pdf/:chave
 Try
-  arquivofinal := FileToStringBase64(filename, True, tamanho);
+  arquivofinal := FileToStringBase64(filename, False, tamanho);
 Except
   on E: Exception Do
         Begin
@@ -580,16 +693,15 @@ Except
         End;
 End;
 
-// Converte a stream do relatÃƒÂ³rio para base64
 Result.Add(RSPDFField, arquivofinal);
-// Chave de Acesso da NF-e
-Result.Add(RSChaveField, facbr.NotasFiscais.Items[0].NFe.infNFe.ID);
-// Tamanho em Bytes
+Result.Add(RSChaveField, chClean);
+Result.Add('url', '/nfe/pdf/' + chClean);
 Result.Add(RSTamanhoField, tamanho.ToString);
 // Adiciona o identificador ÃƒÂºnico se ele existir
 If xmlData.Find(RSIDField, id) Then
   Result.Add(RSIDField, id);
 
+facbr.NotasFiscais.Clear;
 End;
 
 Function TACBRBridgeNFe.TesteConfig: boolean;
@@ -622,14 +734,21 @@ End;
 
 Function TACBRBridgeNFe.Consulta(Const jConsulta: TJSONObject): TJSONObject;
 Var
-  Chave: TJSONData;
+  Chave, XmlNode: TJSONData;
+  xmlStr: string;
 Begin
   CarregaConfig;
 
-  If jConsulta.Find('NFe_Chave', Chave) Then
+  Chave := jConsulta.Find('NFe_Chave');
+  if not Assigned(Chave) then Chave := jConsulta.Find('chave');
+  if not Assigned(Chave) then Chave := jConsulta.Find('Chave');
+  if not Assigned(Chave) then Chave := jConsulta.Find('chNFe');
+
+  If Assigned(Chave) and (Trim(Chave.AsString) <> '') Then
   Begin
     Try
-      facbr.WebServices.Consulta.NFeChave := Chave.AsString;
+      facbr.NotasFiscais.Clear;
+      facbr.WebServices.Consulta.NFeChave := Trim(Chave.AsString);
       facbr.WebServices.Consulta.Executar;
       Result := TJSONTools.SafeObjToJson(facbr.WebServices.Consulta, 'Erro na consulta');
     Except
@@ -638,7 +757,27 @@ Begin
     End;
   End
   Else
-    Result := TJSONTools.SafeObjToJson(nil, 'Chave nao informada para consulta.');
+  Begin
+    XmlNode := jConsulta.Find('xml');
+    if not Assigned(XmlNode) then XmlNode := jConsulta.Find('XML');
+    if Assigned(XmlNode) and (Trim(XmlNode.AsString) <> '') then
+    begin
+      Try
+        xmlStr := ReadXMLFromJSON(jConsulta);
+        facbr.NotasFiscais.Clear;
+        facbr.NotasFiscais.LoadFromString(xmlStr);
+        facbr.Consultar;
+        Result := TJSONTools.SafeObjToJson(facbr.WebServices.Consulta, 'Erro na consulta por XML');
+        if facbr.NotasFiscais.Count > 0 then
+          Result.Add('xml_atualizado', EncodeStringBase64(facbr.NotasFiscais.Items[0].XML));
+      Except
+        on E: Exception Do
+          Result := TJSONTools.SafeObjToJson(nil, 'Erro na consulta por XML: ' + E.Message);
+      End;
+    end
+    else
+      Result := TJSONTools.SafeObjToJson(nil, 'Chave nao informada para consulta.');
+  End;
 End;
 
 Function TACBRBridgeNFe.ConsultaRecibo(Const jConsulta: TJSONObject): TJSONObject;
@@ -679,6 +818,8 @@ End;
 Function TACBRBridgeNFe.Cancelamento(Const jCancelamento: TJSONObject): TJSONObject;
 Var
   idLote: Integer;
+  evtItem: TInfEventoCollectionItem;
+  sChave, sProt, sJust, sCnpj, sChaveSubst: string;
 Begin
   CarregaConfig;
   Result := TJSONObject.Create;
@@ -686,8 +827,12 @@ Begin
   facbr.EventoNFe.Evento.Clear;
   facbr.EventoNFe.idLote := idLote;
 
+  evtItem := facbr.EventoNFe.Evento.New;
   Try
-    TJSONTools.JsonToObj(jCancelamento, facbr.EventoNFe.Evento.New);
+    if Assigned(jCancelamento.Find('InfEvento')) or Assigned(jCancelamento.Find('infEvento')) then
+      TJSONTools.JsonToObj(jCancelamento, evtItem)
+    else
+      TJSONTools.JsonToObj(jCancelamento, evtItem.InfEvento);
   Except
     on E: Exception Do
     Begin
@@ -697,12 +842,30 @@ Begin
     End;
   End;
 
-  // Garante tipo de evento cancelamento e data se faltar
-  with facbr.EventoNFe.Evento.Items[0].InfEvento do
+  // Suporte a campos planos (chave, protocolo, justificativa, cnpj, chNFeSubstituta)
+  sChave := jCancelamento.Get('chave', jCancelamento.Get('chNFe', ''));
+  sProt := jCancelamento.Get('protocolo', jCancelamento.Get('nProt', ''));
+  sJust := jCancelamento.Get('justificativa', jCancelamento.Get('xJust', ''));
+  sCnpj := jCancelamento.Get('cnpj', jCancelamento.Get('CNPJ', ''));
+  sChaveSubst := jCancelamento.Get('chNFeSubstituta', jCancelamento.Get('chNFeRef', ''));
+
+  // Garante tipo de evento cancelamento (ou substituicao 110112) e data se faltar
+  with evtItem.InfEvento do
   begin
-    if tpEvento <> teCancelamento then tpEvento := teCancelamento;
+    if (chNFe = '') and (sChave <> '') then chNFe := sChave;
+    if (detEvento.nProt = '') and (sProt <> '') then detEvento.nProt := sProt;
+    if (detEvento.xJust = '') and (sJust <> '') then detEvento.xJust := sJust;
+    if (CNPJ = '') and (sCnpj <> '') then CNPJ := sCnpj;
+    if (detEvento.chNFeRef = '') and (sChaveSubst <> '') then detEvento.chNFeRef := sChaveSubst;
+
+    if detEvento.chNFeRef <> '' then
+      tpEvento := teCancSubst
+    else if (tpEvento <> teCancelamento) and (tpEvento <> teCancSubst) then
+      tpEvento := teCancelamento;
+
     if dhEvento = 0 then dhEvento := Now;
-    if CNPJ = '' then CNPJ := Copy(chNFe, 7, 14);
+    if (CNPJ = '') and (Length(chNFe) >= 20) then CNPJ := Copy(chNFe, 7, 14);
+    if nSeqEvento <= 0 then nSeqEvento := 1;
   end;
 
   Try
@@ -748,13 +911,17 @@ End;
 Function TACBRBridgeNFe.NFeToXML(Const jNFe: TJSONObject): TJSONObject;
 Var
   Nota: NotaFiscal;
-  xmlString: string;
+  xmlString, chClean: string;
 Begin
   CarregaConfig;
 
   Try
     Nota := facbr.NotasFiscais.Add;
-    TJSONTools.JsonToObj(jNFe, Nota); Nota.NFe.infNFe.Versao := pcnConversaoNFe.VersaoDFToDbl(facbr.Configuracoes.Geral.VersaoDF);
+    if Assigned(jNFe.Find('NFe')) then
+      TJSONTools.JsonToObj(jNFe, Nota)
+    else
+      TJSONTools.JsonToObj(jNFe, Nota.NFe);
+    Nota.NFe.infNFe.Versao := pcnConversaoNFe.VersaoDFToDbl(facbr.Configuracoes.Geral.VersaoDF);
   Except
     on E: Exception Do
     Begin
@@ -769,9 +936,12 @@ Begin
     xmlString := facbr.NotasFiscais.Items[0].XMLOriginal;
     If xmlString = '' Then
       xmlString := facbr.NotasFiscais.Items[0].XML;
+    chClean := StringReplace(facbr.NotasFiscais.Items[0].NFe.infNFe.ID, 'NFe', '', [rfIgnoreCase]);
 
     Result := TJSONObject.Create;
     Result.Add('xml', EncodeStringBase64(xmlString));
+    Result.Add('xml_raw', xmlString);
+    Result.Add('chave', chClean);
   Except
     on E: Exception Do
       Result := TJSONTools.SafeObjToJson(nil, 'Erro ao gerar XML da NF-e: ' + E.Message);
@@ -792,7 +962,11 @@ Begin
     Nota := facbr.NotasFiscais.Add;
 
     Try
-      TJSONTools.JsonToObj(jNFe, Nota); Nota.NFe.infNFe.Versao := pcnConversaoNFe.VersaoDFToDbl(facbr.Configuracoes.Geral.VersaoDF);
+      if Assigned(jNFe.Find('NFe')) then
+        TJSONTools.JsonToObj(jNFe, Nota)
+      else
+        TJSONTools.JsonToObj(jNFe, Nota.NFe);
+      Nota.NFe.infNFe.Versao := pcnConversaoNFe.VersaoDFToDbl(facbr.Configuracoes.Geral.VersaoDF);
     Except
       on E: Exception Do
       Begin
@@ -810,6 +984,7 @@ Begin
       Result.Add(RSStatusField, 'sucesso');
       Result.Add(RSMessageField, 'XML Valido e Assinado');
       Result.Add('xml_assinado', EncodeStringBase64(facbr.NotasFiscais.Items[0].XML));
+      Result.Add('chave', StringReplace(facbr.NotasFiscais.Items[0].NFe.infNFe.ID, 'NFe', '', [rfIgnoreCase]));
     Except
       on E: Exception Do
       Begin
@@ -829,7 +1004,8 @@ End;
 Function TACBRBridgeNFe.DanfeEvento(Const xmlEvento: TJSONObject): TJSONObject;
 Var
   arquivofinal: string;
-  stringXml, fileName: string;
+  stringXml, nfeXmlStr, fileName: string;
+  nfeXmlNode: TJSONData;
   tamanho: integer;
 Begin
   CarregaConfig;
@@ -847,6 +1023,19 @@ Begin
   End;
 
   Try
+    facbr.NotasFiscais.Clear;
+    nfeXmlNode := xmlEvento.Find('XML');
+    if not Assigned(nfeXmlNode) then nfeXmlNode := xmlEvento.Find('xml_nfe');
+    if not Assigned(nfeXmlNode) then nfeXmlNode := xmlEvento.Find('NFeXML');
+    if Assigned(nfeXmlNode) and (Trim(nfeXmlNode.AsString) <> '') then
+    begin
+      nfeXmlStr := Trim(nfeXmlNode.AsString);
+      if nfeXmlStr[1] <> '<' then
+        nfeXmlStr := DecodeStringBase64(nfeXmlStr);
+      if nfeXmlStr <> stringXml then
+        facbr.NotasFiscais.LoadFromString(nfeXmlStr);
+    end;
+
     facbr.EventoNFe.Evento.Clear;
     facbr.EventoNFe.LerXMLFromString(stringXml);
 
@@ -857,16 +1046,25 @@ Begin
       Exit;
     End;
 
+    If facbr.NotasFiscais.Count = 0 Then
+      facbr.NotasFiscais.Add.NFe.infNFe.ID := 'NFe' + facbr.EventoNFe.Evento.Items[0].InfEvento.chNFe;
+
     fdanfe.MostraPreview := False;
     fdanfe.MostraStatus := False;
 
-    fileName := GetTempFileName;
+    fileName := ExtractFilePath(ParamStr(0)) + 'pdf' + PathDelim;
+    if not DirectoryExists(fileName) then
+      CreateDir(fileName);
     fdanfe.PathPDF := fileName;
 
     facbr.ImprimirEventoPDF;
     fileName := fdanfe.ArquivoPDF;
+    if (fileName = '') or (not FileExists(fileName)) then
+      fileName := ExtractFilePath(ParamStr(0)) + 'pdf' + PathDelim +
+        TpEventoToStr(facbr.EventoNFe.Evento.Items[0].InfEvento.tpEvento) +
+        StringReplace(facbr.EventoNFe.Evento.Items[0].InfEvento.chNFe, 'NFe', '', [rfIgnoreCase]) + '-nfe.pdf';
 
-    arquivofinal := FileToStringBase64(fileName, True, tamanho);
+    arquivofinal := FileToStringBase64(fileName, False, tamanho);
 
     Result.Add(RSPDFField, arquivofinal);
     Result.Add(RSTamanhoField, tamanho.ToString);
@@ -877,6 +1075,247 @@ Begin
       Result.Add(RSStatusField, RSStatusErro);
       Result.Add(RSMessageField, 'Erro ao gerar PDF do Evento: ' + E.Message);
     End;
+  End;
+End;
+
+
+
+Function TACBRBridgeNFe.DanfeEscPos(Const xmlData: TJSONObject): TJSONObject;
+Var
+  stringXml, tempFile, bufferTxt, chClean: string;
+  escPosDanfe: TACBrNFeDANFeESCPOS;
+  posPrinter: TACBrPosPrinter;
+Begin
+  if fcfg <> '' then
+    CarregaConfig;
+  Result := TJSONObject.Create;
+
+  Try
+    stringXml := ReadXMLFromJSON(xmlData);
+  Except
+    on E: Exception Do
+    Begin
+      Result.Add(RSStatusField, RSStatusErro);
+      Result.Add(RSErrorField, E.Message);
+      Exit;
+    End;
+  End;
+
+  escPosDanfe := TACBrNFeDANFeESCPOS.Create(Nil);
+  posPrinter := TACBrPosPrinter.Create(Nil);
+  Try
+    Try
+      facbr.NotasFiscais.Clear;
+      facbr.NotasFiscais.LoadFromString(stringXml);
+      If facbr.NotasFiscais.Count = 0 Then
+      Begin
+        Result.Add(RSStatusField, RSStatusErro);
+        Result.Add(RSErrorField, 'Nenhuma nota fiscal foi carregada a partir do XML.');
+        Exit;
+      End;
+
+      posPrinter.IgnorarTags := xmlData.Get('IgnorarTags', False);
+      posPrinter.Modelo := TACBrPosPrinterModelo(xmlData.Get('ModeloImpressora', Integer(ppTexto)));
+      posPrinter.ColunasFonteNormal := xmlData.Get('ColunasFonteNormal', 48);
+
+      tempFile := ExtractFilePath(ParamStr(0)) + 'escpos_' + IntToStr(GetTickCount64) + '.txt';
+      posPrinter.Porta := tempFile;
+
+      escPosDanfe.PosPrinter := posPrinter;
+      escPosDanfe.ImprimeEmUmaLinha := xmlData.Get('ImprimeEmUmaLinha', False);
+      facbr.DANFE := escPosDanfe;
+
+      escPosDanfe.ImprimirDANFE;
+
+      bufferTxt := posPrinter.Buffer.Text;
+      If FileExists(tempFile) Then
+        SysUtils.DeleteFile(tempFile);
+
+      chClean := StringReplace(facbr.NotasFiscais.Items[0].NFe.infNFe.ID, 'NFe', '', [rfIgnoreCase]);
+
+      Result.Add(RSStatusField, 'sucesso');
+      Result.Add(RSChaveField, chClean);
+      Result.Add('modelo', facbr.NotasFiscais.Items[0].NFe.Ide.modelo);
+      Result.Add('buffer_texto', bufferTxt);
+      Result.Add('buffer_base64', EncodeStringBase64(bufferTxt));
+    Except
+      on E: Exception Do
+      Begin
+        Result.Add(RSStatusField, RSStatusErro);
+        Result.Add(RSErrorField, 'Erro ao gerar DANFE EscPos: ' + E.Message);
+      End;
+    End;
+  Finally
+    facbr.DANFE := fdanfe;
+    facbr.NotasFiscais.Clear;
+    posPrinter.Free;
+    escPosDanfe.Free;
+  End;
+End;
+
+
+Function TACBRBridgeNFe.ConsultaCadastro(Const jConsulta: TJSONObject): TJSONObject;
+Var
+  ufStr, cnpjStr, cpfStr, ieStr, docStr: string;
+  porIE: Boolean;
+Begin
+  CarregaConfig;
+  ufStr := Trim(jConsulta.Get('UF', jConsulta.Get('uf', '')));
+  cnpjStr := Trim(jConsulta.Get('CNPJ', jConsulta.Get('cnpj', '')));
+  cpfStr := Trim(jConsulta.Get('CPF', jConsulta.Get('cpf', '')));
+  ieStr := Trim(jConsulta.Get('IE', jConsulta.Get('ie', '')));
+  docStr := Trim(jConsulta.Get('Documento', jConsulta.Get('documento', '')));
+
+  if (docStr <> '') and (cnpjStr = '') and (cpfStr = '') and (ieStr = '') then
+  begin
+    porIE := jConsulta.Get('PorIE', jConsulta.Get('porIE', False));
+    if porIE then
+      ieStr := docStr
+    else if Length(docStr) = 11 then
+      cpfStr := docStr
+    else
+      cnpjStr := docStr;
+  end;
+
+  if ufStr = '' then
+  begin
+    Result := TJSONTools.SafeObjToJson(nil, 'UF nao informada para consulta de cadastro na SEFAZ.');
+    Exit;
+  end;
+
+  try
+    facbr.SSL.CarregarCertificado;
+    facbr.WebServices.ConsultaCadastro.UF := ufStr;
+    facbr.WebServices.ConsultaCadastro.CNPJ := cnpjStr;
+    facbr.WebServices.ConsultaCadastro.CPF := cpfStr;
+    facbr.WebServices.ConsultaCadastro.IE := ieStr;
+    try
+      facbr.WebServices.ConsultaCadastro.Executar;
+    except
+      on E: Exception do
+      begin
+        if facbr.WebServices.ConsultaCadastro.cStat = 0 then
+          raise;
+      end;
+    end;
+    Result := TJSONTools.SafeObjToJson(facbr.WebServices.ConsultaCadastro, 'Erro na consulta de cadastro');
+  except
+    on E: Exception do
+      Result := TJSONTools.SafeObjToJson(facbr.WebServices.ConsultaCadastro, 'Erro na consulta de cadastro: ' + E.Message);
+  end;
+End;
+
+
+Function TACBRBridgeNFe.EnviarEmail(Const jEmail: TJSONObject): TJSONObject;
+Var
+  stringXml, para, assunto, msgTxt, pdfDir: string;
+  enviaPdf: Boolean;
+  mailComponent: TACBrMail;
+  jMailCfg, jCc: TJSONData;
+  msgLines, ccLines: TStringList;
+  I: Integer;
+Begin
+  CarregaConfig;
+  Result := TJSONObject.Create;
+
+  Try
+    stringXml := ReadXMLFromJSON(jEmail);
+  Except
+    on E: Exception Do
+    Begin
+      Result.Add(RSStatusField, RSStatusErro);
+      Result.Add(RSErrorField, E.Message);
+      Exit;
+    End;
+  End;
+
+  para := Trim(jEmail.Get('para', jEmail.Get('Para', jEmail.Get('destinatario', jEmail.Get('email', '')))));
+  if para = '' then
+  begin
+    Result.Add(RSStatusField, RSStatusErro);
+    Result.Add(RSErrorField, 'Destinatario ("para" / "email") nao informado para envio de e-mail.');
+    Exit;
+  end;
+
+  assunto := jEmail.Get('assunto', jEmail.Get('Assunto', 'Nota Fiscal Eletronica'));
+  msgTxt := jEmail.Get('mensagem', jEmail.Get('Mensagem', 'Segue em anexo o documento fiscal eletronico.'));
+  enviaPdf := jEmail.Get('enviaPDF', jEmail.Get('EnviaPDF', True));
+
+  mailComponent := TACBrMail.Create(Nil);
+  msgLines := TStringList.Create;
+  ccLines := TStringList.Create;
+  Try
+    Try
+      jMailCfg := jEmail.Find('mail');
+      if not Assigned(jMailCfg) then jMailCfg := jEmail.Find('Mail');
+      if not Assigned(jMailCfg) then jMailCfg := jEmail.Find('smtp');
+      if Assigned(jMailCfg) and (jMailCfg.JSONType = jtObject) then
+        TJSONTools.JsonToObj(TJSONObject(jMailCfg), mailComponent)
+      else
+      begin
+        mailComponent.Host := jEmail.Get('Host', jEmail.Get('host', ''));
+        mailComponent.Port := IntToStr(jEmail.Get('Port', jEmail.Get('port', 587)));
+        mailComponent.Username := jEmail.Get('Username', jEmail.Get('username', ''));
+        mailComponent.Password := jEmail.Get('Password', jEmail.Get('password', ''));
+        mailComponent.From := jEmail.Get('From', jEmail.Get('from', mailComponent.Username));
+        mailComponent.FromName := jEmail.Get('FromName', jEmail.Get('fromName', ''));
+        mailComponent.SetSSL := jEmail.Get('SetSSL', jEmail.Get('setSSL', False));
+        mailComponent.SetTLS := jEmail.Get('SetTLS', jEmail.Get('setTLS', True));
+      end;
+
+      msgLines.Text := msgTxt;
+
+      jCc := jEmail.Find('cc');
+      if not Assigned(jCc) then jCc := jEmail.Find('CC');
+      if Assigned(jCc) then
+      begin
+        if jCc.JSONType = jtArray then
+        begin
+          for I := 0 to TJSONArray(jCc).Count - 1 do
+            ccLines.Add(TJSONArray(jCc).Items[I].AsString);
+        end
+        else if Trim(jCc.AsString) <> '' then
+          ccLines.Text := StringReplace(jCc.AsString, ';', LineEnding, [rfReplaceAll]);
+      end;
+
+      facbr.NotasFiscais.Clear;
+      facbr.NotasFiscais.LoadFromString(stringXml);
+      if facbr.NotasFiscais.Count = 0 then
+      begin
+        Result.Add(RSStatusField, RSStatusErro);
+        Result.Add(RSErrorField, 'Nenhuma nota fiscal foi carregada a partir do XML para envio de e-mail.');
+        Exit;
+      end;
+
+      pdfDir := ExtractFilePath(ParamStr(0)) + 'pdf' + PathDelim;
+      if not DirectoryExists(pdfDir) then
+        CreateDir(pdfDir);
+      fdanfe.PathPDF := pdfDir;
+      fdanfe.MostraPreview := False;
+      fdanfe.MostraStatus := False;
+      fdanfe.MostraSetup := False;
+
+      facbr.DANFE := fdanfe;
+      facbr.MAIL := mailComponent;
+
+      facbr.NotasFiscais.Items[0].EnviarEmail(para, assunto, msgLines, enviaPdf, ccLines, nil, nil);
+
+      Result.Add(RSStatusField, 'sucesso');
+      Result.Add('para', para);
+      Result.Add('assunto', assunto);
+    Except
+      on E: Exception Do
+      Begin
+        Result.Add(RSStatusField, RSStatusErro);
+        Result.Add(RSErrorField, 'Erro ao enviar e-mail da NF-e: ' + E.Message);
+      End;
+    End;
+  Finally
+    facbr.MAIL := Nil;
+    facbr.NotasFiscais.Clear;
+    ccLines.Free;
+    msgLines.Free;
+    mailComponent.Free;
   End;
 End;
 

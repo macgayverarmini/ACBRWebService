@@ -1,4 +1,4 @@
-﻿unit method.acbr.cte;
+unit method.acbr.cte;
 
 {$mode Delphi}
 {$M+}
@@ -429,23 +429,45 @@ var
   objEvento: TInfEventoCollectionItem;
   oEvento: TJSONObject;
   I: integer;
+  InfEventoData: TJSONData;
   InfEvento: TJSONObject;
-  XmlBase64: TJSONString;
+  XmlBase64: TJSONData;
+  xmlStr: string;
 begin
   CarregaConfig;
   Result := '';
-
-
+  facbr.EventoCTe.Evento.Clear;
 
   for I := 0 to jEventos.Count - 1 do
   begin
     oEvento := jEventos.Items[i] as TJSONObject;
-    InfEvento := oEvento.Extract('InfEvento') as TJSONObject;
-    if InfEvento.Find('LoadXML', XmlBase64) then
-      facbr.Conhecimentos.LoadFromString(Base64.DecodeStringBase64(XmlBase64.AsString));
+    InfEventoData := oEvento.Find('InfEvento');
+    if not Assigned(InfEventoData) then
+      InfEventoData := oEvento.Find('infEvento');
+    if Assigned(InfEventoData) and (InfEventoData.JSONType = jtObject) then
+      InfEvento := TJSONObject(InfEventoData)
+    else
+      InfEvento := oEvento;
+
+    XmlBase64 := InfEvento.Find('LoadXML');
+    if not Assigned(XmlBase64) then
+      XmlBase64 := oEvento.Find('LoadXML');
+    if Assigned(XmlBase64) and (Trim(XmlBase64.AsString) <> '') then
+    begin
+      xmlStr := Trim(XmlBase64.AsString);
+      if xmlStr[1] = '<' then
+        facbr.Conhecimentos.LoadFromString(xmlStr)
+      else
+        facbr.Conhecimentos.LoadFromString(Base64.DecodeStringBase64(xmlStr));
+      InfEvento.Delete('LoadXML');
+      oEvento.Delete('LoadXML');
+    end;
 
     objEvento := facbr.EventoCTe.Evento.New;
-    TJSONTools.JsonToObj(oEvento, objEvento);
+    if InfEvento = oEvento then
+      TJSONTools.JsonToObj(oEvento, objEvento.InfEvento)
+    else
+      TJSONTools.JsonToObj(oEvento, objEvento);
   end;
 
   facbr.SSL.CarregarCertificado;
@@ -530,10 +552,15 @@ var
 begin
   CarregaConfig;
 
-  if jConsulta.Find('CTeChave', Chave) then
+  Chave := jConsulta.Find('CTeChave');
+  if not Assigned(Chave) then Chave := jConsulta.Find('chCTe');
+  if not Assigned(Chave) then Chave := jConsulta.Find('chave');
+  if not Assigned(Chave) then Chave := jConsulta.Find('Chave');
+
+  if Assigned(Chave) and (Trim(Chave.AsString) <> '') then
   begin
     try
-      facbr.WebServices.Consulta.CTeChave := Chave.AsString;
+      facbr.WebServices.Consulta.CTeChave := Trim(Chave.AsString);
       facbr.WebServices.Consulta.Executar;
       Result := TJSONTools.SafeObjToJson(facbr.WebServices.Consulta, 'Erro na consulta');
     except

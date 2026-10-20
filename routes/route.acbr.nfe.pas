@@ -1,4 +1,4 @@
-unit route.acbr.nfe;
+﻿unit route.acbr.nfe;
 
 {$mode Delphi}{$H+}
 
@@ -42,9 +42,15 @@ procedure GetModeloDanfeEvento(Req: THorseRequest; Res: THorseResponse; Next: TN
 procedure regRouter;
 procedure PostDebugConfig(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostNFeLote(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostDanfeEscPos(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloDanfeEscPos(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostConsultaCadastroNFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloConsultaCadastroNFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostEmailNFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloEmailNFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetNFePDF(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
 implementation
-var F: TextFile;
 
 
 function ExtractConfig(O: TJSONObject; const Field: string): string;
@@ -180,21 +186,7 @@ begin
     Ac := TACBRBridgeNFe.Create(ExtractConfig(O, RSConfigField));
     try
       Step := 'CallAcNFe';
-      try
-        AssignFile(F, 'C:\NFMonitor\src\bin\log_debug.txt');
-        if FileExists('C:\NFMonitor\src\bin\log_debug.txt') then Append(F) else Rewrite(F);
-        WriteLn(F, FormatDateTime('hh:nn:ss.zzz', Now) + ' - PostNFe: Chamando Ac.NFe...');
-        CloseFile(F);
-      except end;
-
       LJson := Ac.NFe(O);
-
-      try
-        AssignFile(F, 'C:\NFMonitor\src\bin\log_debug.txt');
-        if FileExists('C:\NFMonitor\src\bin\log_debug.txt') then Append(F) else Rewrite(F);
-        WriteLn(F, FormatDateTime('hh:nn:ss.zzz', Now) + ' - PostNFe: Ac.NFe retornou!');
-        CloseFile(F);
-      except end;
 
       try
         Step := 'SendResponse';
@@ -226,18 +218,25 @@ var
   Ac: TACBRBridgeNFe;
   LJson: TJSONObject;
 begin
-  O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFe.Create(ExtractConfig(O, RSConfigField));
   try
-    LJson := Ac.Danfe(O);
+    O := GetJSON(Req.Body) as TJSONObject;
+    Ac := TACBRBridgeNFe.Create(ExtractConfig(O, RSConfigField));
     try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+      LJson := Ac.Danfe(O);
+      try
+        Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+      finally
+        LJson.Free;
+      end;
     finally
-      LJson.Free;
+      O.Free;
+      Ac.Free;
     end;
-  finally
-    O.Free;
-    Ac.Free;
+  except
+    on E: Exception do
+    begin
+      Res.Status(500).Send('{"error": "' + StringReplace(E.Message, '"', '\"', [rfReplaceAll]) + '"}');
+    end;
   end;
 end;
 
@@ -575,6 +574,145 @@ begin
   end;
 end;
 
+procedure PostDanfeEscPos(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O, LJson: TJSONObject;
+  Ac: TACBRBridgeNFe;
+begin
+  O := GetJSON(Req.Body) as TJSONObject;
+  Ac := TACBRBridgeNFe.Create(ExtractConfig(O, RSConfigField));
+  try
+    LJson := Ac.DanfeEscPos(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
+procedure GetModeloDanfeEscPos(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  LJson: TJSONObject;
+begin
+  LJson := TJSONObject.Create;
+  try
+    LJson.Add('xml', 'XML da NF-e ou NFC-e em Base64');
+    LJson.Add('IgnorarTags', False);
+    LJson.Add('ImprimeEmUmaLinha', False);
+    LJson.Add('ColunasFonteNormal', 48);
+    LJson.Add('ModeloImpressora', 0);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+  finally
+    LJson.Free;
+  end;
+end;
+
+procedure PostConsultaCadastroNFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O, LJson: TJSONObject;
+  Ac: TACBRBridgeNFe;
+begin
+  O := GetJSON(Req.Body) as TJSONObject;
+  Ac := TACBRBridgeNFe.Create(ExtractConfig(O, RSConfigField));
+  try
+    LJson := Ac.ConsultaCadastro(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
+procedure GetModeloConsultaCadastroNFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  LJson: TJSONObject;
+begin
+  LJson := TJSONObject.Create;
+  try
+    LJson.Add('UF', 'ES');
+    LJson.Add('CNPJ', '00000000000191');
+    LJson.Add('CPF', '');
+    LJson.Add('IE', '');
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+  finally
+    LJson.Free;
+  end;
+end;
+
+procedure PostEmailNFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O, LJson: TJSONObject;
+  Ac: TACBRBridgeNFe;
+begin
+  O := GetJSON(Req.Body) as TJSONObject;
+  Ac := TACBRBridgeNFe.Create(ExtractConfig(O, RSConfigField));
+  try
+    LJson := Ac.EnviarEmail(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
+procedure GetModeloEmailNFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  LJson, LMail: TJSONObject;
+begin
+  LJson := TJSONObject.Create;
+  try
+    LJson.Add('xml', 'XML da NF-e ou NFC-e em Base64 ou XML puro');
+    LJson.Add('para', 'cliente@empresa.com.br');
+    LJson.Add('assunto', 'Nota Fiscal Eletronica');
+    LJson.Add('mensagem', 'Segue em anexo o documento fiscal eletronico.');
+    LJson.Add('enviaPDF', True);
+    LMail := TJSONObject.Create;
+    LMail.Add('Host', 'smtp.empresa.com.br');
+    LMail.Add('Port', '587');
+    LMail.Add('Username', 'nfe@empresa.com.br');
+    LMail.Add('Password', 'senha');
+    LMail.Add('From', 'nfe@empresa.com.br');
+    LMail.Add('FromName', 'Emitente LTDA');
+    LMail.Add('SetSSL', False);
+    LMail.Add('SetTLS', True);
+    LJson.Add('mail', LMail);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+  finally
+    LJson.Free;
+  end;
+end;
+
+procedure GetNFePDF(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  chave, pdfDir, filePath: string;
+begin
+  chave := Req.Params['chave'];
+  pdfDir := ExtractFilePath(ParamStr(0)) + 'pdf' + PathDelim;
+  filePath := pdfDir + chave + '-nfe.pdf';
+  if not FileExists(filePath) then
+    filePath := pdfDir + 'NFe' + chave + '-nfe.pdf';
+  if not FileExists(filePath) then
+    filePath := pdfDir + chave + '.pdf';
+
+  if FileExists(filePath) then
+    Res.Download(filePath, chave + '-danfe.pdf')
+  else
+    Res.Status(404).ContentType(TMimeTypes.ApplicationJSON.ToString)
+      .Send('{"error":"Arquivo PDF nao encontrado para a chave informada."}');
+end;
+
 procedure regRouter;
 begin
   THorse.Get(RSModeloNFeConfigRoute, GetModeloConfig);
@@ -589,13 +727,20 @@ begin
   THorse.Get(RSModeloNFeNFeToXMLRoute, GetModeloNFeToXML);
   THorse.Get(RSModeloNFeValidarRegrasRoute, GetModeloValidarRegrasNFe);
   THorse.Get(RSModeloNFeDanfeEventoRoute, GetModeloDanfeEvento);
+  THorse.Get(RSModeloNFeDanfeEscPosRoute, GetModeloDanfeEscPos);
+  THorse.Get(RSModeloNFeConsultaCadastroRoute, GetModeloConsultaCadastroNFe);
+  THorse.Get(RSModeloNFeEmailRoute, GetModeloEmailNFe);
+  THorse.Get(RSNFePDFRoute, GetNFePDF);
 
   THorse.Post(RSNFeEventosRoute, PostEventos);
   THorse.Post(RSNFeDistribuicaoRoute, PostDistribuicao);
   THorse.Post(RSNFeDANFeRoute, PostDANFe);
+  THorse.Post(RSNFeDanfeEscPosRoute, PostDanfeEscPos);
   THorse.Post(RSNFeNFeRoute, PostNFe);
   THorse.Post(RSNFeStatusRoute, PostStatusServicoNFe);
   THorse.Post(RSNFeConsultaRoute, PostConsultaNFe);
+  THorse.Post(RSNFeConsultaCadastroRoute, PostConsultaCadastroNFe);
+  THorse.Post(RSNFeEmailRoute, PostEmailNFe);
   THorse.Post('/nfe/consulta-recibo', PostConsultaReciboNFe);
   THorse.Post(RSNFeInutilizacaoRoute, PostInutilizacaoNFe);
   THorse.Post(RSNFeCancelamentoRoute, PostCancelamentoNFe);

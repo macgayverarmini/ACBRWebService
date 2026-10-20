@@ -406,10 +406,19 @@ begin
                 Prop.SetValue(Obj, TValue.From<string>(JsonVal.AsString));
               tkEnumeration:
                 if Prop.PropertyType.Handle = TypeInfo(Boolean) then
-                  Prop.SetValue(Obj, TValue.From<Boolean>(JsonVal.AsBoolean))
+                begin
+                  if JsonVal is TJSONBoolean then
+                    Prop.SetValue(Obj, TValue.From<Boolean>(JsonVal.AsBoolean))
+                  else if JsonVal is TJSONNumber then
+                    Prop.SetValue(Obj, TValue.From<Boolean>(JsonVal.AsInteger <> 0))
+                  else
+                    Prop.SetValue(Obj, TValue.From<Boolean>(SameText(JsonVal.AsString, 'true') or (JsonVal.AsString = '1')));
+                end
                 else
                 begin
                   EnumVal := GetEnumValue(Prop.PropertyType.Handle, JsonVal.AsString);
+                  if (EnumVal < 0) and (JsonVal is TJSONNumber) then
+                    EnumVal := JsonVal.AsInteger;
                   if EnumVal >= 0 then
                     Prop.SetValue(Obj, TValue.FromOrdinal(Prop.PropertyType.Handle, EnumVal));
                 end;

@@ -293,6 +293,15 @@ begin
             facbr.Configuracoes.Certificados.DadosPFX := synacode.DecodeBase64(AnsiString(b64String));
           end;
         end;
+
+        with facbr.Configuracoes.Geral do
+        begin
+          SSLLib := libNone;
+          SSLLib := libOpenSSL;
+          SSLCryptLib := cryOpenSSL;
+          SSLHttpLib := httpOpenSSL;
+          SSLXmlSignLib := xsLibXml2;
+        end;
       finally
         O.Free;
       end;
@@ -317,10 +326,16 @@ begin
     raise Exception.Create(
       'ParÃƒÂ¢metro "xml" (contendo o XML em Base64) nÃƒÂ£o encontrado no JSON.');
 
-  xmlBase64 := oXML.AsString;
+  xmlBase64 := Trim(oXML.AsString);
 
   if xmlBase64.IsEmpty then
     raise Exception.Create('ParÃƒÂ¢metro "xml" estÃƒÂ¡ vazio.');
+
+  if (Length(xmlBase64) > 0) and (xmlBase64[1] = '<') then
+  begin
+    Result := xmlBase64;
+    Exit;
+  end;
 
   try
     Result := DecodeStringBase64(xmlBase64);
@@ -389,24 +404,45 @@ var
   objEvento: TInfEventoCollectionItem;
   oEvento: TJSONObject;
   I: integer;
+  InfEventoData: TJSONData;
   InfEvento: TJSONObject;
-  XmlBase64: TJSONString;
+  XmlBase64: TJSONData;
+  xmlStr: string;
 begin
   CarregaConfig;
   Result := '';
-
-
+  facbr.EventoMDFe.Evento.Clear;
 
   for I := 0 to jEventos.Count - 1 do
   begin
     oEvento := jEventos.Items[i] as TJSONObject;
-    InfEvento := oEvento.Extract('InfEvento') as TJSONObject;
-    if InfEvento.Find('LoadXML', XmlBase64) then
-      facbr.Manifestos.LoadFromString(Base64.DecodeStringBase64(
-        XmlBase64.AsString));
+    InfEventoData := oEvento.Find('InfEvento');
+    if not Assigned(InfEventoData) then
+      InfEventoData := oEvento.Find('infEvento');
+    if Assigned(InfEventoData) and (InfEventoData.JSONType = jtObject) then
+      InfEvento := TJSONObject(InfEventoData)
+    else
+      InfEvento := oEvento;
+
+    XmlBase64 := InfEvento.Find('LoadXML');
+    if not Assigned(XmlBase64) then
+      XmlBase64 := oEvento.Find('LoadXML');
+    if Assigned(XmlBase64) and (Trim(XmlBase64.AsString) <> '') then
+    begin
+      xmlStr := Trim(XmlBase64.AsString);
+      if xmlStr[1] = '<' then
+        facbr.Manifestos.LoadFromString(xmlStr)
+      else
+        facbr.Manifestos.LoadFromString(Base64.DecodeStringBase64(xmlStr));
+      InfEvento.Delete('LoadXML');
+      oEvento.Delete('LoadXML');
+    end;
 
     objEvento := facbr.EventoMDFe.Evento.New;
-    TJSONTools.JsonToObj(oEvento, objEvento);
+    if InfEvento = oEvento then
+      TJSONTools.JsonToObj(oEvento, objEvento.InfEvento)
+    else
+      TJSONTools.JsonToObj(oEvento, objEvento);
   end;
 
   facbr.EnviarEvento(1);
@@ -504,33 +540,39 @@ begin
   if not DirectoryExists(pdfDir) then
     CreateDir(pdfDir);
 
+  chClean := StringReplace(facbr.Manifestos.Items[0].MDFe.infMDFe.ID, 'MDFe', '', [rfIgnoreCase]);
+  fileName := pdfDir + chClean + '-mdfe.pdf';
+  if FileExists(fileName) then
+    SysUtils.DeleteFile(fileName);
+
   try
     fdamdfe.PathPDF := pdfDir;
     facbr.DAMDFE := fdamdfe;
     facbr.Manifestos.ImprimirPDF;
 
-    fileName := fdamdfe.ArquivoPDF;
+    if not FileExists(fileName) then
+      fileName := fdamdfe.ArquivoPDF;
     if (fileName = '') or (not FileExists(fileName)) then
     begin
       fileName := pdfDir + facbr.Manifestos.Items[0].MDFe.infMDFe.ID + '-mdfe.pdf';
       if not FileExists(fileName) then
-        fileName := pdfDir + StringReplace(facbr.Manifestos.Items[0].MDFe.infMDFe.ID, 'MDFe', '', [rfIgnoreCase]) + '-mdfe.pdf';
+        fileName := pdfDir + chClean + '-mdfe.pdf';
     end;
 
     if not FileExists(fileName) then
     begin
       Result.Add(RSErrorField, RSPDFGenerationError + ': Arquivo PDF nao foi gerado pelo ACBr.');
+      facbr.Manifestos.Clear;
       Exit;
     end;
   except
     on E: Exception do
     begin
       Result.Add(RSErrorField, RSPDFGenerationError + ': ' + E.Message);
+      facbr.Manifestos.Clear;
       Exit;
     end;
   end;
-
-  chClean := StringReplace(facbr.Manifestos.Items[0].MDFe.infMDFe.ID, 'MDFe', '', [rfIgnoreCase]);
 
   if not OnlyURL then
   begin
@@ -542,6 +584,7 @@ begin
       on E: Exception do
       begin
         Result.Add(RSErrorField, E.Message);
+        facbr.Manifestos.Clear;
         Exit;
       end;
     end;
@@ -552,6 +595,8 @@ begin
 
   if xmlData.Find(RSIDField, id) then
     Result.Add(RSIDField, id);
+
+  facbr.Manifestos.Clear;
 end;
 
 function TACBRBridgeMDFe.DamdfeEvento(const xmlEvento: TJSONObject): TJSONObject;
@@ -593,6 +638,9 @@ begin
     Result.Add(RSErrorField, 'Nenhum evento MDF-e foi carregado a partir do XML.');
     Exit;
   end;
+
+  if facbr.Manifestos.Count = 0 then
+    facbr.Manifestos.Add.MDFe.infMDFe.Id := 'MDFe' + facbr.EventoMDFe.Evento.Items[0].InfEvento.chMDFe;
 
   fdamdfe.MostraPreview := False;
   fdamdfe.MostraStatus := False;
