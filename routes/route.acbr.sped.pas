@@ -1,4 +1,4 @@
-unit route.acbr.sped;
+﻿unit route.acbr.sped;
 
 {$mode Delphi}{$H+}
 
@@ -10,8 +10,10 @@ uses
   resource.strings.routes;
 
 procedure GetModeloConfigSPED(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloConfigSPEDPisCofins(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostSPED(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostGerar(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostGerarPisCofins(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
 procedure regRouter;
 
@@ -89,11 +91,45 @@ begin
   end;
 end;
 
+procedure GetModeloConfigSPEDPisCofins(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  AcM: TACBRModelosJSONSPEDPisCofins;
+begin
+  AcM := TACBRModelosJSONSPEDPisCofins.Create('');
+  try
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(AcM.ModelConfig.AsJSON);
+  finally
+    AcM.Free;
+  end;
+end;
+
+procedure PostGerarPisCofins(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O: TJSONObject;
+  Ac: TACBRBridgeSPEDPisCofins;
+begin
+  O := GetJSON(Req.Body) as TJSONObject;
+  Ac := TACBRBridgeSPEDPisCofins.Create(ExtractConfig(O, 'config'));
+  try
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(Ac.Gerar(O));
+    except
+      on E: Exception do
+        Res.Status(500).Send(E.Message);
+    end;
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
 procedure regRouter;
 begin
   THorse.Get(RSModeloSPEDConfigRoute, GetModeloConfigSPED);
+  THorse.Get(RSModeloSPEDPisCofinsConfigRoute, GetModeloConfigSPEDPisCofins);
   THorse.Post(RSSPEDRoute, PostSPED);
   THorse.Post(RSSPEDGerarRoute, PostGerar);
+  THorse.Post(RSSPEDPisCofinsGerarRoute, PostGerarPisCofins);
 end;
 
 end.

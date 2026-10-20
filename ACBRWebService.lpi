@@ -20,7 +20,7 @@
     <VersionInfo>
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
-      <BuildNr Value="101"/>
+      <BuildNr Value="129"/>
       <Language Value="0416"/>
       <Attributes pvaDebug="True"/>
     </VersionInfo>
@@ -83,6 +83,24 @@
       <Item>
         <PackageName Value="ACBr_NFe"/>
       </Item>
+      <Item>
+        <PackageName Value="ACBr_Boleto"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBr_BoletoFC_FPDF"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBr_Reinf"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBr_GNRE"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBrDiversos"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBrTCP"/>
+      </Item>
     </RequiredPackages>
     <Units>
       <Unit>
@@ -111,9 +129,6 @@
       </Unit>
       <Unit>
         <Filename Value="method/method.acbr.diversos.validador.pas"/>
-      </Unit>
-      <Unit>
-        <Filename Value="/acbr/Fontes/ACBrDFe/ACBrNFe/DANFE/NFe/LazReport/ACBrNFeDANFeLazReport.pas"/>
       </Unit>
       <Unit>
         <Filename Value="tools/streamtools.pas"/>
@@ -180,6 +195,30 @@
       </Unit>
       <Unit>
         <Filename Value="routes/route.acbr.escpos.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.boleto.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.boleto.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.reinf.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.reinf.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.gnre.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.gnre.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="method/method.acbr.diversos.legado.pas"/>
+      </Unit>
+      <Unit>
+        <Filename Value="routes/route.acbr.diversos.legado.pas"/>
       </Unit>
     </Units>
   </ProjectOptions>

@@ -137,6 +137,50 @@ resourcestring
   RSEscPosRoute = '/escpos/escpos';
   RSEscPosPortasRoute = '/escpos/portas';
 
+  // Rotas Adicionais - MDFe
+  RSModeloMDFeStatusRoute = '/modelo/mdfe/status';
+  RSModeloMDFeConsultaRoute = '/modelo/mdfe/consulta';
+  RSModeloMDFeCancelamentoRoute = '/modelo/mdfe/cancelamento';
+  RSModeloMDFeEncerramentoRoute = '/modelo/mdfe/encerramento';
+  RSModeloMDFeNaoEncerradosRoute = '/modelo/mdfe/nao-encerrados';
+  RSMDFeStatusRoute = '/mdfe/status';
+  RSMDFeConsultaRoute = '/mdfe/consulta';
+  RSMDFeCancelamentoRoute = '/mdfe/cancelamento';
+  RSMDFeEncerramentoRoute = '/mdfe/encerramento';
+  RSMDFeNaoEncerradosRoute = '/mdfe/nao-encerrados';
+
+  // Rotas Adicionais - SPED PIS/COFINS
+  RSModeloSPEDPisCofinsConfigRoute = '/modelo/sped/piscofins/config';
+  RSSPEDPisCofinsGerarRoute = '/sped/piscofins/gerar';
+
+  // Rotas - Boleto Bancario
+  RSModeloBoletoConfigRoute = '/modelo/boleto/config';
+  RSModeloBoletoTituloRoute = '/modelo/boleto/titulo';
+  RSBoletoPDFRoute = '/boleto/pdf';
+  RSBoletoRemessaRoute = '/boleto/remessa';
+  RSBoletoRetornoRoute = '/boleto/retorno';
+
+  // Rotas - EFD-Reinf
+  RSModeloReinfConfigRoute = '/modelo/reinf/config';
+  RSReinfEnviarRoute = '/reinf/enviar';
+  RSReinfConsultarRoute = '/reinf/consultar';
+
+  // Rotas - GNRE
+  RSModeloGNREConfigRoute = '/modelo/gnre/config';
+  RSModeloGNREGuiaRoute = '/modelo/gnre/guia';
+  RSGNREEnviarRoute = '/gnre/enviar';
+  RSGNREConsultarRoute = '/gnre/consultar';
+
+  // Rotas - Diversos Legado (CMC7, Balanca InStore, CargaBal, IBPTax)
+  RSModeloDiversosCMC7Route = '/modelo/diversos/cmc7';
+  RSDiversosCMC7Route = '/diversos/cmc7';
+  RSModeloDiversosInStoreRoute = '/modelo/diversos/balanca/instore';
+  RSDiversosInStoreRoute = '/diversos/balanca/instore';
+  RSModeloDiversosCargaBalRoute = '/modelo/diversos/balanca/carga';
+  RSDiversosCargaBalRoute = '/diversos/balanca/carga';
+  RSModeloDiversosIBPTRoute = '/modelo/diversos/ibpt/config';
+  RSDiversosIBPTLerTabelaRoute = '/diversos/ibpt/ler-tabela';
+
 implementation
 
 end.

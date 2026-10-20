@@ -1,4 +1,4 @@
-program ACBRWebService;
+﻿program ACBRWebService;
 
 {$mode Delphi}
 uses
@@ -24,6 +24,10 @@ uses
   route.acbr.sped,
   route.acbr.sintegra,
   route.acbr.escpos,
+  route.acbr.boleto,
+  route.acbr.reinf,
+  route.acbr.gnre,
+  route.acbr.diversos.legado,
   resource.strings.global,
   resource.strings.msg;
 
@@ -106,6 +110,18 @@ begin
 
   LogRouteMapping('route.acbr.escpos');
   route.acbr.escpos.regRouter;
+
+  LogRouteMapping('route.acbr.boleto');
+  route.acbr.boleto.regRouter;
+
+  LogRouteMapping('route.acbr.reinf');
+  route.acbr.reinf.regRouter;
+
+  LogRouteMapping('route.acbr.gnre');
+  route.acbr.gnre.regRouter;
+
+  LogRouteMapping('route.acbr.diversos.legado');
+  route.acbr.diversos.legado.regRouter;
 
   WriteLn(RSSeparatorLine);
   LogInfo(RSHorseApplicationStarted);

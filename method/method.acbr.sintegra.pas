@@ -1,4 +1,4 @@
-unit method.acbr.sintegra;
+﻿unit method.acbr.sintegra;
 
 {$mode Delphi}
 {$M+}
@@ -13,6 +13,7 @@ uses
   fpjson,
   jsonconvert,
   jsonparser,
+  streamtools,
   Classes, SysUtils;
 
 type
@@ -81,11 +82,16 @@ begin
 end;
 
 function TACBRBridgeSintegra.Gerar(const jSintegra: TJSONObject): TJSONObject;
+var
+  tamanho: integer;
 begin
   CarregaConfig;
   Result := TJSONObject.Create;
   try
     try
+      if facbr.FileName = '' then
+        facbr.FileName := ExtractFilePath(ParamStr(0)) + 'sintegra.txt';
+
       // Mapeamento Generico das Propriedades
       TJSONTools.JsonToObj(jSintegra, facbr);
 
@@ -95,6 +101,8 @@ begin
       Result.Add('status', 'sucesso');
       Result.Add('message', 'Sintegra gerado com sucesso.');
       Result.Add('arquivo', facbr.FileName);
+      if FileExists(facbr.FileName) then
+        Result.Add('arquivo_base64', FileToStringBase64(facbr.FileName, False, tamanho));
     except
       on E: Exception do
       begin

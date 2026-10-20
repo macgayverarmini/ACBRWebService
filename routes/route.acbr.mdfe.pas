@@ -24,6 +24,16 @@ procedure PostEventosMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextPr
 procedure PostDamdfeMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);procedure PostDamdfeURLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostDistribuicaoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);procedure PostMDFeFromXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostMDFeToXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);procedure PostDamdfeEventoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloStatusMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloConsultaMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloCancelamentoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloEncerramentoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloNaoEncerradosMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostStatusMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostConsultaMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostCancelamentoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostEncerramentoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostNaoEncerradosMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
 // Procedure para registrar todas as rotas no Horse
 procedure regRouter;
@@ -397,6 +407,236 @@ end;
 
 // --- Registro das Rotas ---
 
+procedure GetModeloStatusMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  AcM: TACBRModelosJSONMDFe;
+  LJson: TJSONObject;
+begin
+  AcM := TACBRModelosJSONMDFe.Create('');
+  try
+    LJson := AcM.ModelStatusServico;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    AcM.Free;
+  end;
+end;
+
+procedure GetModeloConsultaMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  AcM: TACBRModelosJSONMDFe;
+  LJson: TJSONObject;
+begin
+  AcM := TACBRModelosJSONMDFe.Create('');
+  try
+    LJson := AcM.ModelConsulta;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    AcM.Free;
+  end;
+end;
+
+procedure GetModeloCancelamentoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  AcM: TACBRModelosJSONMDFe;
+  LJson: TJSONObject;
+begin
+  AcM := TACBRModelosJSONMDFe.Create('');
+  try
+    LJson := AcM.ModelCancelamento;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    AcM.Free;
+  end;
+end;
+
+procedure GetModeloEncerramentoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  AcM: TACBRModelosJSONMDFe;
+  LJson: TJSONObject;
+begin
+  AcM := TACBRModelosJSONMDFe.Create('');
+  try
+    LJson := AcM.ModelEncerramento;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    AcM.Free;
+  end;
+end;
+
+procedure GetModeloNaoEncerradosMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  AcM: TACBRModelosJSONMDFe;
+  LJson: TJSONObject;
+begin
+  AcM := TACBRModelosJSONMDFe.Create('');
+  try
+    LJson := AcM.ModelNaoEncerrados;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    AcM.Free;
+  end;
+end;
+
+procedure PostStatusMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O, LJson: TJSONObject;
+  Ac: TACBRBridgeMDFe;
+begin
+  try
+    O := GetJSON(Req.Body) as TJSONObject;
+  except
+    on E: Exception do
+    begin
+      Res.Status(400).Send(TJSONObject.Create(['message', 'Corpo JSON invalido: ' + E.Message]).AsJSON);
+      Exit;
+    end;
+  end;
+  Ac := TACBRBridgeMDFe.Create(ExtractConfig(O, 'config'));
+  try
+    LJson := Ac.StatusServico(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
+procedure PostConsultaMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O, LJson: TJSONObject;
+  Ac: TACBRBridgeMDFe;
+begin
+  try
+    O := GetJSON(Req.Body) as TJSONObject;
+  except
+    on E: Exception do
+    begin
+      Res.Status(400).Send(TJSONObject.Create(['message', 'Corpo JSON invalido: ' + E.Message]).AsJSON);
+      Exit;
+    end;
+  end;
+  Ac := TACBRBridgeMDFe.Create(ExtractConfig(O, 'config'));
+  try
+    LJson := Ac.Consulta(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
+procedure PostCancelamentoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O, LJson: TJSONObject;
+  Ac: TACBRBridgeMDFe;
+begin
+  try
+    O := GetJSON(Req.Body) as TJSONObject;
+  except
+    on E: Exception do
+    begin
+      Res.Status(400).Send(TJSONObject.Create(['message', 'Corpo JSON invalido: ' + E.Message]).AsJSON);
+      Exit;
+    end;
+  end;
+  Ac := TACBRBridgeMDFe.Create(ExtractConfig(O, 'config'));
+  try
+    LJson := Ac.Cancelamento(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
+procedure PostEncerramentoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O, LJson: TJSONObject;
+  Ac: TACBRBridgeMDFe;
+begin
+  try
+    O := GetJSON(Req.Body) as TJSONObject;
+  except
+    on E: Exception do
+    begin
+      Res.Status(400).Send(TJSONObject.Create(['message', 'Corpo JSON invalido: ' + E.Message]).AsJSON);
+      Exit;
+    end;
+  end;
+  Ac := TACBRBridgeMDFe.Create(ExtractConfig(O, 'config'));
+  try
+    LJson := Ac.Encerramento(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
+procedure PostNaoEncerradosMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O, LJson: TJSONObject;
+  Ac: TACBRBridgeMDFe;
+begin
+  try
+    O := GetJSON(Req.Body) as TJSONObject;
+  except
+    on E: Exception do
+    begin
+      Res.Status(400).Send(TJSONObject.Create(['message', 'Corpo JSON invalido: ' + E.Message]).AsJSON);
+      Exit;
+    end;
+  end;
+  Ac := TACBRBridgeMDFe.Create(ExtractConfig(O, 'config'));
+  try
+    LJson := Ac.ConsultarMDFeNaoEnc(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
 procedure regRouter;
 begin
   // Endpoints de Modelos (GET)
@@ -405,6 +645,11 @@ begin
   THorse.Get(RSModeloMDFeMDFeRoute, GetModeloMDFe);
   THorse.Get(RSModeloMDFeDistribuicaoRoute, GetModeloDistribuicaoMDFe);  THorse.Get(RSModeloMDFeMDFeFromXMLRoute, GetModeloMDFeFromXMLMDFe);
   THorse.Get(RSModeloMDFeMDFeToXMLRoute, GetModeloMDFeToXMLMDFe);  THorse.Get(RSMDFePDFRoute, GetMDFePDFFile);
+  THorse.Get(RSModeloMDFeStatusRoute, GetModeloStatusMDFe);
+  THorse.Get(RSModeloMDFeConsultaRoute, GetModeloConsultaMDFe);
+  THorse.Get(RSModeloMDFeCancelamentoRoute, GetModeloCancelamentoMDFe);
+  THorse.Get(RSModeloMDFeEncerramentoRoute, GetModeloEncerramentoMDFe);
+  THorse.Get(RSModeloMDFeNaoEncerradosRoute, GetModeloNaoEncerradosMDFe);
 
   // Endpoints de Operações (POST)
   THorse.Post(RSMDFeMDFeRoute, PostEnviarMDFe);
@@ -412,6 +657,11 @@ begin
   THorse.Post(RSMDFeDAMDFeRoute, PostDamdfeMDFe);  THorse.Post(RSMDFeDAMDFeURLRoute, PostDamdfeURLMDFe);
   THorse.Post(RSMDFeDistribuicaoRoute, PostDistribuicaoMDFe);  THorse.Post(RSMDFeMDFeFromXMLRoute, PostMDFeFromXMLMDFe);
   THorse.Post(RSMDFeMDFeToXMLRoute, PostMDFeToXMLMDFe);  THorse.Post(RSMDFeDAMDFeEventoRoute, PostDamdfeEventoMDFe);
+  THorse.Post(RSMDFeStatusRoute, PostStatusMDFe);
+  THorse.Post(RSMDFeConsultaRoute, PostConsultaMDFe);
+  THorse.Post(RSMDFeCancelamentoRoute, PostCancelamentoMDFe);
+  THorse.Post(RSMDFeEncerramentoRoute, PostEncerramentoMDFe);
+  THorse.Post(RSMDFeNaoEncerradosRoute, PostNaoEncerradosMDFe);
 end;
 
 end.

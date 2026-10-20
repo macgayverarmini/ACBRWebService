@@ -49,6 +49,11 @@ type
     function Damdfe(const xmlData: TJSONObject; const OnlyURL: Boolean = False): TJSONObject;    function DamdfeEvento(const xmlEvento: TJSONObject): TJSONObject;
     function MDFe(const jMDFe: TJSONObject): TJSONObject;    function MDFeFromXML(const jXML: TJSONObject): TJSONObject;
     function MDFeToXML(const jMDFe: TJSONObject): TJSONObject;
+    function StatusServico(const jStatus: TJSONObject): TJSONObject;
+    function Consulta(const jConsulta: TJSONObject): TJSONObject;
+    function Cancelamento(const jCancelamento: TJSONObject): TJSONObject;
+    function Encerramento(const jEncerramento: TJSONObject): TJSONObject;
+    function ConsultarMDFeNaoEnc(const jConsulta: TJSONObject): TJSONObject;
 
     function TesteConfig: boolean;
   end;
@@ -63,6 +68,11 @@ type
     function ModelDistribuicao: string;
     function ModelMDFe: TJSONObject;    function ModelMDFeFromXML: TJSONObject;
     function ModelMDFeToXML: TJSONObject;
+    function ModelStatusServico: TJSONObject;
+    function ModelConsulta: TJSONObject;
+    function ModelCancelamento: TJSONObject;
+    function ModelEncerramento: TJSONObject;
+    function ModelNaoEncerrados: TJSONObject;
   end;
 
 implementation
@@ -367,6 +377,8 @@ begin
   finally
     // Garante que o retorno do webservice seja sempre capturado e retornado
     Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.Retorno));
+    if facbr.Manifestos.Count > 0 then
+      Result.Add('xml_autorizado', EncodeStringBase64(facbr.Manifestos.Items[0].XML));
   end;
 
   facbr.Manifestos.Clear;
@@ -719,5 +731,235 @@ begin
     end;
   end;
 end;
+
+
+function TACBRBridgeMDFe.StatusServico(const jStatus: TJSONObject): TJSONObject;
+begin
+  CarregaConfig;
+  try
+    facbr.WebServices.StatusServico.Executar;
+    Result := TJSONTools.SafeObjToJson(facbr.WebServices.StatusServico, 'Erro ao consultar status do servico MDF-e');
+  except
+    on E: Exception do
+      Result := TJSONTools.SafeObjToJson(nil, 'Erro ao consultar status do servico MDF-e: ' + E.Message);
+  end;
+end;
+
+
+
+function TACBRBridgeMDFe.Consulta(const jConsulta: TJSONObject): TJSONObject;
+var
+  Chave: string;
+begin
+  CarregaConfig;
+  Chave := jConsulta.Get('MDFeChave', '');
+  if Chave = '' then
+    Chave := jConsulta.Get('chMDFe', '');
+  if Chave = '' then
+    Chave := jConsulta.Get('chave', '');
+
+  if Chave <> '' then
+  begin
+    try
+      facbr.WebServices.Consulta.MDFeChave := Chave;
+      facbr.WebServices.Consulta.ExtrairEventos := jConsulta.Get('ExtrairEventos', False);
+      facbr.WebServices.Consulta.Executar;
+      Result := TJSONTools.SafeObjToJson(facbr.WebServices.Consulta, 'Erro na consulta de MDF-e');
+    except
+      on E: Exception do
+        Result := TJSONTools.SafeObjToJson(nil, 'Erro na consulta de MDF-e: ' + E.Message);
+    end;
+  end
+  else
+    Result := TJSONTools.SafeObjToJson(nil, 'Chave (MDFeChave) nao informada para consulta de MDF-e.');
+end;
+
+
+
+function TACBRBridgeMDFe.Cancelamento(const jCancelamento: TJSONObject): TJSONObject;
+var
+  chMDFe, nProt, xJust, cnpjCpf, xmlBase64: string;
+  CancObj: TJSONObject;
+begin
+  CarregaConfig;
+  CancObj := jCancelamento.Extract('cancelamento') as TJSONObject;
+  if not Assigned(CancObj) then
+    CancObj := jCancelamento;
+
+  try
+    try
+      chMDFe := CancObj.Get('chMDFe', '');
+      if chMDFe = '' then chMDFe := CancObj.Get('chave', '');
+      nProt := CancObj.Get('nProt', '');
+      if nProt = '' then nProt := CancObj.Get('protocolo', '');
+      xJust := CancObj.Get('xJust', '');
+      if xJust = '' then xJust := CancObj.Get('justificativa', '');
+      cnpjCpf := CancObj.Get('CNPJCPF', '');
+      xmlBase64 := CancObj.Get('xml', '');
+
+      facbr.Manifestos.Clear;
+      if xmlBase64 <> '' then
+        facbr.Manifestos.LoadFromString(DecodeStringBase64(xmlBase64));
+
+      if (facbr.Manifestos.Count > 0) and (nProt = '') then
+      begin
+        facbr.Cancelamento(xJust, 1);
+      end
+      else
+      begin
+        facbr.EventoMDFe.Evento.Clear;
+        with facbr.EventoMDFe.Evento.New do
+        begin
+          infEvento.chMDFe := chMDFe;
+          infEvento.CNPJCPF := cnpjCpf;
+          infEvento.cOrgao := StrToIntDef(Copy(chMDFe, 1, 2), 0);
+          infEvento.dhEvento := Now;
+          infEvento.tpEvento := teCancelamento;
+          infEvento.detEvento.nProt := nProt;
+          infEvento.detEvento.xJust := xJust;
+        end;
+        facbr.EnviarEvento(1);
+      end;
+
+      Result := TJSONTools.SafeObjToJson(facbr.WebServices.EnvEvento.EventoRetorno.retEvento, 'Cancelamento MDF-e processado');
+    except
+      on E: Exception do
+        Result := TJSONTools.SafeObjToJson(nil, 'Erro no cancelamento de MDF-e: ' + E.Message);
+    end;
+  finally
+    if (CancObj <> jCancelamento) and Assigned(CancObj) then
+      CancObj.Free;
+    facbr.Manifestos.Clear;
+  end;
+end;
+
+
+
+function TACBRBridgeMDFe.Encerramento(const jEncerramento: TJSONObject): TJSONObject;
+var
+  chMDFe, nProt, cnpjCpf, dtEncStr: string;
+  cUF, cMun: Integer;
+  EncObj: TJSONObject;
+begin
+  CarregaConfig;
+  EncObj := jEncerramento.Extract('encerramento') as TJSONObject;
+  if not Assigned(EncObj) then
+    EncObj := jEncerramento;
+
+  try
+    try
+      chMDFe := EncObj.Get('chMDFe', '');
+      if chMDFe = '' then chMDFe := EncObj.Get('chave', '');
+      nProt := EncObj.Get('nProt', '');
+      if nProt = '' then nProt := EncObj.Get('protocolo', '');
+      cnpjCpf := EncObj.Get('CNPJCPF', '');
+      if (cnpjCpf = '') and (Length(chMDFe) >= 20) then
+        cnpjCpf := Copy(chMDFe, 7, 14);
+      cMun := EncObj.Get('cMun', 0);
+      cUF := EncObj.Get('cUF', 0);
+      if (cUF = 0) and (cMun > 0) then
+        cUF := StrToIntDef(Copy(IntToStr(cMun), 1, 2), 0);
+      dtEncStr := EncObj.Get('dtEnc', '');
+
+      facbr.EventoMDFe.Evento.Clear;
+      with facbr.EventoMDFe.Evento.New do
+      begin
+        infEvento.chMDFe := chMDFe;
+        infEvento.CNPJCPF := cnpjCpf;
+        infEvento.cOrgao := StrToIntDef(Copy(chMDFe, 1, 2), cUF);
+        infEvento.dhEvento := Now;
+        infEvento.tpEvento := teEncerramento;
+        infEvento.detEvento.nProt := nProt;
+        infEvento.detEvento.dtEnc := Date;
+        infEvento.detEvento.cUF := cUF;
+        infEvento.detEvento.cMun := cMun;
+      end;
+
+      facbr.EnviarEvento(1);
+      Result := TJSONTools.SafeObjToJson(facbr.WebServices.EnvEvento.EventoRetorno.retEvento, 'Encerramento MDF-e processado');
+    except
+      on E: Exception do
+        Result := TJSONTools.SafeObjToJson(nil, 'Erro no encerramento de MDF-e: ' + E.Message);
+    end;
+  finally
+    if (EncObj <> jEncerramento) and Assigned(EncObj) then
+      EncObj.Free;
+  end;
+end;
+
+
+
+function TACBRBridgeMDFe.ConsultarMDFeNaoEnc(const jConsulta: TJSONObject): TJSONObject;
+var
+  cnpjCpf: string;
+begin
+  CarregaConfig;
+  cnpjCpf := jConsulta.Get('CNPJCPF', '');
+  if cnpjCpf = '' then
+    cnpjCpf := jConsulta.Get('cnpj', '');
+
+  if cnpjCpf = '' then
+  begin
+    Result := TJSONTools.SafeObjToJson(nil, 'CNPJCPF nao informado para consulta de MDF-e nao encerrados.');
+    Exit;
+  end;
+
+  try
+    facbr.ConsultarMDFeNaoEnc(cnpjCpf);
+    Result := TJSONTools.SafeObjToJson(facbr.WebServices.ConsMDFeNaoEnc, 'Erro ao consultar MDF-e nao encerrados');
+  except
+    on E: Exception do
+      Result := TJSONTools.SafeObjToJson(facbr.WebServices.ConsMDFeNaoEnc, 'Erro ao consultar MDF-e nao encerrados: ' + E.Message);
+  end;
+end;
+
+
+
+function TACBRModelosJSONMDFe.ModelStatusServico: TJSONObject;
+begin
+  Result := TJSONObject.Create;
+end;
+
+
+
+function TACBRModelosJSONMDFe.ModelConsulta: TJSONObject;
+begin
+  Result := TJSONObject.Create;
+  Result.Add('MDFeChave', 'Preencha com a Chave de Acesso de 44 digitos do MDF-e');
+  Result.Add('ExtrairEventos', True);
+end;
+
+
+
+function TACBRModelosJSONMDFe.ModelCancelamento: TJSONObject;
+begin
+  Result := TJSONObject.Create;
+  Result.Add('chMDFe', 'Preencha com a Chave de Acesso do MDF-e');
+  Result.Add('nProt', 'Preencha com o Protocolo de Autorizacao');
+  Result.Add('CNPJCPF', '00000000000191');
+  Result.Add('xJust', 'Justificativa do Cancelamento (min 15 caracteres)');
+end;
+
+
+
+function TACBRModelosJSONMDFe.ModelEncerramento: TJSONObject;
+begin
+  Result := TJSONObject.Create;
+  Result.Add('chMDFe', 'Preencha com a Chave de Acesso do MDF-e');
+  Result.Add('nProt', 'Preencha com o Protocolo de Autorizacao');
+  Result.Add('CNPJCPF', '00000000000191');
+  Result.Add('cUF', 32);
+  Result.Add('cMun', 3205002);
+  Result.Add('dtEnc', FormatDateTime('yyyy-mm-dd', Date));
+end;
+
+
+
+function TACBRModelosJSONMDFe.ModelNaoEncerrados: TJSONObject;
+begin
+  Result := TJSONObject.Create;
+  Result.Add('CNPJCPF', '00000000000191');
+end;
+
 
 end.
