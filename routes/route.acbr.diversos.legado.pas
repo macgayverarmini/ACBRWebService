@@ -1,4 +1,4 @@
-unit route.acbr.diversos.legado;
+﻿unit route.acbr.diversos.legado;
 
 {$mode Delphi}{$H+}
 
@@ -17,6 +17,12 @@ procedure GetModeloCargaBal(Req: THorseRequest; Res: THorseResponse; Next: TNext
 procedure PostCargaBal(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure GetModeloIBPT(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostIBPTLerTabela(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloEAD(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostEAD(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloCalcDigito(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostCalcDigito(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloMail(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostMail(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
 procedure regRouter;
 
@@ -174,6 +180,120 @@ begin
   end;
 end;
 
+procedure GetModeloEAD(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  Ac: TACBRBridgeDiversosLegado;
+  LJson: TJSONObject;
+begin
+  Ac := TACBRBridgeDiversosLegado.Create;
+  try
+    LJson := Ac.ModelEAD;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    Ac.Free;
+  end;
+end;
+
+procedure PostEAD(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O, LJson: TJSONObject;
+  Ac: TACBRBridgeDiversosLegado;
+begin
+  O := GetJSON(Req.Body) as TJSONObject;
+  Ac := TACBRBridgeDiversosLegado.Create;
+  try
+    LJson := Ac.ProcessarEAD(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
+procedure GetModeloCalcDigito(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  Ac: TACBRBridgeDiversosLegado;
+  LJson: TJSONObject;
+begin
+  Ac := TACBRBridgeDiversosLegado.Create;
+  try
+    LJson := Ac.ModelCalcDigito;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    Ac.Free;
+  end;
+end;
+
+procedure PostCalcDigito(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O, LJson: TJSONObject;
+  Ac: TACBRBridgeDiversosLegado;
+begin
+  O := GetJSON(Req.Body) as TJSONObject;
+  Ac := TACBRBridgeDiversosLegado.Create;
+  try
+    LJson := Ac.CalcularDigito(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
+procedure GetModeloMail(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  Ac: TACBRBridgeDiversosLegado;
+  LJson: TJSONObject;
+begin
+  Ac := TACBRBridgeDiversosLegado.Create;
+  try
+    LJson := Ac.ModelMail;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    Ac.Free;
+  end;
+end;
+
+procedure PostMail(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O, LJson: TJSONObject;
+  Ac: TACBRBridgeDiversosLegado;
+begin
+  O := GetJSON(Req.Body) as TJSONObject;
+  Ac := TACBRBridgeDiversosLegado.Create;
+  try
+    LJson := Ac.EnviarEmail(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
 procedure regRouter;
 begin
   THorse.Get(RSModeloDiversosCMC7Route, GetModeloCMC7);
@@ -184,6 +304,12 @@ begin
   THorse.Post(RSDiversosCargaBalRoute, PostCargaBal);
   THorse.Get(RSModeloDiversosIBPTRoute, GetModeloIBPT);
   THorse.Post(RSDiversosIBPTLerTabelaRoute, PostIBPTLerTabela);
+  THorse.Get(RSModeloDiversosEADRoute, GetModeloEAD);
+  THorse.Post(RSDiversosEADRoute, PostEAD);
+  THorse.Get(RSModeloDiversosCalcDigitoRoute, GetModeloCalcDigito);
+  THorse.Post(RSDiversosCalcDigitoRoute, PostCalcDigito);
+  THorse.Get(RSModeloDiversosMailRoute, GetModeloMail);
+  THorse.Post(RSDiversosMailRoute, PostMail);
 end;
 
 end.

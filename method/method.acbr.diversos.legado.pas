@@ -17,10 +17,18 @@ uses
   Base64,
   jsonparser,
   Classes, SysUtils,
-  streamtools;
+  streamtools,
+  ACBrEAD,
+  ACBrValidador,
+  ACBrMail;
 
 type
   TACBRBridgeDiversosLegado = class
+  private
+    fChavePrivada: AnsiString;
+    fChavePublica: AnsiString;
+    procedure DoGetChavePrivada(var Chave: AnsiString);
+    procedure DoGetChavePublica(var Chave: AnsiString);
   public
     function ModelCMC7: TJSONObject;
     function ProcessarCMC7(const jCMC7: TJSONObject): TJSONObject;
@@ -33,6 +41,15 @@ type
 
     function ModelIBPT: TJSONObject;
     function LerTabelaIBPT(const jIBPT: TJSONObject): TJSONObject;
+
+    function ModelEAD: TJSONObject;
+    function ProcessarEAD(const jEAD: TJSONObject): TJSONObject;
+
+    function ModelCalcDigito: TJSONObject;
+    function CalcularDigito(const jDigito: TJSONObject): TJSONObject;
+
+    function ModelMail: TJSONObject;
+    function EnviarEmail(const jMail: TJSONObject): TJSONObject;
   end;
 
 implementation
@@ -341,6 +358,300 @@ begin
     end;
   finally
     acbr.Free;
+  end;
+end;
+
+
+
+procedure TACBRBridgeDiversosLegado.DoGetChavePrivada(var Chave: AnsiString);
+begin
+  Chave := fChavePrivada;
+end;
+
+procedure TACBRBridgeDiversosLegado.DoGetChavePublica(var Chave: AnsiString);
+begin
+  Chave := fChavePublica;
+end;
+
+function TACBRBridgeDiversosLegado.ModelEAD: TJSONObject;
+begin
+  Result := TJSONObject.Create;
+  Result.Add('Operacao', 'calcular_ead | verificar_ead | gerar_chaves | calcular_hash | md5');
+  Result.Add('Conteudo', 'Conteudo texto para assinar ou verificar');
+  Result.Add('ChavePrivada', '-----BEGIN RSA PRIVATE KEY----- ...');
+  Result.Add('ChavePublica', '-----BEGIN PUBLIC KEY----- ...');
+  Result.Add('EAD', '');
+  Result.Add('Digest', 'dgstMD5');
+end;
+
+function TACBRBridgeDiversosLegado.ProcessarEAD(const jEAD: TJSONObject): TJSONObject;
+var
+  acbr: TACBrEAD;
+  operacao, conteudo, eadStr, dgstStr: string;
+  pubKey, privKey: AnsiString;
+  dgst: TACBrEADDgst;
+  ms: TMemoryStream;
+  verificado: Boolean;
+begin
+  Result := TJSONObject.Create;
+  acbr := TACBrEAD.Create(nil);
+  try
+    try
+      operacao := LowerCase(Trim(jEAD.Get('Operacao', jEAD.Get('operacao', 'calcular_ead'))));
+      fChavePrivada := AnsiString(jEAD.Get('ChavePrivada', jEAD.Get('chave_privada', '')));
+      fChavePublica := AnsiString(jEAD.Get('ChavePublica', jEAD.Get('chave_publica', '')));
+      conteudo := jEAD.Get('Conteudo', jEAD.Get('Valor', jEAD.Get('conteudo', '')));
+      if (conteudo = '') and (jEAD.Get('arquivo_base64', '') <> '') then
+        conteudo := DecodeStringBase64(jEAD.Get('arquivo_base64', ''));
+
+      eadStr := jEAD.Get('EAD', jEAD.Get('ead', ''));
+      dgstStr := LowerCase(Trim(jEAD.Get('Digest', jEAD.Get('digest', 'dgstmd5'))));
+
+      if dgstStr = 'dgstsha1' then dgst := dgstSHA1
+      else if dgstStr = 'dgstsha256' then dgst := dgstSHA256
+      else if dgstStr = 'dgstsha512' then dgst := dgstSHA512
+      else dgst := dgstMD5;
+
+      if fChavePrivada <> '' then
+        acbr.OnGetChavePrivada := DoGetChavePrivada;
+      if fChavePublica <> '' then
+        acbr.OnGetChavePublica := DoGetChavePublica;
+
+      if operacao = 'gerar_chaves' then
+      begin
+        pubKey := '';
+        privKey := '';
+        acbr.GerarChaves(pubKey, privKey);
+        Result.Add('status', 'sucesso');
+        Result.Add('ChavePublica', string(pubKey));
+        Result.Add('ChavePrivada', string(privKey));
+      end
+      else if operacao = 'verificar_ead' then
+      begin
+        if eadStr <> '' then
+        begin
+          ms := TMemoryStream.Create;
+          try
+            if Length(conteudo) > 0 then
+              ms.Write(Pointer(AnsiString(conteudo))^, Length(AnsiString(conteudo)));
+            ms.Position := 0;
+            verificado := acbr.VerificarEAD(ms, eadStr);
+          finally
+            ms.Free;
+          end;
+        end
+        else
+          verificado := acbr.VerificarEAD(AnsiString(conteudo));
+
+        Result.Add('status', 'sucesso');
+        Result.Add('Valido', verificado);
+      end
+      else if operacao = 'calcular_hash' then
+      begin
+        Result.Add('status', 'sucesso');
+        Result.Add('Hash', string(acbr.CalcularHash(AnsiString(conteudo), dgst)));
+      end
+      else if operacao = 'md5' then
+      begin
+        Result.Add('status', 'sucesso');
+        Result.Add('MD5', acbr.MD5FromString(conteudo));
+      end
+      else
+      begin
+        eadStr := string(acbr.CalcularEAD(AnsiString(conteudo)));
+        Result.Add('status', 'sucesso');
+        Result.Add('EAD', eadStr);
+        Result.Add('LinhaEAD', 'EAD' + eadStr);
+      end;
+    except
+      on E: Exception do
+      begin
+        Result.Add('status', 'erro');
+        Result.Add('error', E.Message);
+      end;
+    end;
+  finally
+    acbr.Free;
+  end;
+end;
+
+function TACBRBridgeDiversosLegado.ModelCalcDigito: TJSONObject;
+begin
+  Result := TJSONObject.Create;
+  Result.Add('Documento', '123456789');
+  Result.Add('FormulaDigito', 'frModulo11');
+  Result.Add('MultiplicadorInicial', 2);
+  Result.Add('MultiplicadorFinal', 9);
+  Result.Add('CalculoPadrao', True);
+end;
+
+function TACBRBridgeDiversosLegado.CalcularDigito(const jDigito: TJSONObject): TJSONObject;
+var
+  calc: TACBrCalcDigito;
+  formulaStr: string;
+begin
+  Result := TJSONObject.Create;
+  calc := TACBrCalcDigito.Create;
+  try
+    try
+      calc.Documento := jDigito.Get('Documento', jDigito.Get('documento', ''));
+      formulaStr := LowerCase(Trim(jDigito.Get('FormulaDigito', jDigito.Get('formula', 'frmodulo11'))));
+      if (formulaStr = 'frmodulo10') or (formulaStr = 'modulo10') or (formulaStr = '2') then
+        calc.FormulaDigito := frModulo10
+      else if (formulaStr = 'frmodulo10pis') or (formulaStr = 'modulo10pis') or (formulaStr = '1') then
+        calc.FormulaDigito := frModulo10PIS
+      else
+        calc.FormulaDigito := frModulo11;
+
+      if jDigito.Get('CalculoPadrao', False) then
+        calc.CalculoPadrao
+      else
+      begin
+        calc.MultiplicadorInicial := jDigito.Get('MultiplicadorInicial', 2);
+        calc.MultiplicadorFinal := jDigito.Get('MultiplicadorFinal', 9);
+      end;
+
+      calc.Calcular;
+
+      Result.Add('status', 'sucesso');
+      Result.Add('Documento', calc.Documento);
+      Result.Add('DigitoFinal', calc.DigitoFinal);
+      Result.Add('SomaDigitos', calc.SomaDigitos);
+      Result.Add('ModuloFinal', calc.ModuloFinal);
+    except
+      on E: Exception do
+      begin
+        Result.Add('status', 'erro');
+        Result.Add('error', E.Message);
+      end;
+    end;
+  finally
+    calc.Free;
+  end;
+end;
+
+function TACBRBridgeDiversosLegado.ModelMail: TJSONObject;
+begin
+  Result := TJSONObject.Create;
+  Result.Add('Host', 'smtp.seudominio.com.br');
+  Result.Add('Port', '587');
+  Result.Add('Username', 'fiscal@seudominio.com.br');
+  Result.Add('Password', 'senha');
+  Result.Add('SetSSL', False);
+  Result.Add('SetTLS', True);
+  Result.Add('IsHTML', True);
+  Result.Add('From', 'fiscal@seudominio.com.br');
+  Result.Add('FromName', 'Departamento Fiscal');
+  Result.Add('Para', 'cliente@empresa.com.br');
+  Result.Add('Subject', 'Documento Fiscal Eletronico');
+  Result.Add('Body', '<p>Segue em anexo o documento fiscal.</p>');
+  Result.Add('ApenasGerarMime', False);
+end;
+
+function TACBRBridgeDiversosLegado.EnviarEmail(const jMail: TJSONObject): TJSONObject;
+var
+  mail: TACBrMail;
+  paraStr, bodyStr, altBodyStr, nomeArq, b64Anexo, descAnexo: string;
+  arrDest, arrAnexos: TJSONData;
+  arr: TJSONArray;
+  objAnexo: TJSONObject;
+  I: Integer;
+  anexoStream, mimeStream: TMemoryStream;
+  rawBytes: AnsiString;
+begin
+  Result := TJSONObject.Create;
+  mail := TACBrMail.Create(nil);
+  mimeStream := TMemoryStream.Create;
+  try
+    try
+      mail.Clear;
+      mail.UseThread := False;
+      mail.Host := jMail.Get('Host', jMail.Get('host', ''));
+      mail.Port := jMail.Get('Port', jMail.Get('port', '587'));
+      mail.Username := jMail.Get('Username', jMail.Get('username', ''));
+      mail.Password := jMail.Get('Password', jMail.Get('password', ''));
+      mail.SetSSL := jMail.Get('SetSSL', jMail.Get('setSSL', False));
+      mail.SetTLS := jMail.Get('SetTLS', jMail.Get('setTLS', True));
+      mail.IsHTML := jMail.Get('IsHTML', jMail.Get('isHTML', True));
+      mail.From := jMail.Get('From', jMail.Get('from', mail.Username));
+      mail.FromName := jMail.Get('FromName', jMail.Get('fromName', ''));
+      mail.Subject := jMail.Get('Subject', jMail.Get('subject', ''));
+
+      paraStr := jMail.Get('Para', jMail.Get('para', ''));
+      if paraStr <> '' then
+        mail.AddAddress(paraStr);
+
+      arrDest := jMail.Find('Destinatarios');
+      if not Assigned(arrDest) then
+        arrDest := jMail.Find('destinatarios');
+      if Assigned(arrDest) and (arrDest.JSONType = jtArray) then
+      begin
+        arr := TJSONArray(arrDest);
+        for I := 0 to arr.Count - 1 do
+          mail.AddAddress(arr.Strings[I]);
+      end;
+
+      bodyStr := jMail.Get('Body', jMail.Get('body', ''));
+      if bodyStr <> '' then
+        mail.Body.Text := bodyStr;
+
+      altBodyStr := jMail.Get('AltBody', jMail.Get('altBody', ''));
+      if altBodyStr <> '' then
+        mail.AltBody.Text := altBodyStr;
+
+      arrAnexos := jMail.Find('Anexos');
+      if not Assigned(arrAnexos) then
+        arrAnexos := jMail.Find('anexos');
+      if Assigned(arrAnexos) and (arrAnexos.JSONType = jtArray) then
+      begin
+        arr := TJSONArray(arrAnexos);
+        for I := 0 to arr.Count - 1 do
+        begin
+          if arr.Items[I].JSONType = jtObject then
+          begin
+            objAnexo := TJSONObject(arr.Items[I]);
+            nomeArq := objAnexo.Get('nome', 'anexo_' + IntToStr(I + 1) + '.dat');
+            descAnexo := objAnexo.Get('descricao', nomeArq);
+            b64Anexo := objAnexo.Get('conteudo_base64', '');
+            if b64Anexo <> '' then
+            begin
+              anexoStream := TMemoryStream.Create;
+              try
+                rawBytes := DecodeStringBase64(b64Anexo);
+                if Length(rawBytes) > 0 then
+                  anexoStream.Write(Pointer(rawBytes)^, Length(rawBytes));
+                anexoStream.Position := 0;
+                mail.AddAttachment(anexoStream, descAnexo, adAttachment);
+              finally
+                anexoStream.Free;
+              end;
+            end;
+          end;
+        end;
+      end;
+
+      if jMail.Get('ApenasGerarMime', False) then
+      begin
+        mail.SaveToStream(mimeStream);
+        Result.Add('status', 'sucesso');
+        Result.Add('mime_base64', StreamToBase64String(mimeStream));
+      end
+      else
+      begin
+        mail.Send(False);
+        Result.Add('status', 'sucesso');
+        Result.Add('message', 'E-mail enviado com sucesso.');
+      end;
+    except
+      on E: Exception do
+      begin
+        Result.Add('status', 'erro');
+        Result.Add('error', E.Message);
+      end;
+    end;
+  finally
+    mimeStream.Free;
+    mail.Free;
   end;
 end;
 
