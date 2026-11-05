@@ -1,4 +1,4 @@
-
+﻿
 unit method.acbr.certificados;
 
 {$mode Delphi}
@@ -11,7 +11,6 @@ uses
   synacode,
   fpjson,
   jsonparser,
-  System.NetEncoding,
   Classes, SysUtils,
   ACBrDFeSSL, ACBrDFe,
   resource.strings.global,
@@ -28,8 +27,6 @@ type
     function DecodeBase64ToBytes(const Base64String: String; out ErrorMessage:
       String): TBytes;
 
-    function DoActualCertificateValidation(const TempPfxFile: String; const
-      Senha: String): Boolean;
     function ExtractCertificateData(const CertificadoBase64: String; const Senha:
       String;
       out CNPJ, NumSerie, RazaoSocial, Tipo:
@@ -56,8 +53,6 @@ type
   end;
 
 implementation
-
-uses Math;
 
 { TACBRBridgeCertificados }
 
@@ -121,38 +116,6 @@ begin
     begin
       Result := Nil;
       ErrorMessage := RSBase64DecodeError + E.Message;
-    end;
-  end;
-end;
-
-function TACBRBridgeCertificados.DoActualCertificateValidation(const TempPfxFile
-  : String; const
-  Senha: String): Boolean;
-var
-  FS: TFileStream;
-begin
-  Result := False;
-  if not FileExists(TempPfxFile) then Exit;
-  
-  FS := TFileStream.Create(TempPfxFile, fmOpenRead or fmShareDenyNone);
-  try
-    if FS.Size = 0 then Exit;
-  finally
-    FS.Free;
-  end;
-
-  FACBrDFeSSL.ArquivoPFX := TempPfxFile;
-  FACBrDFeSSL.Senha := Senha;
-  try
-    FACBrDFeSSL.CarregarCertificado;
-
-
-    Result := FACBrDFeSSL.CertNumeroSerie <> '';
-  except
-    on E: Exception do
-    begin
-      Result := False;
-      raise Exception.Create('Erro ao carregar PFX: ' + E.Message);
     end;
   end;
 end;
@@ -272,7 +235,6 @@ var
   NomeFinalComExt: string;
   IdentificadorPrincipal: string;
   NumSerieSanitizado: string;
-  Attempt: Integer;
 
 begin
   // 1. Determinar o identificador principal para o nome base
@@ -283,74 +245,42 @@ begin
   else
     IdentificadorPrincipal := '';
 
-  // 2. Determinar o nome base (sem extensÃ£o)
+  // 2. Determinar o nome base (sem extensão)
   if not NomeArquivoParam.Trim.IsEmpty then
   begin
     NomeBaseSemExt := ChangeFileExt(NomeArquivoParam.Trim, '');
-
-
-    // Se o nome do arquivo fornecido jÃ¡ contiver o CNPJ e ele for diferente, pode gerar nomes longos.
-
-
-    // Esta lÃ³gica assume que NomeArquivoParam Ã© um nome desejado, ou o IdentificadorPrincipal Ã© usado.
-
-
-    // Se IdentificadorPrincipal nÃ£o estiver vazio e NomeArquivoParam nÃ£o o contiver, pode-se prefixar.
-
-
-    // Por simplicidade, vamos usar NomeArquivoParam se fornecido, senÃ£o o Identificador.
-    if IdentificadorPrincipal = '' then IdentificadorPrincipal := 
-
-
-        'certificado'
-    ;
+    if IdentificadorPrincipal = '' then
+      IdentificadorPrincipal := RSCertificadoDefault;
   end
   else
   begin
-    if IdentificadorPrincipal = '' then IdentificadorPrincipal := 
-
-
-        'certificado'
-    ;
+    if IdentificadorPrincipal = '' then
+      IdentificadorPrincipal := RSCertificadoDefault;
     NomeBaseSemExt := IdentificadorPrincipal;
   end;
 
-
-  // 3. Adicionar nÃºmero de sÃ©rie sanitizado, se disponÃ­vel
+  // 3. Adicionar número de série sanitizado, se disponível
   NomeFinalComExt := NomeBaseSemExt;
   if not NumSerieDoCert.Trim.IsEmpty then
   begin
-    NumSerieSanitizado := StringReplace(NumSerieDoCert, ' ', '', [rfReplaceAll
-      ]);
-    NumSerieSanitizado := StringReplace(NumSerieSanitizado, ':', '', [
-      rfReplaceAll]);
+    NumSerieSanitizado := StringReplace(NumSerieDoCert, ' ', '', [rfReplaceAll]);
+    NumSerieSanitizado := StringReplace(NumSerieSanitizado, ':', '', [rfReplaceAll]);
 
-
-    // Adiciona apenas se o nÃºmero de sÃ©rie jÃ¡ nÃ£o estiver no nome base (evita duplicar)
+    // Adiciona apenas se o número de série já não estiver no nome base (evita duplicar)
     if Pos(UpperCase(NumSerieSanitizado), UpperCase(NomeFinalComExt)) = 0 then
       NomeFinalComExt := NomeFinalComExt + '_' + NumSerieSanitizado;
   end;
 
-  // 4. Adicionar extensÃ£o
-  NomeFinalComExt := NomeFinalComExt + '.pfx';
+  // 4. Adicionar extensão
+  NomeFinalComExt := NomeFinalComExt + RSPFXExtension;
 
-  // 5. Adicionar caminho do diretÃ³rio
-  Result := FCertificadosDir + ExtractFileName(NomeFinalComExt);
-  // ExtractFileName para sanitizar e pegar sÃ³ o nome
-
-  // 6. Garantir unicidade adicionando timestamp se necessÃ¡rio
-
+  // 5. Garantir unicidade adicionando GUID
   Result := FCertificadosDir + ChangeFileExt(ExtractFileName(NomeFinalComExt),
     '') + '_' +
-    TGuid.NewGuid.ToString + '.pfx';
+    TGuid.NewGuid.ToString + RSPFXExtension;
 
-  if FileExists(Result) then // Se ainda existir apÃ³s 100 tentativas
-    raise Exception.Create(
-
-
-      'NÃ£o foi possÃ­vel gerar um nome de arquivo Ãºnico para o certificado.'
-      );
-
+  if FileExists(Result) then
+    raise Exception.Create(RSUniqueFileError);
 end;
 
 
@@ -368,11 +298,7 @@ function TACBRBridgeCertificados.SalvarCertificado(const CertificadoBase64:
   String;
   const Senha: String; const
   CNPJ_Param: String; const
-  NomeArquivo_Param: String):
-
-
-TJSONObject
-;
+  NomeArquivo_Param: String): TJSONObject;
 
 var 
   DecodedBytes: TBytes;
@@ -395,12 +321,12 @@ begin
   if not InternalValidarCertificado(CertificadoBase64, Senha,
     ValidationErrorMessage) then
   begin
-    Result.Add('sucesso', False);
+    Result.Add(RSSucessoField, False);
 
     if ValidationErrorMessage <> '' then
-      Result.Add('mensagem', ValidationErrorMessage)
+      Result.Add(RSMensagemField, ValidationErrorMessage)
     else
-      Result.Add('mensagem', 'Certificado invÃ¡lido ou senha incorreta.');
+      Result.Add(RSMensagemField, RSCertificateInvalidError);
 
     Exit;
   end;
@@ -414,40 +340,19 @@ begin
     sValidadeDoCert := '';
     sTipoDoCert := '';
 
-    if DadosCertLidos.Get('sucesso', False) then
+    if DadosCertLidos.Get(RSSucessoField, False) then
     begin
-      if DadosCertLidos.Find('cnpj', tempJsonString) then sCNPJdoCert := 
-
-
-          tempJsonString
-          .
-
-
-          AsString
-      ;
-      if DadosCertLidos.Find('numero_serie', tempJsonString) then
+      if DadosCertLidos.Find(RSCNPJField, tempJsonString) then
+        sCNPJdoCert := tempJsonString.AsString;
+      if DadosCertLidos.Find(RSNumeroSerieField, tempJsonString) then
         sNumSerieDoCert := tempJsonString.AsString;
-      if DadosCertLidos.Find('razao_social', tempJsonString) then
+      if DadosCertLidos.Find(RSRazaoSocialField, tempJsonString) then
         sRazaoSocialDoCert := tempJsonString.AsString;
-      if DadosCertLidos.Find('validade', tempJsonString) then sValidadeDoCert 
-        := tempJsonString.AsString;
-      // JÃ¡ estÃ¡ formatado por InternalLerDadosCertificado
-      if DadosCertLidos.Find('tipo', tempJsonString) then sTipoDoCert := 
-
-
-          tempJsonString
-          .
-
-
-          AsString
-      ;
-    end
-    else
-      // Mesmo que a leitura detalhada falhe, a validaÃ§Ã£o bÃ¡sica passou.
-      // Podemos prosseguir com o salvamento, mas o nome do arquivo pode ser menos especÃ­fico.
-      // A mensagem de erro da leitura jÃ¡ estarÃ¡ em DadosCertLidos.Get('mensagem', '')
-      // NÃ£o Ã© crÃ­tico para o salvamento em si, mas para a informaÃ§Ã£o retornada.
-    ;
+      if DadosCertLidos.Find(RSValidadeField, tempJsonString) then
+        sValidadeDoCert := tempJsonString.AsString;
+      if DadosCertLidos.Find(RSTipoField, tempJsonString) then
+        sTipoDoCert := tempJsonString.AsString;
+    end;
 
     NomeArquivoFinal := InternalGerarNomeArquivoFinal(CNPJ_Param,
       NomeArquivo_Param, sCNPJdoCert, sNumSerieDoCert);
@@ -455,16 +360,12 @@ begin
     DecodedBytes := DecodeBase64ToBytes(CertificadoBase64, DecodeErrorMessage);
     if Length(DecodedBytes) = 0 then
     begin
-      Result.Add('sucesso', False);
+      Result.Add(RSSucessoField, False);
 
       if (DecodeErrorMessage <> '') then
-        Result.Add('mensagem', DecodeErrorMessage)
+        Result.Add(RSMensagemField, DecodeErrorMessage)
       else
-        Result.Add('mensagem',
-
-
-          'Falha ao decodificar certificado Base64 ou dados resultantes vazios.'
-          );
+        Result.Add(RSMensagemField, RSCertificateDecodeErrorEmpty);
 
       Exit;
     end;
@@ -473,34 +374,24 @@ begin
     try
       CertificadoStream.SaveToFile(NomeArquivoFinal);
 
-      Result.Add('sucesso', True);
-      Result.Add('mensagem', 'Certificado salvo com sucesso.');
-      Result.Add('caminho_completo', NomeArquivoFinal);
-      Result.Add('nome_arquivo_salvo', ExtractFileName(NomeArquivoFinal));
-
+      Result.Add(RSSucessoField, True);
+      Result.Add(RSMensagemField, RSCertificateSavedSuccess);
+      Result.Add(RSCaminhoCompletoField, NomeArquivoFinal);
+      Result.Add(RSNomeArquivoSalvoField, ExtractFileName(NomeArquivoFinal));
 
       // Adiciona os dados lidos do certificado ao resultado JSON, se a leitura foi bem sucedida
-      if DadosCertLidos.Get('sucesso', False) then
+      if DadosCertLidos.Get(RSSucessoField, False) then
       begin
-        if sCNPJdoCert <> '' then Result.Add('cnpj_certificado', sCNPJdoCert);
-        if sNumSerieDoCert <> '' then Result.Add('numero_serie_certificado',
-            sNumSerieDoCert);
-        if sRazaoSocialDoCert <> '' then Result.Add('razao_social_certificado'
-            , sRazaoSocialDoCert);
-        if sValidadeDoCert <> '' then Result.Add('validade_certificado',
-            sValidadeDoCert);
-        if sTipoDoCert <> '' then Result.Add('tipo_certificado', sTipoDoCert);
+        if sCNPJdoCert <> '' then Result.Add(RSCNPJCertificadoField, sCNPJdoCert);
+        if sNumSerieDoCert <> '' then Result.Add(RSNumeroSerieCertificadoField, sNumSerieDoCert);
+        if sRazaoSocialDoCert <> '' then Result.Add(RSRazaoSocialCertificadoField, sRazaoSocialDoCert);
+        if sValidadeDoCert <> '' then Result.Add(RSValidadeCertificadoField, sValidadeDoCert);
+        if sTipoDoCert <> '' then Result.Add(RSTipoCertificadoField, sTipoDoCert);
       end
+      else if DadosCertLidos.Find(RSMensagemField, tempJsonString) then
+        Result.Add(RSAvisoLeituraDadosField, tempJsonString.AsString)
       else
-      if DadosCertLidos.Find('mensagem', tempJsonString) then
-        Result.Add('aviso_leitura_dados', tempJsonString.AsString)
-      else
-        Result.Add('aviso_leitura_dados',
-
-
-          'NÃ£o foi possÃ­vel ler todos os metadados do certificado.'
-          )// Adiciona a mensagem de erro da leitura de dados se houver
-      ;
+        Result.Add(RSAvisoLeituraDadosField, RSCertificateMetadataReadError);
 
     finally
       CertificadoStream.Free;
@@ -516,11 +407,6 @@ function TACBRBridgeCertificados.ObterDadosCertificado(const CertificadoBase64:
   String; const Senha:
   String): TJSONObject;
 begin
-
-  // A validaÃ§Ã£o bÃ¡sica do Base64 (se Ã© decodificÃ¡vel e nÃ£o zero bytes)
-
-
-  // jÃ¡ Ã© feita dentro de InternalLerDadosCertificado atravÃ©s de DecodeBase64ToBytes.
   Result := InternalLerDadosCertificado(CertificadoBase64, Senha);
 end;
 

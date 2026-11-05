@@ -1,4 +1,4 @@
-unit resource.strings.msg;
+﻿unit resource.strings.msg;
 
 
 interface
@@ -17,9 +17,23 @@ resourcestring
   RSACBRDiversosExtensoRoutesMapped = '  Rotas ACBR Diversos Extenso mapeadas.';
   RSACBRDiversosValidadorRoutesMapped = '  Rotas ACBR Diversos Validador mapeadas.';
   RSACBRCertificadosRoutesMapped = '  Rotas ACBR Certificados mapeadas.';
+  RSACBRCIOTRoutesMapped = '  Rotas ACBR CIOT mapeadas.';
+  RSACBReSocialRoutesMapped = '  Rotas ACBR eSocial mapeadas.';
+  RSACBRBPeRoutesMapped = '  Rotas ACBR BPe mapeadas.';
+  RSACBRSPEDRoutesMapped = '  Rotas ACBR SPED mapeadas.';
+  RSACBRSintegraRoutesMapped = '  Rotas ACBR Sintegra mapeadas.';
+  RSACBREscPosRoutesMapped = '  Rotas ACBR EscPos mapeadas.';
+  RSACBRBoletoRoutesMapped = '  Rotas ACBR Boleto mapeadas.';
+  RSACBRReinfRoutesMapped = '  Rotas ACBR Reinf mapeadas.';
+  RSACBRGNRERoutesMapped = '  Rotas ACBR GNRE mapeadas.';
+  RSACBRDiversosLegadoRoutesMapped = '  Rotas ACBR Diversos Legado mapeadas.';
   RSHorseApplicationStarted = 'Aplicação Horse iniciada com sucesso.';
   RSListeningOnPort = 'Escutando na porta %d';
   RSApplicationStopped = 'Aplicação ACBRWebService finalizada.';
+
+  // Mensagens de erro - Configuração
+  RSConfigEmptyError = 'Configuracao vazia ou nao informada.';
+  RSConfigReadError = 'Erro na leitura da configuracao: ';
 
   // Mensagens de erro - JSON
   RSErrorReadingJSON = 'Erro na leitura do objeto JSON: ';

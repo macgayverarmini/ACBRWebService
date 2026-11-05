@@ -5,7 +5,7 @@
 interface
 
 uses
-  method.acbr.nfse, fpjson, Horse, Horse.Commons, Classes, SysUtils,
+  method.acbr.nfse, jsonconvert, fpjson, Horse, Horse.Commons, Classes, SysUtils,
   resource.strings.global,
   resource.strings.routes;
 
@@ -41,22 +41,6 @@ procedure regRouter;
 
 implementation
 
-
-function ExtractConfig(O: TJSONObject; const Field: string): string;
-var
-  Data: TJSONData;
-begin
-  Result := '';
-  if Assigned(O) then
-  begin
-    Data := O.Extract(Field);
-    if Assigned(Data) then
-    begin
-      Result := Data.AsJSON;
-      Data.Free;
-    end;
-  end;
-end;
 procedure GetModeloConfig(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   Ac: TACBRModelosJSONNFSe;
@@ -208,7 +192,7 @@ var
   LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFSe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeNFSe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.Emitir(O);
     try
@@ -229,7 +213,7 @@ var
   LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFSe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeNFSe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.Gerar(O);
     try
@@ -250,7 +234,7 @@ var
   LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFSe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeNFSe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.ConsultarSituacao(O);
     try
@@ -271,7 +255,7 @@ var
   LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFSe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeNFSe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.ConsultarLote(O);
     try
@@ -292,7 +276,7 @@ var
   LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFSe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeNFSe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.ConsultarNFSePorRps(O);
     try
@@ -313,7 +297,7 @@ var
   LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFSe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeNFSe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.ConsultarNFSe(O);
     try
@@ -334,7 +318,7 @@ var
   LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFSe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeNFSe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.Cancelar(O);
     try
@@ -355,7 +339,7 @@ var
   LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFSe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeNFSe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.Substituir(O);
     try
@@ -376,7 +360,7 @@ var
   LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFSe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeNFSe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.Danfse(O);
     try
@@ -397,7 +381,7 @@ var
   LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFSe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeNFSe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.Distribuicao(O);
     try
@@ -454,7 +438,7 @@ var
   LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFSe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeNFSe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.NFSeFromXML(O);
     try
@@ -475,7 +459,7 @@ var
   LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFSe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeNFSe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.NFSeToXML(O);
     try
@@ -513,7 +497,7 @@ var
   Ac: TACBRBridgeNFSe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFSe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeNFSe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.EnviarEvento(O);
     try
@@ -540,6 +524,7 @@ begin
   THorse.Get(RSModeloNFSeNFSeFromXMLRoute, GetModeloNFSeFromXML);
   THorse.Get(RSModeloNFSeNFSeToXMLRoute, GetModeloNFSeToXML);
   THorse.Get(RSModeloNFSeEventoRoute, GetModeloEventoNFSe);
+  THorse.Get(RSModeloNFSeEventosRoute, GetModeloEventoNFSe);
 
   THorse.Post(RSNFSeEmitirRoute, PostEmitir);
   THorse.Post(RSNFSeGerarRoute, PostGerar);
@@ -554,6 +539,7 @@ begin
   THorse.Post(RSNFSeNFSeFromXMLRoute, PostNFSeFromXML);
   THorse.Post(RSNFSeNFSeToXMLRoute, PostNFSeToXML);
   THorse.Post(RSNFSeEventoRoute, PostEventoNFSe);
+  THorse.Post(RSNFSeEventosRoute, PostEventoNFSe);
 end;
 
 end.

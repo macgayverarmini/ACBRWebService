@@ -1,4 +1,4 @@
-unit method.acbr.bpe;
+﻿unit method.acbr.bpe;
 
 {$mode Delphi}
 {$M+}
@@ -19,7 +19,9 @@ uses
   Base64,
   jsonparser,
   Classes, SysUtils,
-  streamtools;
+  streamtools,
+  resource.strings.global,
+  resource.strings.msg;
 
 type
   TACBRBridgeBPe = class
@@ -55,18 +57,18 @@ procedure TACBRBridgeBPe.CarregaConfig;
 var
   O: TJSONObject;
 begin
-  if (fcfg = '') or (fcfg = '') then
-    raise Exception.Create('Configuracao vazia ou nao informada.');
+  if Trim(fcfg) = '' then
+    raise Exception.Create(RSConfigEmptyError);
   try
     O := GetJSON(fcfg) as TJSONObject;
-      try
-        TJSONTools.JsonToObj(O, facbr.Configuracoes);
-      finally
-        O.Free;
-      end;
+    try
+      TJSONTools.JsonToObj(O, facbr.Configuracoes);
+    finally
+      O.Free;
+    end;
   except
     on E: Exception do
-      raise Exception.Create('Erro na leitura da configuracao: ' + E.Message);
+      raise Exception.Create(RSConfigReadError + E.Message);
   end;
   fcfg := '';
 end;
@@ -93,8 +95,8 @@ begin
     on E: Exception do
     begin
       Result := TJSONObject.Create;
-      Result.Add('status', 'erro');
-      Result.Add('message', 'Erro ao consultar status: ' + E.Message);
+      Result.Add(RSStatusField, RSStatusErro);
+      Result.Add(RSMessageField, 'Erro ao consultar status: ' + E.Message);
     end;
   end;
 end;
@@ -103,8 +105,8 @@ function TACBRBridgeBPe.BPe(const jBPe: TJSONObject): TJSONObject;
 begin
   CarregaConfig;
   Result := TJSONObject.Create;
-  Result.Add('status', 'sucesso');
-  Result.Add('message', 'ACBr BPe inicializado com sucesso (NÃ£o implementado).');
+  Result.Add(RSStatusField, RSStatusSucesso);
+  Result.Add(RSMessageField, 'ACBr BPe inicializado com sucesso (Não implementado).');
 end;
 
 function TACBRBridgeBPe.Enviar(const jBPe: TJSONObject): TJSONObject;
@@ -115,27 +117,24 @@ begin
   CarregaConfig;
   Result := TJSONObject.Create;
   try
-    try
-      Lote := jBPe.Get('Lote', 1);
-      Imprimir := jBPe.Get('Imprimir', False);
-      if facbr.Enviar(Lote, Imprimir) then
-      begin
-        Result.Add('status', 'sucesso');
-        Result.Add('message', 'BPe enviado com sucesso.');
-      end
-      else
-      begin
-        Result.Add('status', 'erro');
-        Result.Add('message', 'Falha no envio BPe.');
-      end;
-    except
-      on E: Exception do
-      begin
-        Result.Add('status', 'erro');
-        Result.Add('message', 'Erro ao enviar BPe: ' + E.Message);
-      end;
+    Lote := jBPe.Get('Lote', 1);
+    Imprimir := jBPe.Get('Imprimir', False);
+    if facbr.Enviar(Lote, Imprimir) then
+    begin
+      Result.Add(RSStatusField, RSStatusSucesso);
+      Result.Add(RSMessageField, 'BPe enviado com sucesso.');
+    end
+    else
+    begin
+      Result.Add(RSStatusField, RSStatusErro);
+      Result.Add(RSMessageField, 'Falha no envio BPe.');
     end;
-  finally
+  except
+    on E: Exception do
+    begin
+      Result.Add(RSStatusField, RSStatusErro);
+      Result.Add(RSMessageField, 'Erro ao enviar BPe: ' + E.Message);
+    end;
   end;
 end;
 

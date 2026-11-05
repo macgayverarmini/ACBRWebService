@@ -1,4 +1,4 @@
-unit route.acbr.gnre;
+﻿unit route.acbr.gnre;
 
 {$mode Delphi}{$H+}
 
@@ -6,7 +6,10 @@ interface
 
 uses
   method.acbr.gnre,
+  jsonconvert,
   fpjson, Horse, Horse.Commons, Classes, SysUtils,
+  resource.strings.global,
+  resource.strings.msg,
   resource.strings.routes;
 
 procedure GetModeloConfigGNRE(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
@@ -17,22 +20,6 @@ procedure PostConsultarGNRE(Req: THorseRequest; Res: THorseResponse; Next: TNext
 procedure regRouter;
 
 implementation
-
-function ExtractConfig(O: TJSONObject; const Field: string): string;
-var
-  Data: TJSONData;
-begin
-  Result := '';
-  if Assigned(O) then
-  begin
-    Data := O.Extract(Field);
-    if Assigned(Data) then
-    begin
-      Result := Data.AsJSON;
-      Data.Free;
-    end;
-  end;
-end;
 
 procedure GetModeloConfigGNRE(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
@@ -80,12 +67,12 @@ begin
   except
     on E: Exception do
     begin
-      Res.Status(400).Send(TJSONObject.Create(['message', 'Corpo JSON invalido: ' + E.Message]).AsJSON);
+      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSInvalidJSONBodyError + ' ' + E.Message])));
       Exit;
     end;
   end;
 
-  Ac := TACBRBridgeGNRE.Create(ExtractConfig(O, 'config'));
+  Ac := TACBRBridgeGNRE.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.Enviar(O);
     try
@@ -109,12 +96,12 @@ begin
   except
     on E: Exception do
     begin
-      Res.Status(400).Send(TJSONObject.Create(['message', 'Corpo JSON invalido: ' + E.Message]).AsJSON);
+      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSInvalidJSONBodyError + ' ' + E.Message])));
       Exit;
     end;
   end;
 
-  Ac := TACBRBridgeGNRE.Create(ExtractConfig(O, 'config'));
+  Ac := TACBRBridgeGNRE.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.Consultar(O);
     try

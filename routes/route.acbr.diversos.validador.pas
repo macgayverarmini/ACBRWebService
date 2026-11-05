@@ -1,35 +1,20 @@
-unit route.acbr.diversos.validador;
+﻿unit route.acbr.diversos.validador;
 
 {$mode Delphi}
 
 interface
 
 uses
-   method.acbr.diversos.validador, fpjson, Horse, Horse.Commons, Classes, SysUtils;
+  method.acbr.diversos.validador, fpjson, Horse, Horse.Commons, Classes, SysUtils,
+  resource.strings.routes;
 
 procedure GetModeloValidador(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure GetValidar(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
- procedure regRouter;
+procedure regRouter;
 
 implementation
 
-
-function ExtractConfig(O: TJSONObject; const Field: string): string;
-var
-  Data: TJSONData;
-begin
-  Result := '';
-  if Assigned(O) then
-  begin
-    Data := O.Extract(Field);
-    if Assigned(Data) then
-    begin
-      Result := Data.AsJSON;
-      Data.Free;
-    end;
-  end;
-end;
 procedure GetModeloValidador(Req: THorseRequest; Res: THorseResponse;
   Next: TNextProc);
 var
@@ -72,8 +57,8 @@ end;
 
 procedure regRouter;
 begin
-  THorse.Get('/modelo/diversos/validador', GetModeloValidador);
-  THorse.Post('/diversos/validador', GetValidar);
+  THorse.Get(RSModeloDiversosValidadorRoute, GetModeloValidador);
+  THorse.Post(RSDiversosValidadorRoute, GetValidar);
 end;
 
 

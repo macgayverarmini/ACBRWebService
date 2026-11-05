@@ -1,4 +1,4 @@
-unit method.acbr.cte;
+﻿unit method.acbr.cte;
 
 {$mode Delphi}
 {$M+}
@@ -111,15 +111,15 @@ begin
   with facbr.Configuracoes.WebServices do
   begin
     Ambiente := TpcnTipoAmbiente.taHomologacao;
-    UF := 'ES'; // Exemplo
+    UF := RSDefaultUF;
     TimeOut := 15000;
     Visualizar := False;
   end;
 
   with facbr.Configuracoes.Certificados do
   begin
-    ArquivoPFX := 'C:\caminho\seu_certificado.pfx'; // Exemplo
-    Senha := 'sua_senha'; // Exemplo
+    ArquivoPFX := RSDefaultCertPath;
+    Senha := RSDefaultCertPassword;
   end;
 
   with facbr.Configuracoes.Arquivos do
@@ -186,7 +186,7 @@ end;
 function TACBRModelosJSONCTe.ModelCTeFromXML: TJSONObject;
 begin
   Result := TJSONObject.Create;
-  Result.Add('xml', 'XML do CTe em Base64 Ã¢â‚¬â€ retorna o CTe como JSON');
+  Result.Add(RSXmlKey, 'XML do CTe em Base64 Ã¢â‚¬â€ retorna o CTe como JSON');
 end;
 
 function TACBRModelosJSONCTe.ModelCTeToXML: TJSONObject;
@@ -255,10 +255,10 @@ begin
 
   Result := TJSONTools.ObjToJson(vConhecimento.Cte);
 
-  Result.Delete('XML');
-  Result.Delete('XMLOriginal');
-  Result.Delete('NomeArq');
-  Result.Delete('Protocolo');
+  Result.Delete(RSXMLField);
+  Result.Delete(RSXMLOriginalField);
+  Result.Delete(RSNomeArqField);
+  Result.Delete(RSProtocoloField);
   Result.Delete('DigVal');
   Result.Delete('infCTeSupl');
 
@@ -267,9 +267,7 @@ end;
 
 function TACBRModelosJSONCTe.ModelDistribuicao: string;
 begin
-  //  Evento := facbr.WebServices.DistribuicaoDFe.new;
   Result := TJSONTools.SafeObjToJsonString(facbr.WebServices.DistribuicaoDFe);
-  //  facbr.EventoNFe.Evento.Clear;
 end;
 
 function TACBRModelosJSONCTe.ModelValidarRegras: TJSONObject;
@@ -281,94 +279,59 @@ end;
 function TACBRModelosJSONCTe.ModelDACTEEvento: TJSONObject;
 begin
   Result := TJSONObject.Create;
-  Result.Add('xml', 'XML do ProcEventoCTe em Base64 Ã¢â‚¬â€ retorna o PDF do evento');
+  Result.Add(RSXmlKey, 'XML do ProcEventoCTe em Base64 Ã¢â‚¬â€ retorna o PDF do evento');
 end;
 
-
-// function TACBRModelosJSONCTe.ModelConsultaSituacaoServico removida
 
 { TACBRBridgeCTe }
 
 procedure TACBRBridgeCTe.CarregaConfig;
 var
-  O, CertConfig: TJSONObject;
-  tempData: TJSONData;
-  b64String: String;
+  O: TJSONObject;
+  LPfx: AnsiString;
 begin
-
-  if (fcfg = '') or (fcfg = '') then
-    raise Exception.Create('Configuracao vazia ou nao informada.');
+  if Trim(fcfg) = '' then
+    raise Exception.Create(RSConfigEmptyError);
 
   try
     O := GetJSON(fcfg) as TJSONObject;
-      try
-        TJSONTools.JsonToObj(O, facbr.Configuracoes);
-        
-        tempData := O.FindPath('Certificados');
-        if Assigned(tempData) and (tempData is TJSONObject) then
-        begin
-          CertConfig := TJSONObject(tempData);
-          b64String := CertConfig.Get('DadosPFXBase64', '');
-          if b64String <> '' then
-          begin
-            facbr.Configuracoes.Certificados.DadosPFX := synacode.DecodeBase64(AnsiString(b64String));
-          end;
-        end;
+    try
+      TJSONTools.JsonToObj(O, facbr.Configuracoes);
 
-        // Força configurações de SSL para OpenSSL e ModeloDF para moCTe
-        with facbr.Configuracoes.Geral do
-        begin
-          ModeloDF := moCTe;
-          SSLLib := libNone; // Forca recriacao
-          SSLLib := libOpenSSL;
-          SSLCryptLib := cryOpenSSL;
-          SSLHttpLib := httpOpenSSL;
-          SSLXmlSignLib := xsLibXml2;
-        end;
+      LPfx := TJSONTools.ExtractCertificadoPFX(O);
+      if LPfx <> '' then
+        facbr.Configuracoes.Certificados.DadosPFX := LPfx;
 
-      finally
-        O.Free;
+      // Força configurações de SSL para OpenSSL e ModeloDF para moCTe
+      with facbr.Configuracoes.Geral do
+      begin
+        ModeloDF := moCTe;
+        SSLLib := libOpenSSL;
+        SSLCryptLib := cryOpenSSL;
+        SSLHttpLib := httpOpenSSL;
+        SSLXmlSignLib := xsLibXml2;
       end;
+    finally
+      O.Free;
+    end;
   except
     on E: Exception do
-      raise Exception.Create('Erro na leitura da configuracao: ' + E.Message);
+      raise Exception.Create(RSConfigReadError + E.Message);
   end;
 
   if facbr.Configuracoes.WebServices.UF = '' then
-    facbr.Configuracoes.WebServices.UF := 'ES';
+    facbr.Configuracoes.WebServices.UF := RSDefaultUF;
 
-  // Garante PathSchemas padrao para CTe se nao foi informado
+  // Garante PathSchemas padrão para CTe se não foi informado
   if facbr.Configuracoes.Arquivos.PathSchemas = '' then
-    facbr.Configuracoes.Arquivos.PathSchemas := ExtractFilePath(ParamStr(0)) + 'Schemas' + PathDelim + 'CTe';
+    facbr.Configuracoes.Arquivos.PathSchemas := ExtractFilePath(ParamStr(0)) + RSSchemasDir + PathDelim + 'CTe';
 
   fcfg := '';
-
 end;
 
 function TACBRBridgeCTe.ReadXMLFromJSON(const jsonData: TJSONObject): string;
-var
-  xmlData: TJSONData;
-  xmlStr: string;
 begin
-  xmlData := jsonData.Find('xml');
-  if not Assigned(xmlData) then
-    raise Exception.Create('Parametro "xml" nao encontrado no JSON.');
-
-  xmlStr := Trim(xmlData.AsString);
-  if xmlStr = '' then
-    raise Exception.Create('Parametro "xml" esta vazio no JSON.');
-
-  if (Length(xmlStr) > 0) and (xmlStr[1] = '<') then
-    Result := xmlStr
-  else
-  begin
-    try
-      Result := DecodeStringBase64(xmlStr);
-    except
-      on E: Exception do
-        raise Exception.Create(RSInvalidBase64XML + E.Message);
-    end;
-  end;
+  Result := TJSONTools.ReadXMLFromJSON(jsonData, ['xml_cte', 'CTeXML']);
 end;
 
 constructor TACBRBridgeCTe.Create(const Cfg: string);
@@ -391,6 +354,7 @@ function TACBRBridgeCTe.CTe(const O: TJSONObject): TJSONObject;
 var
   Item: Conhecimento;
   Lote: integer;
+  jTarget, jEmit: TJSONData;
 begin
   CarregaConfig;
   facbr.Conhecimentos.Clear;
@@ -399,7 +363,29 @@ begin
     Item := facbr.Conhecimentos.Add;
     Lote := 1;
 
-    TJSONTools.JsonToObj(O, Item);
+    jTarget := nil;
+    if Assigned(O) then
+    begin
+      jTarget := O.Find('CTe');
+      if not Assigned(jTarget) then
+        jTarget := O.Find('cte');
+    end;
+    if Assigned(jTarget) and (jTarget.JSONType = jtObject) then
+      TJSONTools.JsonToObj(TJSONObject(jTarget), Item.CTe)
+    else
+    begin
+      jTarget := O;
+      TJSONTools.JsonToObj(O, Item.CTe);
+    end;
+
+    if (Item.CTe.Emit.CNPJ = '') and Assigned(jTarget) and (jTarget.JSONType = jtObject) then
+    begin
+      jEmit := TJSONObject(jTarget).Find('emit');
+      if not Assigned(jEmit) then
+        jEmit := TJSONObject(jTarget).Find('Emit');
+      if Assigned(jEmit) and (jEmit.JSONType = jtObject) then
+        Item.CTe.Emit.CNPJ := TJSONObject(jEmit).Get('CNPJCPF', TJSONObject(jEmit).Get('CNPJ', ''));
+    end;
   except
     on E: Exception do
     begin
@@ -427,12 +413,12 @@ end;
 function TACBRBridgeCTe.Evento(const jEventos: TJSONArray): string;
 var
   objEvento: TInfEventoCollectionItem;
-  oEvento: TJSONObject;
-  I: integer;
-  InfEventoData: TJSONData;
-  InfEvento: TJSONObject;
-  XmlBase64: TJSONData;
-  xmlStr: string;
+  oEvento, InfEvento, DetJson: TJSONObject;
+  I, J: integer;
+  InfEventoData, XmlBase64, DetData, ArrData: TJSONData;
+  ArrJson: TJSONArray;
+  xmlStr, LTpEventoStr: string;
+  LOk: Boolean;
 begin
   CarregaConfig;
   Result := '';
@@ -468,12 +454,73 @@ begin
       TJSONTools.JsonToObj(oEvento, objEvento.InfEvento)
     else
       TJSONTools.JsonToObj(oEvento, objEvento);
+
+    if objEvento.InfEvento.tpEvento = teNaoMapeado then
+    begin
+      LTpEventoStr := Trim(InfEvento.Get('tpEvento', oEvento.Get('tpEvento', '')));
+      if LTpEventoStr <> '' then
+        objEvento.InfEvento.tpEvento := StrToTpEventoCTe(LOk, LTpEventoStr);
+    end;
+
+    DetData := InfEvento.Find('detEvento');
+    if not Assigned(DetData) then
+      DetData := InfEvento.Find('DetEvento');
+
+    if Assigned(DetData) and (DetData.JSONType = jtObject) then
+    begin
+      DetJson := TJSONObject(DetData);
+      TJSONTools.JsonToObj(DetJson, objEvento.InfEvento.detEvento);
+
+      ArrData := DetJson.Find('infCorrecao');
+      if not Assigned(ArrData) then
+        ArrData := DetJson.Find('InfCorrecao');
+      if Assigned(ArrData) and (ArrData.JSONType = jtArray) then
+      begin
+        ArrJson := TJSONArray(ArrData);
+        objEvento.InfEvento.detEvento.infCorrecao.Clear;
+        for J := 0 to ArrJson.Count - 1 do
+          if ArrJson.Items[J].JSONType = jtObject then
+            TJSONTools.JsonToObj(TJSONObject(ArrJson.Items[J]), objEvento.InfEvento.detEvento.infCorrecao.New);
+      end;
+
+      ArrData := DetJson.Find('infEntrega');
+      if not Assigned(ArrData) then
+        ArrData := DetJson.Find('InfEntrega');
+      if Assigned(ArrData) and (ArrData.JSONType = jtArray) then
+      begin
+        ArrJson := TJSONArray(ArrData);
+        objEvento.InfEvento.detEvento.infEntrega.Clear;
+        for J := 0 to ArrJson.Count - 1 do
+          if ArrJson.Items[J].JSONType = jtObject then
+            TJSONTools.JsonToObj(TJSONObject(ArrJson.Items[J]), objEvento.InfEvento.detEvento.infEntrega.New);
+      end;
+
+      ArrData := DetJson.Find('infGTV');
+      if not Assigned(ArrData) then
+        ArrData := DetJson.Find('InfGTV');
+      if Assigned(ArrData) and (ArrData.JSONType = jtArray) then
+      begin
+        ArrJson := TJSONArray(ArrData);
+        objEvento.InfEvento.detEvento.infGTV.Clear;
+        for J := 0 to ArrJson.Count - 1 do
+          if ArrJson.Items[J].JSONType = jtObject then
+            TJSONTools.JsonToObj(TJSONObject(ArrJson.Items[J]), objEvento.InfEvento.detEvento.infGTV.New);
+      end;
+    end;
+
+    with objEvento.InfEvento do
+    begin
+      if dhEvento = 0 then dhEvento := Now;
+      if (CNPJ = '') and (Length(chCTe) >= 20) then CNPJ := Copy(chCTe, 7, 14);
+      if (cOrgao = 0) and (Length(chCTe) >= 2) then cOrgao := StrToIntDef(Copy(chCTe, 1, 2), 0);
+      if nSeqEvento <= 0 then nSeqEvento := 1;
+    end;
   end;
 
   facbr.SSL.CarregarCertificado;
   facbr.EnviarEvento(1);
-  Result := TJSONTools.ObjToJsonString(
-    facbr.WebServices.EnvEvento.EventoRetorno.retEvento);
+  Result := TJSONTools.SafeObjToJsonString(
+    facbr.WebServices.EnvEvento, 'Erro ao enviar evento de CT-e');
 end;
 
 function TACBRBridgeCTe.Distribuicao(const jDistribuicao: TJSONObject): TJSONObject;
@@ -481,38 +528,33 @@ var
   objDistribuicao: TDistribuicaoDFe;
   UF: TJSONString;
   CNPJCPF, ultNSU, NSU, chCTe: TJSONString;
-const
-  CodigosIBGE: array [0..26] of string = (
-    '11', '12', '13', '14', '15', '16', '17', '21', '22', '23', '24',
-    '25', '26', '27', '28', '29', '31',
-    '32', '33', '35', '41', '42', '43', '50', '51', '52', '53');
 begin
   CarregaConfig;
-
-  Result := TJSONObject.Create;
+  Result := nil;
 
   objDistribuicao := facbr.WebServices.DistribuicaoDFe;
 
-  if jDistribuicao.Find('UF', UF) then
+  if jDistribuicao.Find(RSUFField, UF) then
   begin
     if not MatchStr(UF.ToString, CodigosIBGE) then
     begin
-      Result.Add('error', 'Cdigo de UF invlido');
+      Result := TJSONObject.Create;
+      Result.Add(RSErrorField, RSInvalidUFCode);
       Exit;
     end;
     objDistribuicao.cUFAutor := StrToInt(UF.ToString);
   end;
 
-  if jDistribuicao.Find('CNPJCPF', CNPJCPF) then
+  if jDistribuicao.Find(RSCNPJCPFField, CNPJCPF) then
     objDistribuicao.CNPJCPF := CNPJCPF.ToString;
 
-  if jDistribuicao.Find('ultNSU', ultNSU) then
+  if jDistribuicao.Find(RSUltNSUField, ultNSU) then
     objDistribuicao.ultNSU := ultNSU.ToString;
 
-  if jDistribuicao.Find('NSU', NSU) then
+  if jDistribuicao.Find(RSNSUField, NSU) then
     objDistribuicao.NSU := NSU.ToString;
 
-  if jDistribuicao.Find('chCTe', chCTe) then
+  if jDistribuicao.Find(RSChCTeField, chCTe) then
     objDistribuicao.chCTe := chCTe.ToString;
 
   try
@@ -524,7 +566,10 @@ begin
         Result := TJSONObject(TJSONTools.ObjToJson(
           objDistribuicao.RetDistDFeInt))
       else
-        Result.Add('error', E.message);
+      begin
+        Result := TJSONObject.Create;
+        Result.Add(RSErrorField, E.Message);
+      end;
       Exit;
     end;
   end;
@@ -593,7 +638,7 @@ var
   CancObj: TJSONObject;
 begin
   CarregaConfig;
-  Result := TJSONObject.Create;
+  Result := nil;
 
   CancObj := jCancelamento.Extract('cancelamento') as TJSONObject;
   if not Assigned(CancObj) then CancObj := jCancelamento;
@@ -604,23 +649,42 @@ begin
       nProt := CancObj.Get('nProt', '');
       xJust := CancObj.Get('xJust', '');
 
-      if chCTe = '' then chCTe := CancObj.Get('chave', '');
+      if chCTe = '' then chCTe := CancObj.Get(RSChaveField, '');
+      if nProt = '' then nProt := CancObj.Get('protocolo', '');
       if xJust = '' then xJust := CancObj.Get('justificativa', '');
 
       facbr.Conhecimentos.Clear;
-      xmlPath := ExtractFilePath(ParamStr(0)) + 'Docs' + PathDelim + chCTe + '-cte.xml';
-      if not FileExists(xmlPath) then
-        xmlPath := 'C:\NFMonitor\src\bin\Docs\' + chCTe + '-cte.xml';
+      xmlPath := ExtractFilePath(ParamStr(0)) + RSDocsDir + PathDelim + chCTe + '-cte.xml';
+      if (not FileExists(xmlPath)) and (facbr.Configuracoes.Arquivos.PathSalvar <> '') then
+        xmlPath := IncludeTrailingPathDelimiter(facbr.Configuracoes.Arquivos.PathSalvar) + chCTe + '-cte.xml';
 
       if FileExists(xmlPath) then
         facbr.Conhecimentos.LoadFromFile(xmlPath);
 
       facbr.SSL.CarregarCertificado;
 
-      if facbr.Cancelamento(xJust, 1) then
-        Result := TJSONTools.SafeObjToJson(facbr.WebServices.EnvEvento.EventoRetorno.retEvento, 'Cancelamento processado')
+      if (facbr.Conhecimentos.Count > 0) and (nProt = '') then
+      begin
+        facbr.Cancelamento(xJust, 1);
+      end
       else
-        Result := TJSONTools.SafeObjToJson(facbr.WebServices.EnvEvento.EventoRetorno.retEvento, 'Falha ao cancelar CT-e');
+      begin
+        facbr.EventoCTe.Evento.Clear;
+        with facbr.EventoCTe.Evento.New do
+        begin
+          InfEvento.chCTe := chCTe;
+          InfEvento.CNPJ := CancObj.Get('CNPJ', CancObj.Get('cnpj', Copy(chCTe, 7, 14)));
+          InfEvento.cOrgao := StrToIntDef(Copy(chCTe, 1, 2), 0);
+          InfEvento.dhEvento := Now;
+          InfEvento.tpEvento := teCancelamento;
+          InfEvento.nSeqEvento := 1;
+          InfEvento.detEvento.nProt := nProt;
+          InfEvento.detEvento.xJust := xJust;
+        end;
+        facbr.EnviarEvento(1);
+      end;
+
+      Result := TJSONTools.SafeObjToJson(facbr.WebServices.EnvEvento, 'Cancelamento CT-e processado');
     except
       on E: Exception do
         Result := TJSONTools.SafeObjToJson(nil, 'Erro no cancelamento: ' + E.Message);
@@ -657,10 +721,10 @@ begin
       if Result.Find(RSStatusField) = nil then
       begin
         // Limpeza opcional de campos internos
-        Result.Delete('XML');
-        Result.Delete('XMLOriginal');
-        Result.Delete('NomeArq');
-        Result.Delete('Protocolo');
+        Result.Delete(RSXMLField);
+        Result.Delete(RSXMLOriginalField);
+        Result.Delete(RSNomeArqField);
+        Result.Delete(RSProtocoloField);
         Result.Delete('DigVal');
         Result.Delete('infCTeSupl');
       end;
@@ -678,12 +742,35 @@ function TACBRBridgeCTe.CTeToXML(const jCTe: TJSONObject): TJSONObject;
 var
   ConhecimentoCTe: TCTe;
   xmlString: string;
+  jTarget, jEmit: TJSONData;
 begin
   CarregaConfig;
 
   try
     ConhecimentoCTe := facbr.Conhecimentos.Add.CTe;
-    TJSONTools.JsonToObj(jCTe, ConhecimentoCTe);
+    jTarget := nil;
+    if Assigned(jCTe) then
+    begin
+      jTarget := jCTe.Find('CTe');
+      if not Assigned(jTarget) then
+        jTarget := jCTe.Find('cte');
+    end;
+    if Assigned(jTarget) and (jTarget.JSONType = jtObject) then
+      TJSONTools.JsonToObj(TJSONObject(jTarget), ConhecimentoCTe)
+    else
+    begin
+      jTarget := jCTe;
+      TJSONTools.JsonToObj(jCTe, ConhecimentoCTe);
+    end;
+
+    if (ConhecimentoCTe.Emit.CNPJ = '') and Assigned(jTarget) and (jTarget.JSONType = jtObject) then
+    begin
+      jEmit := TJSONObject(jTarget).Find('emit');
+      if not Assigned(jEmit) then
+        jEmit := TJSONObject(jTarget).Find('Emit');
+      if Assigned(jEmit) and (jEmit.JSONType = jtObject) then
+        ConhecimentoCTe.Emit.CNPJ := TJSONObject(jEmit).Get('CNPJCPF', TJSONObject(jEmit).Get('CNPJ', ''));
+    end;
   except
     on E: Exception do
     begin
@@ -700,7 +787,7 @@ begin
       xmlString := facbr.Conhecimentos.Items[0].XML;
 
     Result := TJSONObject.Create;
-    Result.Add('xml', EncodeStringBase64(xmlString));
+    Result.Add(RSXmlKey, EncodeStringBase64(xmlString));
   except
     on E: Exception do
       Result := TJSONTools.SafeObjToJson(nil, 'Erro ao gerar XML do CTe: ' + E.Message);
@@ -727,8 +814,8 @@ begin
   except
     on E: Exception do
     begin
-      Result.Add('status', 'erro');
-      Result.Add('error', E.Message);
+      Result.Add(RSStatusField, RSStatusErro);
+      Result.Add(RSErrorField, E.Message);
       Exit;
     end;
   end;
@@ -740,7 +827,7 @@ begin
     except
       on E: Exception do
       begin
-        Result.Add('error', 'Erro na leitura do XML: ' + E.Message);
+        Result.Add(RSErrorField, RSXMLReadError + E.Message);
         Exit;
       end;
     end;
@@ -749,7 +836,7 @@ begin
 
     if facbr.Conhecimentos.Count = 0 then
     begin
-      Result.Add('error', 'Nenhum CT-e foi carregado a partir do XML.');
+      Result.Add(RSErrorField, 'Nenhum CT-e foi carregado a partir do XML.');
       Exit;
     end;
 
@@ -765,7 +852,7 @@ begin
     fdacte.MostraStatus := False;
     fdacte.MostraSetup := False;
 
-    pdfDir := ExtractFilePath(ParamStr(0)) + 'pdf' + PathDelim;
+    pdfDir := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim;
     if not DirectoryExists(pdfDir) then
       CreateDir(pdfDir);
 
@@ -786,43 +873,42 @@ begin
 
       if not FileExists(fileName) then
       begin
-        Result.Add('error', 'Arquivo PDF nao foi gerado em disco pelo ACBr.');
+        Result.Add(RSErrorField, 'Arquivo PDF nao foi gerado em disco pelo ACBr.');
         Exit;
       end;
 
       if not OnlyURL then
       begin
         arquivofinal := FileToStringBase64(fileName, False, tamanho);
-        Result.Add('pdf', arquivofinal);
-        Result.Add('tamanho', tamanho.ToString);
+        Result.Add(RSPDFField, arquivofinal);
+        Result.Add(RSTamanhoField, tamanho.ToString);
       end;
     except
       on E: Exception do
       begin
-        Result.Add('error', 'Falha ao gerar o PDF no ACBr: ' + E.Message);
+        Result.Add(RSErrorField, 'Falha ao gerar o PDF no ACBr: ' + E.Message);
         Exit;
       end;
     end;
 
-    Result.Add('chave', chClean);
-    Result.Add('url', '/cte/pdf/' + chClean);
+    Result.Add(RSChaveField, chClean);
+    Result.Add(RSURLField, '/cte/pdf/' + chClean);
 
-    if xmlData.Find('id', id) then
-      Result.Add('id', id);
+    if xmlData.Find(RSIDField, id) then
+      Result.Add(RSIDField, id);
   finally
     facbr.Conhecimentos.Clear;
   end;
 end;
 
-// function TACBRBridgeCTe.ConsultaSituacaoServico removida
-
 { Valida o XML contra o Schema sem enviar para a SEFAZ }
 function TACBRBridgeCTe.ValidarRegras(const jCTe: TJSONObject): TJSONObject;
 var
   ConhecimentoCTe: TCTe;
+  jTarget, jEmit: TJSONData;
 begin
   CarregaConfig;
-  Result := TJSONObject.Create;
+  Result := nil;
 
   try
     // Limpa conhecimentos anteriores
@@ -831,23 +917,46 @@ begin
 
     // Converte JSON para CTe
     try
-      TJSONTools.JsonToObj(jCTe, ConhecimentoCTe);
+      jTarget := nil;
+      if Assigned(jCTe) then
+      begin
+        jTarget := jCTe.Find('CTe');
+        if not Assigned(jTarget) then
+          jTarget := jCTe.Find('cte');
+      end;
+      if Assigned(jTarget) and (jTarget.JSONType = jtObject) then
+        TJSONTools.JsonToObj(TJSONObject(jTarget), ConhecimentoCTe)
+      else
+      begin
+        jTarget := jCTe;
+        TJSONTools.JsonToObj(jCTe, ConhecimentoCTe);
+      end;
+
+      if (ConhecimentoCTe.Emit.CNPJ = '') and Assigned(jTarget) and (jTarget.JSONType = jtObject) then
+      begin
+        jEmit := TJSONObject(jTarget).Find('emit');
+        if not Assigned(jEmit) then
+          jEmit := TJSONObject(jTarget).Find('Emit');
+        if Assigned(jEmit) and (jEmit.JSONType = jtObject) then
+          ConhecimentoCTe.Emit.CNPJ := TJSONObject(jEmit).Get('CNPJCPF', TJSONObject(jEmit).Get('CNPJ', ''));
+      end;
     except
       on E: Exception do
       begin
-        Result.Add('status', 'erro_parse');
-        Result.Add('message', 'Erro na conversao JSON para Objeto: ' + E.Message);
+        Result := TJSONObject.Create;
+        Result.Add(RSStatusField, 'erro_parse');
+        Result.Add(RSMessageField, 'Erro na conversao JSON para Objeto: ' + E.Message);
         Exit;
       end;
     end;
 
-    // Tenta Validar (Assina automaticamente se necessÃƒÂ¡rio para validar digest value)
+    // Tenta Validar (Assina automaticamente se necessário para validar digest value)
     try
       facbr.Conhecimentos.Items[0].Assinar;
       facbr.Conhecimentos.Items[0].Validar;
 
       Result := TJSONObject.Create;
-      Result.Add(RSStatusField, 'sucesso');
+      Result.Add(RSStatusField, RSStatusSucesso);
       Result.Add(RSMessageField, 'XML Valido e Assinado');
       // Retorna o XML assinado caso o cliente queira salvar
       Result.Add('xml_assinado', EncodeStringBase64(facbr.Conhecimentos.Items[0].XML));
@@ -857,7 +966,7 @@ begin
         Result := TJSONTools.SafeObjToJson(nil, E.Message);
         Result.Delete(RSStatusField);
         Result.Add(RSStatusField, 'erro_validacao');
-        // O ACBr costuma popular a lista de erros de validaÃƒÂ§ÃƒÂ£o
+        // O ACBr costuma popular a lista de erros de validação
         if facbr.Conhecimentos.Items[0].ErroValidacao <> '' then
            Result.Add('detalhes', facbr.Conhecimentos.Items[0].ErroValidacao);
       end;
@@ -872,20 +981,30 @@ end;
 function TACBRBridgeCTe.DACTEEvento(const xmlEvento: TJSONObject): TJSONObject;
 var
   arquivofinal: string;
-  stringXml, fileName, pdfDir: string;
+  stringXml, cteXmlStr, fileName, pdfDir: string;
+  evtXmlNode, cteXmlNode: TJSONData;
   tamanho: integer;
 begin
   CarregaConfig;
   Result := TJSONObject.Create;
 
   try
-    stringXml := ReadXMLFromJSON(xmlEvento);
+    evtXmlNode := xmlEvento.Find('XMLEvento');
+    if not Assigned(evtXmlNode) then evtXmlNode := xmlEvento.Find('xml_evento');
+    if Assigned(evtXmlNode) and (Trim(evtXmlNode.AsString) <> '') then
+    begin
+      stringXml := Trim(evtXmlNode.AsString);
+      if stringXml[1] <> '<' then
+        stringXml := DecodeStringBase64(stringXml);
+    end
+    else
+      stringXml := ReadXMLFromJSON(xmlEvento);
   except
     on E: Exception do
     begin
-      Result.Add('status', 'erro');
-      Result.Add('error', E.Message);
-      Result.Add('message', E.Message);
+      Result.Add(RSStatusField, RSStatusErro);
+      Result.Add(RSErrorField, E.Message);
+      Result.Add(RSMessageField, E.Message);
       Exit;
     end;
   end;
@@ -894,13 +1013,27 @@ begin
   facbr.EventoCTe.Evento.Clear;
   try
     try
+      cteXmlNode := xmlEvento.Find('XMLCTe');
+      if not Assigned(cteXmlNode) then cteXmlNode := xmlEvento.Find('xml_cte');
+      if not Assigned(cteXmlNode) then cteXmlNode := xmlEvento.Find('CTeXML');
+      if not Assigned(cteXmlNode) then cteXmlNode := xmlEvento.Find(RSXMLField);
+      if not Assigned(cteXmlNode) then cteXmlNode := xmlEvento.Find(RSXmlKey);
+      if Assigned(cteXmlNode) and (Trim(cteXmlNode.AsString) <> '') then
+      begin
+        cteXmlStr := Trim(cteXmlNode.AsString);
+        if cteXmlStr[1] <> '<' then
+          cteXmlStr := DecodeStringBase64(cteXmlStr);
+        if cteXmlStr <> stringXml then
+          facbr.Conhecimentos.LoadFromString(cteXmlStr);
+      end;
+
       facbr.EventoCTe.LerXMLFromString(stringXml);
 
       if facbr.EventoCTe.Evento.Count = 0 then
       begin
-        Result.Add('status', 'erro');
-        Result.Add('error', 'Nenhum evento CT-e foi carregado a partir do XML.');
-        Result.Add('message', 'Nenhum evento CT-e foi carregado a partir do XML.');
+        Result.Add(RSStatusField, RSStatusErro);
+        Result.Add(RSErrorField, 'Nenhum evento CT-e foi carregado a partir do XML.');
+        Result.Add(RSMessageField, 'Nenhum evento CT-e foi carregado a partir do XML.');
         Exit;
       end;
 
@@ -911,7 +1044,7 @@ begin
       fdacte.MostraStatus := False;
       fdacte.MostraSetup := False;
 
-      pdfDir := ExtractFilePath(ParamStr(0)) + 'pdf' + PathDelim;
+      pdfDir := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim;
       if not DirectoryExists(pdfDir) then
         CreateDir(pdfDir);
 
@@ -922,16 +1055,16 @@ begin
 
       arquivofinal := FileToStringBase64(fileName, False, tamanho);
 
-      Result.Add('pdf', arquivofinal);
-      Result.Add('tamanho', tamanho.ToString);
-      Result.Add('chave', facbr.EventoCTe.Evento.Items[0].InfEvento.chCTe);
-      Result.Add('status', 'sucesso');
+      Result.Add(RSPDFField, arquivofinal);
+      Result.Add(RSTamanhoField, tamanho.ToString);
+      Result.Add(RSChaveField, facbr.EventoCTe.Evento.Items[0].InfEvento.chCTe);
+      Result.Add(RSStatusField, RSStatusSucesso);
     except
       on E: Exception do
       begin
-        Result.Add('status', 'erro');
-        Result.Add('error', 'Erro ao gerar PDF do Evento: ' + E.Message);
-        Result.Add('message', 'Erro ao gerar PDF do Evento: ' + E.Message);
+        Result.Add(RSStatusField, RSStatusErro);
+        Result.Add(RSErrorField, 'Erro ao gerar PDF do Evento: ' + E.Message);
+        Result.Add(RSMessageField, 'Erro ao gerar PDF do Evento: ' + E.Message);
       end;
     end;
   finally
@@ -949,11 +1082,34 @@ end;
 function TACBRBridgeCTe.DebugCTe(const O: TJSONObject): TJSONObject;
 var
   Item: Conhecimento;
+  jTarget, jEmit: TJSONData;
 begin
   CarregaConfig;
   try
     Item := facbr.Conhecimentos.Add;
-    TJSONTools.JsonToObj(O, Item);
+    jTarget := nil;
+    if Assigned(O) then
+    begin
+      jTarget := O.Find('CTe');
+      if not Assigned(jTarget) then
+        jTarget := O.Find('cte');
+    end;
+    if Assigned(jTarget) and (jTarget.JSONType = jtObject) then
+      TJSONTools.JsonToObj(TJSONObject(jTarget), Item.CTe)
+    else
+    begin
+      jTarget := O;
+      TJSONTools.JsonToObj(O, Item.CTe);
+    end;
+
+    if (Item.CTe.Emit.CNPJ = '') and Assigned(jTarget) and (jTarget.JSONType = jtObject) then
+    begin
+      jEmit := TJSONObject(jTarget).Find('emit');
+      if not Assigned(jEmit) then
+        jEmit := TJSONObject(jTarget).Find('Emit');
+      if Assigned(jEmit) and (jEmit.JSONType = jtObject) then
+        Item.CTe.Emit.CNPJ := TJSONObject(jEmit).Get('CNPJCPF', TJSONObject(jEmit).Get('CNPJ', ''));
+    end;
     
     Result := TJSONTools.ObjToJson(Item.CTe);
   except
@@ -975,56 +1131,5 @@ begin
     Result := False;
   end;
 end;
-
-// Implementao de FileToStringBase64 (se no estiver em streamtools ou ACBrUtil de forma acessvel)
-// Exemplo:
-// function FileToStringBase64(const AFileName: string; DeleteFileAfter: Boolean; out ASize: Integer): string;
-// var
-//   LStream: TFileStream;
-//   MemStream: TMemoryStream;
-//   Base64Stream: TStringStream; // Para receber o Base64
-// begin
-//   Result := '';
-//   ASize := 0;
-//   if not FileExists(AFileName) then Exit;
-
-//   LStream := TFileStream.Create(AFileName, fmOpenRead or fmShareDenyWrite);
-//   try
-//     ASize := LStream.Size;
-//     MemStream := TMemoryStream.Create;
-//     try
-//       MemStream.LoadFromStream(LStream);
-//       MemStream.Position := 0;
-//       Base64Stream := TStringStream.Create('');
-//       try
-//         EnBase64(MemStream, Base64Stream); // Funo da unit Base64 do FPC
-//         Result := Base64Stream.DataString;
-//       finally
-//         Base64Stream.Free;
-//       end;
-//     finally
-//       MemStream.Free;
-//     end;
-//   finally
-//     LStream.Free;
-//   end;
-
-//   if DeleteFileAfter then
-//     System.DeleteFile(AFileName); // ou SysUtils.DeleteFile
-// end;
-
-// Certifique-se que UFtoCUF esteja implementada ou em units acessveis.
-// Geralmente est em pcnAuxiliar do ACBr. Se no, uma implementao simples:
-// function UFtoCUF(const AUF: string): Integer;
-// begin
-//   // Implementao de converso de Sigla UF para Cdigo IBGE
-//   // Exemplo: if AUF = 'SP' then Result := 35 else ...
-//   // O ACBr geralmente tem essa funo em ACBrUtil ou pcnAuxiliar.
-//   // Se voc usa o componente ACBr, ele mesmo pode fazer essa converso
-//   // ao atribuir facbr.Configuracoes.WebServices.UF := 'SP'; e depois usar
-//   // facbr.Configuracoes.WebServices.UF ????????? StrToInteger(pcnCodUFIBGE[UF]);
-//   // Para o CTe.Ide.cUF, voc precisar do cdigo IBGE numrico.
-//   Result := TACBrDFe.StrUFToCodIBGE(AUF); // Use a funo do ACBr se disponvel
-// end;
 
 end.

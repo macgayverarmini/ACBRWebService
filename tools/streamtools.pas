@@ -1,4 +1,4 @@
-unit streamtools;
+﻿unit streamtools;
 
 {$mode Delphi}
 
@@ -8,7 +8,8 @@ uses
   Classes, SysUtils, Base64;
 
 function StreamToBase64String(AStream: TMemoryStream): string;
-function FileToStringBase64(const FileName: string; const Apagar: Boolean; out size: integer): string;function GetFileSize(const FileName: string): Int64;
+function FileToStringBase64(const FileName: string; const Apagar: Boolean; out size: integer): string;
+function GetFileSize(const FileName: string): Int64;
 function Base64StreamToString(AStream: TMemoryStream): string;
 function StringToBase64Stream(AString: string): TMemoryStream;
 
@@ -28,11 +29,12 @@ end;
 
 function StringToBase64Stream(AString: string): TMemoryStream;
 var
-  LBytes: TBytes;
+  strBase64: string;
 begin
-  LBytes := TEncoding.UTF8.GetBytes(AString);
+  strBase64 := base64.EncodeStringBase64(AString);
   Result := TMemoryStream.Create;
-  Result.WriteBuffer(base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes))[1], Length(base64.EncodeStringBase64(TEncoding.UTF8.GetString(LBytes))));
+  if Length(strBase64) > 0 then
+    Result.WriteBuffer(strBase64[1], Length(strBase64));
   Result.Position := 0;
 end;
 
@@ -75,10 +77,7 @@ begin
     end;
 
     if streamPdf.Size = 0 then
-    begin
       raise Exception.Create('O arquivo gerado não parece ser válido.');
-      Exit;
-    end;
 
     Result := StreamToBase64String(streamPdf);
     size := streamPdf.Size;

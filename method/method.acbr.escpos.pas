@@ -1,4 +1,4 @@
-unit method.acbr.escpos;
+﻿unit method.acbr.escpos;
 
 {$mode Delphi}
 {$M+}
@@ -12,7 +12,8 @@ uses
   fpjson,
   jsonconvert,
   jsonparser,
-  Classes, SysUtils;
+  Classes, SysUtils,
+  resource.strings.global;
 type
   TACBRBridgeEscPos = class
   private
@@ -87,13 +88,13 @@ begin
     end;
     facbr.Desativar;
     
-    Result.Add('status', 'sucesso');
-    Result.Add('message', 'ImpressÃ£o executada com sucesso.');
+    Result.Add(RSStatusField, RSStatusSucesso);
+    Result.Add(RSMessageField, 'Impressão executada com sucesso.');
   except
     on E: Exception do
     begin
-      Result.Add('status', 'erro');
-      Result.Add('message', 'Erro na impressÃ£o: ' + E.Message);
+      Result.Add(RSStatusField, RSStatusErro);
+      Result.Add(RSMessageField, 'Erro na impressão: ' + E.Message);
       if facbr.Ativo then facbr.Desativar;
     end;
   end;
@@ -114,13 +115,13 @@ begin
       facbr.Device.AcharPortas(SL);
       for I := 0 to SL.Count - 1 do
         Arr.Add(SL[I]);
-      Result.Add('status', 'sucesso');
+      Result.Add(RSStatusField, RSStatusSucesso);
       Result.Add('portas', Arr);
     except
       on E: Exception do
       begin
-        Result.Add('status', 'erro');
-        Result.Add('message', 'Erro ao listar portas: ' + E.Message);
+        Result.Add(RSStatusField, RSStatusErro);
+        Result.Add(RSMessageField, 'Erro ao listar portas: ' + E.Message);
         Arr.Free;
       end;
     end;

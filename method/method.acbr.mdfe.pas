@@ -46,8 +46,10 @@ type
 
     function Evento(const jEventos: TJSONArray): string;
     function Distribuicao(const jDistribuicao: TJSONObject): TJSONObject;
-    function Damdfe(const xmlData: TJSONObject; const OnlyURL: Boolean = False): TJSONObject;    function DamdfeEvento(const xmlEvento: TJSONObject): TJSONObject;
-    function MDFe(const jMDFe: TJSONObject): TJSONObject;    function MDFeFromXML(const jXML: TJSONObject): TJSONObject;
+    function Damdfe(const xmlData: TJSONObject; const OnlyURL: Boolean = False): TJSONObject;
+    function DamdfeEvento(const xmlEvento: TJSONObject): TJSONObject;
+    function MDFe(const jMDFe: TJSONObject): TJSONObject;
+    function MDFeFromXML(const jXML: TJSONObject): TJSONObject;
     function MDFeToXML(const jMDFe: TJSONObject): TJSONObject;
     function StatusServico(const jStatus: TJSONObject): TJSONObject;
     function Consulta(const jConsulta: TJSONObject): TJSONObject;
@@ -66,7 +68,8 @@ type
     function ModelConfig: TJSONObject;
     function ModelEvento: TJSONObject;
     function ModelDistribuicao: string;
-    function ModelMDFe: TJSONObject;    function ModelMDFeFromXML: TJSONObject;
+    function ModelMDFe: TJSONObject;
+    function ModelMDFeFromXML: TJSONObject;
     function ModelMDFeToXML: TJSONObject;
     function ModelStatusServico: TJSONObject;
     function ModelConsulta: TJSONObject;
@@ -94,20 +97,15 @@ begin
   with facbr.Configuracoes.WebServices do
   begin
     Ambiente := TpcnTipoAmbiente.taHomologacao;
-    UF := 'ES';
+    UF := RSDefaultUF;
     TimeOut := 10000;
     Visualizar := False;
   end;
 
   with facbr.Configuracoes.Certificados do
   begin
-    ArquivoPFX := 'C:\caminho\seu_certificado.pfx';
-    Senha := 'sua_senha';
-  end;
-
-  with facbr.Configuracoes.Arquivos do
-  begin
-    // PathSalvar := 'C:\ACBr\MDFe\';
+    ArquivoPFX := RSDefaultCertPath;
+    Senha := RSDefaultCertPassword;
   end;
 
   Result := TJSONTools.ObjToJson(facbr.Configuracoes);
@@ -131,12 +129,12 @@ begin
   // Cria um manifesto MDF-e vazio para gerar o modelo JSON
   MDFe := facbr.Manifestos.Add;
 
-  // Bloco de IdentificaÃƒÂ§ÃƒÂ£o do MDF-e (ide)
+  // Bloco de Identificação do MDF-e (ide)
   with MDFe.MDFe.Ide do
   begin
     cUF := 35;
     tpAmb := taHomologacao;
-    // PadrÃƒÂ£o para modelo
+    // Padrão para modelo
     tpEmit := teTransportadora;
     modelo := '58';
     serie := 1;
@@ -172,12 +170,12 @@ begin
     end;
   end;
 
-  // Bloco Rodo (Modal RodoviÃƒÂ¡rio)
+  // Bloco Rodo (Modal Rodoviário)
   with MDFe.MDFe.rodo do
   begin
     RNTRC := '12345678';
 
-    // VeÃƒÂ­culo de TraÃƒÂ§ÃƒÂ£o
+    // Veículo de Tração
     with veicTracao do
     begin
       placa := 'ABC1234';
@@ -191,9 +189,9 @@ begin
 
     // Condutor
     veicTracao.condutor.New;
-    // VeÃƒÂ­culo Reboque
+    // Veículo Reboque
     veicReboque.New;
-    // Vale PedÃƒÂ¡gio
+    // Vale Pedágio
     valePed.disp.New;
     // CIOT
     infANTT.infCIOT.New;
@@ -202,7 +200,7 @@ begin
   // Bloco de Documentos (infDoc)
   MunDescarga := MDFe.MDFe.infDoc.infMunDescarga.New;
 
-  // InformaÃƒÂ§ÃƒÂµes do CT-e
+  // Informações do CT-e
   infCTe := MunDescarga.infCTe.New;
   infCTe.chCTe := '35110803911545000148570010000001011000001018';
 
@@ -231,7 +229,7 @@ begin
   // Lacres
   MDFe.MDFe.lacres.New;
 
-  // InformaÃƒÂ§ÃƒÂµes Adicionais
+  // Informações Adicionais
   with MDFe.MDFe.infAdic do
   begin
     infCpl := 'INFORMACOES COMPLEMENTARES';
@@ -241,13 +239,13 @@ begin
   // Converte o objeto populado para JSON
   Result := TJSONTools.ObjToJson(MDFe);
 
-  // Remove campos internos desnecessÃƒÂ¡rios para o modelo
-  Result.Delete('XML');
-  Result.Delete('XMLOriginal');
-  Result.Delete('NomeArq');
-  Result.Delete('Protocolo');
+  // Remove campos internos desnecessários para o modelo
+  Result.Delete(RSXMLField);
+  Result.Delete(RSXMLOriginalField);
+  Result.Delete(RSNomeArqField);
+  Result.Delete(RSProtocoloField);
 
-  // Limpa o manifesto da memÃƒÂ³ria do componente ACBr
+  // Limpa o manifesto da memória do componente ACBr
   facbr.Manifestos.Clear;
 end;
 
@@ -255,10 +253,11 @@ function TACBRModelosJSONMDFe.ModelDistribuicao: string;
 begin
   Result := TJSONTools.SafeObjToJsonString(facbr.WebServices.DistribuicaoDFe);
 end;
+
 function TACBRModelosJSONMDFe.ModelMDFeFromXML: TJSONObject;
 begin
   Result := TJSONObject.Create;
-  Result.Add('xml', 'BASE64_DO_XML_MDFE_AQUI');
+  Result.Add(RSXmlKey, 'BASE64_DO_XML_MDFE_AQUI');
 end;
 
 function TACBRModelosJSONMDFe.ModelMDFeToXML: TJSONObject;
@@ -271,78 +270,45 @@ end;
 
 procedure TACBRBridgeMDFe.CarregaConfig;
 var
-  O, CertConfig: TJSONObject;
-  tempData: TJSONData;
-  b64String: string;
+  O: TJSONObject;
+  LPfx: AnsiString;
 begin
-  if (fcfg = '') or (fcfg = '') then
-    raise Exception.Create('Configuracao vazia ou nao informada.');
+  if Trim(fcfg) = '' then
+    raise Exception.Create(RSConfigEmptyError);
 
   try
     O := GetJSON(fcfg) as TJSONObject;
-      try
-        TJSONTools.JsonToObj(O, facbr.Configuracoes);
+    try
+      TJSONTools.JsonToObj(O, facbr.Configuracoes);
 
-        tempData := O.Find('Certificados');
-        if Assigned(tempData) and (tempData.JSONType = jtObject) then
-        begin
-          CertConfig := TJSONObject(tempData);
-          b64String := CertConfig.Get('DadosPFXBase64', '');
-          if b64String <> '' then
-          begin
-            facbr.Configuracoes.Certificados.DadosPFX := synacode.DecodeBase64(AnsiString(b64String));
-          end;
-        end;
+      LPfx := TJSONTools.ExtractCertificadoPFX(O);
+      if LPfx <> '' then
+        facbr.Configuracoes.Certificados.DadosPFX := LPfx;
 
-        with facbr.Configuracoes.Geral do
-        begin
-          SSLLib := libNone;
-          SSLLib := libOpenSSL;
-          SSLCryptLib := cryOpenSSL;
-          SSLHttpLib := httpOpenSSL;
-          SSLXmlSignLib := xsLibXml2;
-        end;
-      finally
-        O.Free;
+      with facbr.Configuracoes.Geral do
+      begin
+        SSLLib := libOpenSSL;
+        SSLCryptLib := cryOpenSSL;
+        SSLHttpLib := httpOpenSSL;
+        SSLXmlSignLib := xsLibXml2;
       end;
+    finally
+      O.Free;
+    end;
   except
     on E: Exception do
-      raise Exception.Create('Erro na leitura da configuracao: ' + E.Message);
+      raise Exception.Create(RSConfigReadError + E.Message);
   end;
 
   if facbr.Configuracoes.Arquivos.PathSchemas = '' then
-    facbr.Configuracoes.Arquivos.PathSchemas := ExtractFilePath(ParamStr(0)) + 'Schemas' + PathDelim + 'MDFe';
+    facbr.Configuracoes.Arquivos.PathSchemas := ExtractFilePath(ParamStr(0)) + RSSchemasDir + PathDelim + 'MDFe';
 
   fcfg := '';
 end;
 
 function TACBRBridgeMDFe.ReadXMLFromJSON(const jsonData: TJSONObject): string;
-var
-  xmlBase64: string;
-  oXML: TJSONString;
 begin
-  Result := '';
-  if not jsonData.Find('xml', oXML) then
-    raise Exception.Create(
-      'ParÃƒÂ¢metro "xml" (contendo o XML em Base64) nÃƒÂ£o encontrado no JSON.');
-
-  xmlBase64 := Trim(oXML.AsString);
-
-  if xmlBase64.IsEmpty then
-    raise Exception.Create('ParÃƒÂ¢metro "xml" estÃƒÂ¡ vazio.');
-
-  if (Length(xmlBase64) > 0) and (xmlBase64[1] = '<') then
-  begin
-    Result := xmlBase64;
-    Exit;
-  end;
-
-  try
-    Result := DecodeStringBase64(xmlBase64);
-  except
-    on E: Exception do
-      raise Exception.Create('A string XML em base64 ÃƒÂ© invÃƒÂ¡lida: ' + E.Message);
-  end;
+  Result := TJSONTools.ReadXMLFromJSON(jsonData, ['xml_mdfe', 'MDFeXML']);
 end;
 
 constructor TACBRBridgeMDFe.Create(const Cfg: string);
@@ -364,20 +330,69 @@ function TACBRBridgeMDFe.MDFe(const jMDFe: TJSONObject): TJSONObject;
 var
   Manifesto: TManifesto;
   Lote: string;
+  jTarget, jInf, jEmit, jModal, jRodo: TJSONData;
 begin
   CarregaConfig;
 
-  Result := TJSONObject.Create;
+  Result := nil;
   Manifesto := facbr.Manifestos.Add;
   Lote := '1';
 
   try
-    TJSONTools.JsonToObj(jMDFe, Manifesto);
+    jTarget := nil;
+    if Assigned(jMDFe) then
+    begin
+      jTarget := jMDFe.Find('MDFe');
+      if not Assigned(jTarget) then
+        jTarget := jMDFe.Find('mdfe');
+    end;
+    if not (Assigned(jTarget) and (jTarget.JSONType = jtObject)) then
+      jTarget := jMDFe;
+
+    if Assigned(jTarget) and (jTarget.JSONType = jtObject) then
+    begin
+      jInf := TJSONObject(jTarget).Find('infMDFe');
+      if Assigned(TJSONObject(jTarget).Find('Ide')) or Assigned(TJSONObject(jTarget).Find('ide')) then
+        TJSONTools.JsonToObj(TJSONObject(jTarget), Manifesto.MDFe)
+      else if Assigned(jInf) and (jInf.JSONType = jtObject) then
+        TJSONTools.JsonToObj(TJSONObject(jInf), Manifesto.MDFe)
+      else
+        TJSONTools.JsonToObj(TJSONObject(jTarget), Manifesto.MDFe);
+
+      if Assigned(jInf) and (jInf.JSONType = jtObject) and
+         not Assigned(TJSONObject(jTarget).Find('rodo')) then
+      begin
+        jModal := TJSONObject(jInf).Find('infModal');
+        if Assigned(jModal) and (jModal.JSONType = jtObject) then
+        begin
+          jRodo := TJSONObject(jModal).Find('rodo');
+          if Assigned(jRodo) and (jRodo.JSONType = jtObject) then
+            TJSONTools.JsonToObj(TJSONObject(jRodo), Manifesto.MDFe.rodo);
+        end;
+      end;
+
+      if Manifesto.MDFe.Emit.CNPJCPF = '' then
+      begin
+        jEmit := TJSONObject(jTarget).Find('Emit');
+        if not Assigned(jEmit) then jEmit := TJSONObject(jTarget).Find('emit');
+        if not Assigned(jEmit) and Assigned(jInf) and (jInf.JSONType = jtObject) then
+        begin
+          jEmit := TJSONObject(jInf).Find('Emit');
+          if not Assigned(jEmit) then jEmit := TJSONObject(jInf).Find('emit');
+        end;
+        if Assigned(jEmit) and (jEmit.JSONType = jtObject) then
+          Manifesto.MDFe.Emit.CNPJCPF := TJSONObject(jEmit).Get(
+            'CNPJCPF',
+            TJSONObject(jEmit).Get('CNPJ', TJSONObject(jEmit).Get('CPF', ''))
+          );
+      end;
+    end;
   except
     on E: Exception do
     begin
-      Result.Add('status', 'erro');
-      Result.Add('message', 'Erro na leitura do objeto JSON do MDF-e: ' +
+      Result := TJSONObject.Create;
+      Result.Add(RSStatusField, RSStatusErro);
+      Result.Add(RSMessageField, 'Erro na leitura do objeto JSON do MDF-e: ' +
         E.Message);
       facbr.Manifestos.Clear;
       Exit;
@@ -385,7 +400,7 @@ begin
   end;
 
   try
-    // Agrupa as chamadas de preparaÃƒÂ§ÃƒÂ£o e envio dentro do bloco try
+    // Agrupa as chamadas de preparação e envio dentro do bloco try
     facbr.Manifestos.Assinar;
     facbr.Manifestos.Validar;
     facbr.Enviar(Lote);
@@ -408,6 +423,7 @@ var
   InfEvento: TJSONObject;
   XmlBase64: TJSONData;
   xmlStr: string;
+  LOk: Boolean;
 begin
   CarregaConfig;
   Result := '';
@@ -443,11 +459,41 @@ begin
       TJSONTools.JsonToObj(oEvento, objEvento.InfEvento)
     else
       TJSONTools.JsonToObj(oEvento, objEvento);
+
+    if objEvento.InfEvento.tpEvento = teNaoMapeado then
+    begin
+      xmlStr := Trim(InfEvento.Get('tpEvento', oEvento.Get('tpEvento', '')));
+      if xmlStr <> '' then
+        objEvento.InfEvento.tpEvento := StrToTpEventoMDFe(LOk, xmlStr);
+    end;
+
+    if Assigned(InfEvento.Find('detEvento')) and (InfEvento.Find('detEvento').JSONType = jtObject) then
+    begin
+      TJSONTools.JsonToObj(TJSONObject(InfEvento.Find('detEvento')), objEvento.InfEvento.detEvento);
+      if Assigned(TJSONObject(InfEvento.Find('detEvento')).Find('condutor')) and
+         (TJSONObject(InfEvento.Find('detEvento')).Find('condutor').JSONType = jtObject) then
+      begin
+        TJSONTools.JsonToObj(
+          TJSONObject(TJSONObject(InfEvento.Find('detEvento')).Find('condutor')),
+          objEvento.InfEvento.detEvento
+        );
+      end;
+    end
+    else if Assigned(InfEvento.Find('DetEvento')) and (InfEvento.Find('DetEvento').JSONType = jtObject) then
+      TJSONTools.JsonToObj(TJSONObject(InfEvento.Find('DetEvento')), objEvento.InfEvento.detEvento);
+
+    with objEvento.InfEvento do
+    begin
+      if dhEvento = 0 then dhEvento := Now;
+      if (CNPJCPF = '') and (Length(chMDFe) >= 20) then CNPJCPF := Copy(chMDFe, 7, 14);
+      if (cOrgao = 0) and (Length(chMDFe) >= 2) then cOrgao := StrToIntDef(Copy(chMDFe, 1, 2), 0);
+      if nSeqEvento <= 0 then nSeqEvento := 1;
+    end;
   end;
 
   facbr.EnviarEvento(1);
-  Result := TJSONTools.ObjToJsonString(
-    facbr.WebServices.EnvEvento.EventoRetorno.retEvento);
+  Result := TJSONTools.SafeObjToJsonString(
+    facbr.WebServices.EnvEvento, 'Erro ao enviar evento de MDF-e');
 end;
 
 function TACBRBridgeMDFe.Distribuicao(const jDistribuicao: TJSONObject): TJSONObject;
@@ -457,7 +503,7 @@ var
 begin
   CarregaConfig;
 
-  Result := TJSONObject.Create;
+  Result := nil;
   objDistribuicao := facbr.WebServices.DistribuicaoDFe;
 
   if jDistribuicao.Find('CNPJCPF', CNPJCPF) then
@@ -481,7 +527,10 @@ begin
         Result := TJSONObject(TJSONTools.ObjToJson(
           objDistribuicao.RetDistDFeInt))
       else
-        Result.Add('error', E.message);
+      begin
+        Result := TJSONObject.Create;
+        Result.Add(RSErrorField, E.Message);
+      end;
       Exit;
     end;
   end;
@@ -536,7 +585,7 @@ begin
   fdamdfe.MostraStatus := False;
   fdamdfe.MostraSetup := False;
 
-  pdfDir := ExtractFilePath(ParamStr(0)) + 'pdf' + PathDelim;
+  pdfDir := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim;
   if not DirectoryExists(pdfDir) then
     CreateDir(pdfDir);
 
@@ -591,7 +640,7 @@ begin
   end;
 
   Result.Add(RSChaveField, chClean);
-  Result.Add('url', '/mdfe/pdf/' + chClean);
+  Result.Add(RSURLField, '/mdfe/pdf/' + chClean);
 
   if xmlData.Find(RSIDField, id) then
     Result.Add(RSIDField, id);
@@ -602,7 +651,8 @@ end;
 function TACBRBridgeMDFe.DamdfeEvento(const xmlEvento: TJSONObject): TJSONObject;
 var
   arquivofinal: string;
-  stringXml: string;
+  stringXml, mdfeXmlStr: string;
+  evtXmlNode, mdfeXmlNode: TJSONData;
   tamanho: integer;
   id: TJSONString;
   fileName: string;
@@ -612,7 +662,16 @@ begin
   Result := TJSONObject.Create;
 
   try
-    stringXml := ReadXMLFromJSON(xmlEvento);
+    evtXmlNode := xmlEvento.Find('XMLEvento');
+    if not Assigned(evtXmlNode) then evtXmlNode := xmlEvento.Find('xml_evento');
+    if Assigned(evtXmlNode) and (Trim(evtXmlNode.AsString) <> '') then
+    begin
+      stringXml := Trim(evtXmlNode.AsString);
+      if stringXml[1] <> '<' then
+        stringXml := DecodeStringBase64(stringXml);
+    end
+    else
+      stringXml := ReadXMLFromJSON(xmlEvento);
   except
     on E: Exception do
     begin
@@ -622,6 +681,22 @@ begin
   end;
 
   try
+    facbr.Manifestos.Clear;
+    mdfeXmlNode := xmlEvento.Find('XMLMDFe');
+    if not Assigned(mdfeXmlNode) then mdfeXmlNode := xmlEvento.Find('xml_mdfe');
+    if not Assigned(mdfeXmlNode) then mdfeXmlNode := xmlEvento.Find('MDFeXML');
+    if not Assigned(mdfeXmlNode) then mdfeXmlNode := xmlEvento.Find(RSXMLField);
+    if not Assigned(mdfeXmlNode) then mdfeXmlNode := xmlEvento.Find(RSXmlKey);
+    if Assigned(mdfeXmlNode) and (Trim(mdfeXmlNode.AsString) <> '') then
+    begin
+      mdfeXmlStr := Trim(mdfeXmlNode.AsString);
+      if mdfeXmlStr[1] <> '<' then
+        mdfeXmlStr := DecodeStringBase64(mdfeXmlStr);
+      if mdfeXmlStr <> stringXml then
+        facbr.Manifestos.LoadFromString(mdfeXmlStr);
+    end;
+
+    facbr.EventoMDFe.Evento.Clear;
     facbr.EventoMDFe.LerXMLFromString(stringXml);
   except
     on E: Exception do
@@ -646,7 +721,7 @@ begin
   fdamdfe.MostraStatus := False;
   fdamdfe.MostraSetup := False;
 
-  pdfDir := ExtractFilePath(ParamStr(0)) + 'pdf' + PathDelim;
+  pdfDir := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim;
   if not DirectoryExists(pdfDir) then
     CreateDir(pdfDir);
 
@@ -718,10 +793,10 @@ begin
 
       if Result.Find(RSStatusField) = nil then
       begin
-        Result.Delete('XML');
-        Result.Delete('XMLOriginal');
-        Result.Delete('NomeArq');
-        Result.Delete('Protocolo');
+        Result.Delete(RSXMLField);
+        Result.Delete(RSXMLOriginalField);
+        Result.Delete(RSNomeArqField);
+        Result.Delete(RSProtocoloField);
       end;
     end
     else
@@ -737,12 +812,60 @@ function TACBRBridgeMDFe.MDFeToXML(const jMDFe: TJSONObject): TJSONObject;
 var
   ManifestoMDFe: TManifesto;
   xmlString: string;
+  jTarget, jInf, jEmit, jModal, jRodo: TJSONData;
 begin
   CarregaConfig;
 
   try
     ManifestoMDFe := facbr.Manifestos.Add;
-    TJSONTools.JsonToObj(jMDFe, ManifestoMDFe);
+    jTarget := nil;
+    if Assigned(jMDFe) then
+    begin
+      jTarget := jMDFe.Find('MDFe');
+      if not Assigned(jTarget) then
+        jTarget := jMDFe.Find('mdfe');
+    end;
+    if not (Assigned(jTarget) and (jTarget.JSONType = jtObject)) then
+      jTarget := jMDFe;
+
+    if Assigned(jTarget) and (jTarget.JSONType = jtObject) then
+    begin
+      jInf := TJSONObject(jTarget).Find('infMDFe');
+      if Assigned(TJSONObject(jTarget).Find('Ide')) or Assigned(TJSONObject(jTarget).Find('ide')) then
+        TJSONTools.JsonToObj(TJSONObject(jTarget), ManifestoMDFe.MDFe)
+      else if Assigned(jInf) and (jInf.JSONType = jtObject) then
+        TJSONTools.JsonToObj(TJSONObject(jInf), ManifestoMDFe.MDFe)
+      else
+        TJSONTools.JsonToObj(TJSONObject(jTarget), ManifestoMDFe.MDFe);
+
+      if Assigned(jInf) and (jInf.JSONType = jtObject) and
+         not Assigned(TJSONObject(jTarget).Find('rodo')) then
+      begin
+        jModal := TJSONObject(jInf).Find('infModal');
+        if Assigned(jModal) and (jModal.JSONType = jtObject) then
+        begin
+          jRodo := TJSONObject(jModal).Find('rodo');
+          if Assigned(jRodo) and (jRodo.JSONType = jtObject) then
+            TJSONTools.JsonToObj(TJSONObject(jRodo), ManifestoMDFe.MDFe.rodo);
+        end;
+      end;
+
+      if ManifestoMDFe.MDFe.Emit.CNPJCPF = '' then
+      begin
+        jEmit := TJSONObject(jTarget).Find('Emit');
+        if not Assigned(jEmit) then jEmit := TJSONObject(jTarget).Find('emit');
+        if not Assigned(jEmit) and Assigned(jInf) and (jInf.JSONType = jtObject) then
+        begin
+          jEmit := TJSONObject(jInf).Find('Emit');
+          if not Assigned(jEmit) then jEmit := TJSONObject(jInf).Find('emit');
+        end;
+        if Assigned(jEmit) and (jEmit.JSONType = jtObject) then
+          ManifestoMDFe.MDFe.Emit.CNPJCPF := TJSONObject(jEmit).Get(
+            'CNPJCPF',
+            TJSONObject(jEmit).Get('CNPJ', TJSONObject(jEmit).Get('CPF', ''))
+          );
+      end;
+    end;
   except
     on E: Exception do
     begin
@@ -759,7 +882,7 @@ begin
       xmlString := facbr.Manifestos.Items[0].XML;
 
     Result := TJSONObject.Create;
-    Result.Add('xml', EncodeStringBase64(xmlString));
+    Result.Add(RSXmlKey, EncodeStringBase64(xmlString));
   except
     on E: Exception do
       Result := TJSONTools.SafeObjToJson(nil, 'Erro ao gerar XML do MDFe: ' + E.Message);
@@ -767,6 +890,7 @@ begin
 
   if Assigned(facbr.Manifestos) then facbr.Manifestos.Clear;
 end;
+
 function TACBRBridgeMDFe.TesteConfig: boolean;
 begin
   try
@@ -804,7 +928,7 @@ begin
   if Chave = '' then
     Chave := jConsulta.Get('chMDFe', '');
   if Chave = '' then
-    Chave := jConsulta.Get('chave', '');
+    Chave := jConsulta.Get(RSChaveField, '');
 
   if Chave <> '' then
   begin
@@ -837,13 +961,13 @@ begin
   try
     try
       chMDFe := CancObj.Get('chMDFe', '');
-      if chMDFe = '' then chMDFe := CancObj.Get('chave', '');
+      if chMDFe = '' then chMDFe := CancObj.Get(RSChaveField, '');
       nProt := CancObj.Get('nProt', '');
       if nProt = '' then nProt := CancObj.Get('protocolo', '');
       xJust := CancObj.Get('xJust', '');
       if xJust = '' then xJust := CancObj.Get('justificativa', '');
       cnpjCpf := CancObj.Get('CNPJCPF', '');
-      xmlBase64 := CancObj.Get('xml', '');
+      xmlBase64 := CancObj.Get(RSXmlKey, '');
 
       facbr.Manifestos.Clear;
       if xmlBase64 <> '' then
@@ -863,13 +987,14 @@ begin
           infEvento.cOrgao := StrToIntDef(Copy(chMDFe, 1, 2), 0);
           infEvento.dhEvento := Now;
           infEvento.tpEvento := teCancelamento;
+          infEvento.nSeqEvento := 1;
           infEvento.detEvento.nProt := nProt;
           infEvento.detEvento.xJust := xJust;
         end;
         facbr.EnviarEvento(1);
       end;
 
-      Result := TJSONTools.SafeObjToJson(facbr.WebServices.EnvEvento.EventoRetorno.retEvento, 'Cancelamento MDF-e processado');
+      Result := TJSONTools.SafeObjToJson(facbr.WebServices.EnvEvento, 'Cancelamento MDF-e processado');
     except
       on E: Exception do
         Result := TJSONTools.SafeObjToJson(nil, 'Erro no cancelamento de MDF-e: ' + E.Message);
@@ -885,7 +1010,7 @@ end;
 
 function TACBRBridgeMDFe.Encerramento(const jEncerramento: TJSONObject): TJSONObject;
 var
-  chMDFe, nProt, cnpjCpf, dtEncStr: string;
+  chMDFe, nProt, cnpjCpf: string;
   cUF, cMun: Integer;
   EncObj: TJSONObject;
 begin
@@ -897,7 +1022,7 @@ begin
   try
     try
       chMDFe := EncObj.Get('chMDFe', '');
-      if chMDFe = '' then chMDFe := EncObj.Get('chave', '');
+      if chMDFe = '' then chMDFe := EncObj.Get(RSChaveField, '');
       nProt := EncObj.Get('nProt', '');
       if nProt = '' then nProt := EncObj.Get('protocolo', '');
       cnpjCpf := EncObj.Get('CNPJCPF', '');
@@ -907,7 +1032,6 @@ begin
       cUF := EncObj.Get('cUF', 0);
       if (cUF = 0) and (cMun > 0) then
         cUF := StrToIntDef(Copy(IntToStr(cMun), 1, 2), 0);
-      dtEncStr := EncObj.Get('dtEnc', '');
 
       facbr.EventoMDFe.Evento.Clear;
       with facbr.EventoMDFe.Evento.New do
@@ -917,6 +1041,7 @@ begin
         infEvento.cOrgao := StrToIntDef(Copy(chMDFe, 1, 2), cUF);
         infEvento.dhEvento := Now;
         infEvento.tpEvento := teEncerramento;
+        infEvento.nSeqEvento := 1;
         infEvento.detEvento.nProt := nProt;
         infEvento.detEvento.dtEnc := Date;
         infEvento.detEvento.cUF := cUF;
@@ -924,7 +1049,7 @@ begin
       end;
 
       facbr.EnviarEvento(1);
-      Result := TJSONTools.SafeObjToJson(facbr.WebServices.EnvEvento.EventoRetorno.retEvento, 'Encerramento MDF-e processado');
+      Result := TJSONTools.SafeObjToJson(facbr.WebServices.EnvEvento, 'Encerramento MDF-e processado');
     except
       on E: Exception do
         Result := TJSONTools.SafeObjToJson(nil, 'Erro no encerramento de MDF-e: ' + E.Message);

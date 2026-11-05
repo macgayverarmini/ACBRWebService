@@ -7,23 +7,31 @@ interface
 uses
   // Unit com a lógica de negócio do MDF-e
   method.acbr.mdfe,
+  jsonconvert,
   // Units do Horse e JSON
   fpjson, Horse, Horse.Commons, Classes, SysUtils,
+  resource.strings.global,
+  resource.strings.msg,
   resource.strings.routes;
 
 // --- Handlers para Endpoints de Modelos (GET) ---
 procedure GetModeloConfigMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure GetModeloEventoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure GetModeloMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
-procedure GetModeloDistribuicaoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);procedure GetModeloMDFeFromXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
-procedure GetModeloMDFeToXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);procedure GetMDFePDFFile(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloDistribuicaoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloMDFeFromXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloMDFeToXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetMDFePDFFile(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
 // --- Handlers para Endpoints de Operações (POST) ---
 procedure PostEnviarMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostEventosMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
-procedure PostDamdfeMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);procedure PostDamdfeURLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
-procedure PostDistribuicaoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);procedure PostMDFeFromXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
-procedure PostMDFeToXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);procedure PostDamdfeEventoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostDamdfeMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostDamdfeURLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostDistribuicaoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostMDFeFromXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostMDFeToXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostDamdfeEventoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure GetModeloStatusMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure GetModeloConsultaMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure GetModeloCancelamentoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
@@ -40,22 +48,6 @@ procedure regRouter;
 
 implementation
 
-
-function ExtractConfig(O: TJSONObject; const Field: string): string;
-var
-  Data: TJSONData;
-begin
-  Result := '';
-  if Assigned(O) then
-  begin
-    Data := O.Extract(Field);
-    if Assigned(Data) then
-    begin
-      Result := Data.AsJSON;
-      Data.Free;
-    end;
-  end;
-end;
 // --- Implementação dos Handlers de Modelos (GET) ---
 
 procedure GetModeloConfigMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
@@ -162,10 +154,10 @@ procedure GetMDFePDFFile(Req: THorseRequest; Res: THorseResponse; Next: TNextPro
 var
   Chave, FilePath, PdfDir: string;
 begin
-  Chave := Req.Params['chave'];
+  Chave := Req.Params[RSChaveField];
   Chave := StringReplace(Chave, 'MDFe', '', [rfIgnoreCase]);
 
-  PdfDir := ExtractFilePath(ParamStr(0)) + 'pdf' + PathDelim;
+  PdfDir := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim;
   FilePath := PdfDir + 'MDFe' + Chave + '-mdfe.pdf';
   if not FileExists(FilePath) then
     FilePath := PdfDir + Chave + '-mdfe.pdf';
@@ -188,12 +180,12 @@ begin
   except
     on E: Exception do
     begin
-      Res.Status(400).Send(TJSONObject.Create(['message', 'Corpo da requisição JSON inválido: ' + E.Message]).AsJSON);
+      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
       Exit;
     end;
   end;
 
-  Ac := TACBRBridgeMDFe.Create(ExtractConfig(O, 'config'));
+  Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.MDFe(O);
     try
@@ -210,6 +202,7 @@ end;
 procedure PostEventosMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   O: TJSONObject;
+  LEventos: TJSONArray;
   Ac: TACBRBridgeMDFe;
 begin
   try
@@ -217,15 +210,20 @@ begin
   except
     on E: Exception do
     begin
-      Res.Status(400).Send(TJSONObject.Create(['message', 'Corpo da requisição JSON inválido: ' + E.Message]).AsJSON);
+      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
       Exit;
     end;
   end;
 
-  Ac := TACBRBridgeMDFe.Create(ExtractConfig(O, 'config'));
+  Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
-      .Send(Ac.Evento(O.Extract('eventos') as TJSONArray));
+    LEventos := O.Extract(RSEventosField) as TJSONArray;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+        .Send(Ac.Evento(LEventos));
+    finally
+      LEventos.Free;
+    end;
   finally
     O.Free;
     Ac.Free;
@@ -243,12 +241,12 @@ begin
   except
     on E: Exception do
     begin
-      Res.Status(400).Send(TJSONObject.Create(['message', 'Corpo da requisição JSON inválido: ' + E.Message]).AsJSON);
+      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
       Exit;
     end;
   end;
 
-  Ac := TACBRBridgeMDFe.Create(ExtractConfig(O, 'config'));
+  Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.Damdfe(O);
     try
@@ -271,12 +269,12 @@ begin
   except
     on E: Exception do
     begin
-      Res.Status(400).Send(TJSONObject.Create(['message', 'Corpo da requisição JSON inválido: ' + E.Message]).AsJSON);
+      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
       Exit;
     end;
   end;
 
-  Ac := TACBRBridgeMDFe.Create(ExtractConfig(O, 'config'));
+  Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.Damdfe(O, True);
     try
@@ -299,12 +297,12 @@ begin
   except
     on E: Exception do
     begin
-      Res.Status(400).Send(TJSONObject.Create(['message', 'Corpo da requisição JSON inválido: ' + E.Message]).AsJSON);
+      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
       Exit;
     end;
   end;
 
-  Ac := TACBRBridgeMDFe.Create(ExtractConfig(O, 'config'));
+  Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.DamdfeEvento(O);
     try
@@ -329,12 +327,12 @@ begin
   except
     on E: Exception do
     begin
-      Res.Status(400).Send(TJSONObject.Create(['message', 'Corpo da requisição JSON inválido: ' + E.Message]).AsJSON);
+      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
       Exit;
     end;
   end;
 
-  Ac := TACBRBridgeMDFe.Create(ExtractConfig(O, 'config'));
+  Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.Distribuicao(O);
     try
@@ -357,12 +355,12 @@ begin
   except
     on E: Exception do
     begin
-      Res.Status(400).Send(TJSONObject.Create(['message', 'Corpo da requisição JSON inválido: ' + E.Message]).AsJSON);
+      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
       Exit;
     end;
   end;
 
-  Ac := TACBRBridgeMDFe.Create(ExtractConfig(O, 'config'));
+  Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.MDFeFromXML(O);
     try
@@ -386,12 +384,12 @@ begin
   except
     on E: Exception do
     begin
-      Res.Status(400).Send(TJSONObject.Create(['message', 'Corpo da requisição JSON inválido: ' + E.Message]).AsJSON);
+      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
       Exit;
     end;
   end;
 
-  Ac := TACBRBridgeMDFe.Create(ExtractConfig(O, 'config'));
+  Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.MDFeToXML(O);
     try
@@ -507,11 +505,11 @@ begin
   except
     on E: Exception do
     begin
-      Res.Status(400).Send(TJSONObject.Create(['message', 'Corpo JSON invalido: ' + E.Message]).AsJSON);
+      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
       Exit;
     end;
   end;
-  Ac := TACBRBridgeMDFe.Create(ExtractConfig(O, 'config'));
+  Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.StatusServico(O);
     try
@@ -535,11 +533,11 @@ begin
   except
     on E: Exception do
     begin
-      Res.Status(400).Send(TJSONObject.Create(['message', 'Corpo JSON invalido: ' + E.Message]).AsJSON);
+      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
       Exit;
     end;
   end;
-  Ac := TACBRBridgeMDFe.Create(ExtractConfig(O, 'config'));
+  Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.Consulta(O);
     try
@@ -563,11 +561,11 @@ begin
   except
     on E: Exception do
     begin
-      Res.Status(400).Send(TJSONObject.Create(['message', 'Corpo JSON invalido: ' + E.Message]).AsJSON);
+      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
       Exit;
     end;
   end;
-  Ac := TACBRBridgeMDFe.Create(ExtractConfig(O, 'config'));
+  Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.Cancelamento(O);
     try
@@ -591,11 +589,11 @@ begin
   except
     on E: Exception do
     begin
-      Res.Status(400).Send(TJSONObject.Create(['message', 'Corpo JSON invalido: ' + E.Message]).AsJSON);
+      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
       Exit;
     end;
   end;
-  Ac := TACBRBridgeMDFe.Create(ExtractConfig(O, 'config'));
+  Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.Encerramento(O);
     try
@@ -619,11 +617,11 @@ begin
   except
     on E: Exception do
     begin
-      Res.Status(400).Send(TJSONObject.Create(['message', 'Corpo JSON invalido: ' + E.Message]).AsJSON);
+      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
       Exit;
     end;
   end;
-  Ac := TACBRBridgeMDFe.Create(ExtractConfig(O, 'config'));
+  Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.ConsultarMDFeNaoEnc(O);
     try
@@ -643,8 +641,10 @@ begin
   THorse.Get(RSModeloMDFeConfigRoute, GetModeloConfigMDFe);
   THorse.Get(RSModeloMDFeEventoRoute, GetModeloEventoMDFe);
   THorse.Get(RSModeloMDFeMDFeRoute, GetModeloMDFe);
-  THorse.Get(RSModeloMDFeDistribuicaoRoute, GetModeloDistribuicaoMDFe);  THorse.Get(RSModeloMDFeMDFeFromXMLRoute, GetModeloMDFeFromXMLMDFe);
-  THorse.Get(RSModeloMDFeMDFeToXMLRoute, GetModeloMDFeToXMLMDFe);  THorse.Get(RSMDFePDFRoute, GetMDFePDFFile);
+  THorse.Get(RSModeloMDFeDistribuicaoRoute, GetModeloDistribuicaoMDFe);
+  THorse.Get(RSModeloMDFeMDFeFromXMLRoute, GetModeloMDFeFromXMLMDFe);
+  THorse.Get(RSModeloMDFeMDFeToXMLRoute, GetModeloMDFeToXMLMDFe);
+  THorse.Get(RSMDFePDFRoute, GetMDFePDFFile);
   THorse.Get(RSModeloMDFeStatusRoute, GetModeloStatusMDFe);
   THorse.Get(RSModeloMDFeConsultaRoute, GetModeloConsultaMDFe);
   THorse.Get(RSModeloMDFeCancelamentoRoute, GetModeloCancelamentoMDFe);
@@ -654,9 +654,12 @@ begin
   // Endpoints de Operações (POST)
   THorse.Post(RSMDFeMDFeRoute, PostEnviarMDFe);
   THorse.Post(RSMDFeEventosRoute, PostEventosMDFe);
-  THorse.Post(RSMDFeDAMDFeRoute, PostDamdfeMDFe);  THorse.Post(RSMDFeDAMDFeURLRoute, PostDamdfeURLMDFe);
-  THorse.Post(RSMDFeDistribuicaoRoute, PostDistribuicaoMDFe);  THorse.Post(RSMDFeMDFeFromXMLRoute, PostMDFeFromXMLMDFe);
-  THorse.Post(RSMDFeMDFeToXMLRoute, PostMDFeToXMLMDFe);  THorse.Post(RSMDFeDAMDFeEventoRoute, PostDamdfeEventoMDFe);
+  THorse.Post(RSMDFeDAMDFeRoute, PostDamdfeMDFe);
+  THorse.Post(RSMDFeDAMDFeURLRoute, PostDamdfeURLMDFe);
+  THorse.Post(RSMDFeDistribuicaoRoute, PostDistribuicaoMDFe);
+  THorse.Post(RSMDFeMDFeFromXMLRoute, PostMDFeFromXMLMDFe);
+  THorse.Post(RSMDFeMDFeToXMLRoute, PostMDFeToXMLMDFe);
+  THorse.Post(RSMDFeDAMDFeEventoRoute, PostDamdfeEventoMDFe);
   THorse.Post(RSMDFeStatusRoute, PostStatusMDFe);
   THorse.Post(RSMDFeConsultaRoute, PostConsultaMDFe);
   THorse.Post(RSMDFeCancelamentoRoute, PostCancelamentoMDFe);

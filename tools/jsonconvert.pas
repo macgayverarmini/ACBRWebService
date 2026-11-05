@@ -1,4 +1,4 @@
-unit jsonconvert;
+﻿unit jsonconvert;
 
 {$mode Delphi}{$H+}
 {$M+}
@@ -29,15 +29,17 @@ type
 
     class procedure JsonStringToObj(const JsonString: string; const Obj: TObject);
     class procedure JsonToObj(const Json: TJSONObject; const Obj: TObject);
+
+    class function ExtractConfig(O: TJSONObject; const Field: string = ''): string;
+    class function ExtractCertificadoPFX(O: TJSONObject): AnsiString;
+    class function ReadXMLFromJSON(const jsonData: TJSONObject; const ExtraKeys: array of string): string;
+    class function JsonAndFree(AData: TJSONData): string;
   end;
 
 implementation
 
 uses
-  Contnrs, DateUtils;
-
-type
-  TNewItemFunc = function: TObject of object;
+  Contnrs, DateUtils, Base64, synacode;
 
 { TJSONTools }
 
@@ -88,6 +90,8 @@ begin
 
     if Assigned(RttiMethod) then
     begin
+      if AListObj is TObjectList then
+        TObjectList(AListObj).Clear;
       for I := 0 to AArray.Count - 1 do
       begin
         if AArray.Items[I] is TJSONObject then
@@ -307,6 +311,11 @@ begin
     Data := InternalObjToJson(Obj, Visited);
     if Data is TJSONObject then
       Result := TJSONObject(Data)
+    else if Data is TJSONArray then
+    begin
+      Result := TJSONObject.Create;
+      Result.Add('items', Data);
+    end
     else
     begin
       Result := TJSONObject.Create; 
@@ -334,17 +343,25 @@ begin
 end;
 
 class procedure TJSONTools.JsonToObj(const Json: TJSONObject; const Obj: TObject);
+const
+  ACBrEnumPrefixes: array[0..14] of string = (
+    'cst', 'csosn', 'oe', 'dbi', 'dbis', 'mdi', 'pis', 'cof', 'ipi',
+    'tm', 'cp', 'ia', 'te', 'ta', 'td'
+  );
 var
   Ctx: TRttiContext;
   RttiType: TRttiType;
   Prop: TRttiProperty;
-  i: Integer;
+  i, PIdx: Integer;
   Val: TValue;
   JsonVal: TJSONData;
-  PropStr: string;
+  PropStr, SVal: string;
   ObjRef: TObject;
   EnumVal: Integer;
   LDate: TDateTime;
+  LOk: Boolean;
+  LTe: TpcnTpEvento;
+  LTypeData: PTypeData;
 begin
   if (Json = nil) or (Obj = nil) then Exit;
 
@@ -403,7 +420,19 @@ begin
                   end;
                 end;
               tkString, tkUString, tkAString, tkWString, tkChar, tkWChar, tkUChar:
-                Prop.SetValue(Obj, TValue.From<string>(JsonVal.AsString));
+                if JsonVal is TJSONObject then
+                begin
+                  if TJSONObject(JsonVal).Get('Cnpj', '') <> '' then
+                    Prop.SetValue(Obj, TValue.From<string>(TJSONObject(JsonVal).Get('Cnpj', '')))
+                  else if TJSONObject(JsonVal).Get('CNPJ', '') <> '' then
+                    Prop.SetValue(Obj, TValue.From<string>(TJSONObject(JsonVal).Get('CNPJ', '')))
+                  else if TJSONObject(JsonVal).Get('Cpf', '') <> '' then
+                    Prop.SetValue(Obj, TValue.From<string>(TJSONObject(JsonVal).Get('Cpf', '')))
+                  else if TJSONObject(JsonVal).Get('CPF', '') <> '' then
+                    Prop.SetValue(Obj, TValue.From<string>(TJSONObject(JsonVal).Get('CPF', '')));
+                end
+                else
+                  Prop.SetValue(Obj, TValue.From<string>(JsonVal.AsString));
               tkEnumeration:
                 if Prop.PropertyType.Handle = TypeInfo(Boolean) then
                 begin
@@ -416,10 +445,48 @@ begin
                 end
                 else
                 begin
-                  EnumVal := GetEnumValue(Prop.PropertyType.Handle, JsonVal.AsString);
+                  SVal := Trim(JsonVal.AsString);
+                  EnumVal := GetEnumValue(Prop.PropertyType.Handle, SVal);
+                  if (EnumVal < 0) and (Prop.PropertyType.Handle = TypeInfo(TpcnTpEvento)) and (SVal <> '') then
+                  begin
+                    LTe := StrToTpEventoNFe(LOk, SVal);
+                    if LOk then
+                      EnumVal := Ord(LTe);
+                  end;
+                  if (EnumVal < 0) and (SVal <> '') then
+                  begin
+                    if SameText(Copy(SVal, 1, 2), 'md') then
+                      EnumVal := GetEnumValue(Prop.PropertyType.Handle, 'mo' + Copy(SVal, 3, Length(SVal) - 2))
+                    else if SameText(Copy(SVal, 1, 2), 'mo') then
+                      EnumVal := GetEnumValue(Prop.PropertyType.Handle, 'md' + Copy(SVal, 3, Length(SVal) - 2))
+                    else if SameText(SVal, 'crtSimplesNacionalExcesso') then
+                      EnumVal := GetEnumValue(Prop.PropertyType.Handle, 'crtSimplesExcessoReceita')
+                    else if SameText(SVal, 'crtSimplesExcessoReceita') then
+                      EnumVal := GetEnumValue(Prop.PropertyType.Handle, 'crtSimplesNacionalExcesso')
+                    else if SameText(SVal, 'crtMEI') then
+                      EnumVal := GetEnumValue(Prop.PropertyType.Handle, 'crtSimplesNacionalMEI')
+                    else if SameText(SVal, 'crtSimplesNacionalMEI') then
+                      EnumVal := GetEnumValue(Prop.PropertyType.Handle, 'crtMEI');
+                  end;
+                  if (EnumVal < 0) and (SVal <> '') then
+                  begin
+                    for PIdx := Low(ACBrEnumPrefixes) to High(ACBrEnumPrefixes) do
+                    begin
+                      EnumVal := GetEnumValue(Prop.PropertyType.Handle, ACBrEnumPrefixes[PIdx] + SVal);
+                      if EnumVal >= 0 then
+                        Break;
+                    end;
+                  end;
                   if (EnumVal < 0) and (JsonVal is TJSONNumber) then
                     EnumVal := JsonVal.AsInteger;
-                  if EnumVal >= 0 then
+                  if (EnumVal < 0) and (SVal <> '') then
+                  begin
+                    if not TryStrToInt(SVal, EnumVal) then
+                      EnumVal := -1;
+                  end;
+                  LTypeData := GetTypeData(Prop.PropertyType.Handle);
+                  if (EnumVal >= 0) and (not Assigned(LTypeData) or
+                     ((EnumVal >= LTypeData^.MinValue) and (EnumVal <= LTypeData^.MaxValue))) then
                     Prop.SetValue(Obj, TValue.FromOrdinal(Prop.PropertyType.Handle, EnumVal));
                 end;
               tkSet:
@@ -435,6 +502,108 @@ begin
     end;
   finally
     Ctx.Free;
+  end;
+end;
+
+class function TJSONTools.ExtractConfig(O: TJSONObject; const Field: string): string;
+var
+  CfgData: TJSONData;
+  LField: string;
+begin
+  Result := '';
+  if not Assigned(O) then
+    Exit;
+  if Field <> '' then
+    LField := Field
+  else
+    LField := RSConfigField;
+  CfgData := O.Extract(LField);
+  if Assigned(CfgData) then
+  begin
+    try
+      Result := CfgData.AsJSON;
+    finally
+      CfgData.Free;
+    end;
+  end;
+end;
+
+class function TJSONTools.ExtractCertificadoPFX(O: TJSONObject): AnsiString;
+var
+  LCertJson: TJSONData;
+  LCertObj: TJSONObject;
+  LPFXB64: string;
+begin
+  Result := '';
+  if not Assigned(O) then
+    Exit;
+  LCertJson := O.Find('Certificados');
+  if Assigned(LCertJson) and (LCertJson is TJSONObject) then
+  begin
+    LCertObj := TJSONObject(LCertJson);
+    LPFXB64 := LCertObj.Get('DadosPFXBase64', '');
+    if LPFXB64 = '' then
+      LPFXB64 := LCertObj.Get('DadosPFX', '');
+    if LPFXB64 <> '' then
+      Result := synacode.DecodeBase64(LPFXB64);
+  end;
+end;
+
+class function TJSONTools.ReadXMLFromJSON(const jsonData: TJSONObject; const ExtraKeys: array of string): string;
+const
+  DefaultKeys: array[0..3] of string = (RSXmlKey, RSXMLField, 'XMLEvento', 'xml_evento');
+var
+  LXmlValue: string;
+  I: Integer;
+begin
+  LXmlValue := '';
+  if Assigned(jsonData) then
+  begin
+    for I := Low(DefaultKeys) to High(DefaultKeys) do
+    begin
+      LXmlValue := jsonData.Get(DefaultKeys[I], '');
+      if LXmlValue <> '' then
+        Break;
+    end;
+    if LXmlValue = '' then
+    begin
+      for I := Low(ExtraKeys) to High(ExtraKeys) do
+      begin
+        LXmlValue := jsonData.Get(ExtraKeys[I], '');
+        if LXmlValue <> '' then
+          Break;
+      end;
+    end;
+  end;
+
+  if LXmlValue = '' then
+    raise Exception.Create('O campo "xml" não foi informado ou está vazio no JSON.');
+
+  LXmlValue := Trim(LXmlValue);
+
+  if Copy(LXmlValue, 1, 1) = '<' then
+    Result := LXmlValue
+  else
+  begin
+    try
+      Result := DecodeStringBase64(LXmlValue);
+    except
+      on E: Exception do
+        raise Exception.Create('Erro ao decodificar XML Base64: ' + E.Message);
+    end;
+  end;
+end;
+
+class function TJSONTools.JsonAndFree(AData: TJSONData): string;
+begin
+  Result := '{}';
+  if Assigned(AData) then
+  begin
+    try
+      Result := AData.AsJSON;
+    finally
+      AData.Free;
+    end;
   end;
 end;
 

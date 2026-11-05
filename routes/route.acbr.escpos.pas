@@ -1,4 +1,4 @@
-unit route.acbr.escpos;
+﻿unit route.acbr.escpos;
 
 {$mode Delphi}{$H+}
 
@@ -6,7 +6,10 @@ interface
 
 uses
   method.acbr.escpos,
+  jsonconvert,
   fpjson, Horse, Horse.Commons, Classes, SysUtils,
+  resource.strings.global,
+  resource.strings.msg,
   resource.strings.routes;
 
 procedure GetModeloConfigEscPos(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
@@ -16,29 +19,13 @@ procedure regRouter;
 
 implementation
 
-
-function ExtractConfig(O: TJSONObject; const Field: string): string;
-var
-  Data: TJSONData;
-begin
-  Result := '';
-  if Assigned(O) then
-  begin
-    Data := O.Extract(Field);
-    if Assigned(Data) then
-    begin
-      Result := Data.AsJSON;
-      Data.Free;
-    end;
-  end;
-end;
 procedure GetModeloConfigEscPos(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   AcM: TACBRModelosJSONEscPos;
 begin
   AcM := TACBRModelosJSONEscPos.Create('');
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(AcM.ModelConfig.AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(AcM.ModelConfig));
   finally
     AcM.Free;
   end;
@@ -54,12 +41,12 @@ begin
   except
     on E: Exception do
     begin
-      Res.Status(400).Send(TJSONObject.Create(['message', 'Corpo JSON inválido.']).AsJSON);
+      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSInvalidJSONBodyError])));
       Exit;
     end;
   end;
 
-  Ac := TACBRBridgeEscPos.Create(ExtractConfig(O, 'config'));
+  Ac := TACBRBridgeEscPos.Create(TJSONTools.ExtractConfig(O));
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(Ac.EscPos(O));
   finally

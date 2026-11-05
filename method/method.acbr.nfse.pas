@@ -202,82 +202,46 @@ End;
 
 Procedure TACBRBridgeNFSe.CarregaConfig;
 Var 
-  O, CertConfig: TJSONObject;
-  tempData: TJSONData;
-  b64String: String;
+  O: TJSONObject;
+  LPfx: AnsiString;
 Begin
-  if (fcfg = '') or (fcfg = '') then
-    raise Exception.Create('Configuracao vazia ou nao informada.');
+  if Trim(fcfg) = '' then
+    raise Exception.Create(RSConfigEmptyError);
 
   try
     O := GetJSON(fcfg) as TJSONObject;
-      Try
-        TJSONTools.JsonToObj(O, facbr.Configuracoes);
-        
-        tempData := O.Find('Certificados');
-        if Assigned(tempData) and (tempData.JSONType = jtObject) then
-        begin
-          CertConfig := TJSONObject(tempData);
-          b64String := CertConfig.Get('DadosPFXBase64', '');
-          if b64String <> '' then
-          begin
-            facbr.Configuracoes.Certificados.DadosPFX := synacode.DecodeBase64(AnsiString(b64String));
-          end;
-        end;
+    Try
+      TJSONTools.JsonToObj(O, facbr.Configuracoes);
+      
+      LPfx := TJSONTools.ExtractCertificadoPFX(O);
+      if LPfx <> '' then
+        facbr.Configuracoes.Certificados.DadosPFX := LPfx;
 
-        with facbr.Configuracoes.Geral do
-        begin
-          SSLLib := libNone;
-          SSLLib := libOpenSSL;
-          SSLCryptLib := cryOpenSSL;
-          SSLHttpLib := httpOpenSSL;
-          SSLXmlSignLib := xsLibXml2;
-        end;
-      Finally
-        O.Free;
-      End;
+      with facbr.Configuracoes.Geral do
+      begin
+        SSLLib := libOpenSSL;
+        SSLCryptLib := cryOpenSSL;
+        SSLHttpLib := httpOpenSSL;
+        SSLXmlSignLib := xsLibXml2;
+      end;
+    Finally
+      O.Free;
+    End;
   except
     on E: Exception do
-      raise Exception.Create('Erro na leitura da configuracao: ' + E.Message);
+      raise Exception.Create(RSConfigReadError + E.Message);
   end;
 
   // Garante PathSchemas padrão para NFSe se não foi informado
   if facbr.Configuracoes.Arquivos.PathSchemas = '' then
-    facbr.Configuracoes.Arquivos.PathSchemas := ExtractFilePath(ParamStr(0)) + 'Schemas' + PathDelim + 'NFSe';
+    facbr.Configuracoes.Arquivos.PathSchemas := ExtractFilePath(ParamStr(0)) + RSSchemasDir + PathDelim + 'NFSe';
 
   fcfg := '';
 End;
 
 Function TACBRBridgeNFSe.ReadXMLFromJSON(Const jsonData: TJSONObject): string;
-Var 
-  xmlData: TJSONData;
-  xmlBase64: string;
 Begin
-  xmlData := jsonData.Find('xml');
-  if not Assigned(xmlData) then
-    xmlData := jsonData.Find('XML');
-  if not Assigned(xmlData) then
-    raise Exception.Create(RSErrorReadingXMLParam + 'Parametro "xml" nao encontrado no JSON.');
-
-  xmlBase64 := Trim(xmlData.AsString);
-  if xmlBase64 = '' then
-    raise Exception.Create(RSErrorReadingXMLParam + 'Parametro "xml" esta vazio no JSON.');
-
-  if (Length(xmlBase64) > 0) and (xmlBase64[1] = '<') then
-  begin
-    Result := xmlBase64;
-    Exit;
-  end;
-
-  Try
-    Result := DecodeStringBase64(xmlBase64);
-    xmlBase64 := '';
-  Except
-    on E: Exception Do
-          Begin
-            raise Exception.Create(RSInvalidBase64XML + E.Message);
-          End;
-  End;
+  Result := TJSONTools.ReadXMLFromJSON(jsonData, ['xml_nfse', 'NFSeXML', 'XMLNFSe', 'XmlRps', 'xml_rps', 'ArquivoXML', 'arquivo_xml']);
 End;
 
 constructor TACBRBridgeNFSe.Create(Const Cfg: String);
@@ -299,6 +263,8 @@ Function TACBRBridgeNFSe.Emitir(Const jNFSe: TJSONObject): TJSONObject;
 Var 
   Lote: integer;
   Nota: TNotaFiscal;
+  jTargetNode, jPrestNode, jTomNode: TJSONData;
+  jTarget: TJSONObject;
 Begin
   CarregaConfig;
   Result := TJSONObject.Create;
@@ -307,6 +273,21 @@ Begin
   Nota := facbr.NotasFiscais.New;
   Try
     TJSONTools.JsonToObj(jNFSe, Nota);
+    jTargetNode := jNFSe.Find('NFSe');
+    if not Assigned(jTargetNode) then jTargetNode := jNFSe.Find('nfse');
+    if Assigned(jTargetNode) and (jTargetNode.JSONType = jtObject) then
+      jTarget := TJSONObject(jTargetNode)
+    else
+      jTarget := jNFSe;
+    TJSONTools.JsonToObj(jTarget, Nota.NFSe);
+    jPrestNode := jTarget.Find('Prestador');
+    if not Assigned(jPrestNode) then jPrestNode := jTarget.Find('prestador');
+    if Assigned(jPrestNode) and (jPrestNode.JSONType = jtObject) then
+      TJSONTools.JsonToObj(TJSONObject(jPrestNode), Nota.NFSe.Prestador.IdentificacaoPrestador);
+    jTomNode := jTarget.Find('Tomador');
+    if not Assigned(jTomNode) then jTomNode := jTarget.Find('tomador');
+    if Assigned(jTomNode) and (jTomNode.JSONType = jtObject) then
+      TJSONTools.JsonToObj(TJSONObject(jTomNode), Nota.NFSe.Tomador.IdentificacaoTomador);
   Except
     on E: Exception Do
           Begin
@@ -343,6 +324,8 @@ Function TACBRBridgeNFSe.Gerar(Const jNFSe: TJSONObject): TJSONObject;
 Var 
   Lote: integer;
   Nota: TNotaFiscal;
+  jTargetNode, jPrestNode, jTomNode: TJSONData;
+  jTarget: TJSONObject;
 Begin
   CarregaConfig;
   Result := TJSONObject.Create;
@@ -351,6 +334,21 @@ Begin
   Nota := facbr.NotasFiscais.New;
   Try
     TJSONTools.JsonToObj(jNFSe, Nota);
+    jTargetNode := jNFSe.Find('NFSe');
+    if not Assigned(jTargetNode) then jTargetNode := jNFSe.Find('nfse');
+    if Assigned(jTargetNode) and (jTargetNode.JSONType = jtObject) then
+      jTarget := TJSONObject(jTargetNode)
+    else
+      jTarget := jNFSe;
+    TJSONTools.JsonToObj(jTarget, Nota.NFSe);
+    jPrestNode := jTarget.Find('Prestador');
+    if not Assigned(jPrestNode) then jPrestNode := jTarget.Find('prestador');
+    if Assigned(jPrestNode) and (jPrestNode.JSONType = jtObject) then
+      TJSONTools.JsonToObj(TJSONObject(jPrestNode), Nota.NFSe.Prestador.IdentificacaoPrestador);
+    jTomNode := jTarget.Find('Tomador');
+    if not Assigned(jTomNode) then jTomNode := jTarget.Find('tomador');
+    if Assigned(jTomNode) and (jTomNode.JSONType = jtObject) then
+      TJSONTools.JsonToObj(TJSONObject(jTomNode), Nota.NFSe.Tomador.IdentificacaoTomador);
   Except
     on E: Exception Do
           Begin
@@ -387,18 +385,31 @@ End;
 Function TACBRBridgeNFSe.ConsultarSituacao(Const jConsulta: TJSONObject): TJSONObject;
 Var
   Protocolo, NumLote: TJSONData;
+  vProt, vLote: string;
 Begin
   CarregaConfig;
-  Result := TJSONObject.Create;
+  Result := nil;
 
-  If jConsulta.Find('Protocolo', Protocolo) and jConsulta.Find('NumLote', NumLote) Then
+  Protocolo := jConsulta.Find('Protocolo');
+  if not Assigned(Protocolo) then Protocolo := jConsulta.Find('protocolo');
+  NumLote := jConsulta.Find('NumLote');
+  if not Assigned(NumLote) then NumLote := jConsulta.Find('NumeroLote');
+  if not Assigned(NumLote) then NumLote := jConsulta.Find('numeroLote');
+
+  vProt := '';
+  if Assigned(Protocolo) then vProt := Trim(Protocolo.AsString);
+  vLote := '';
+  if Assigned(NumLote) then vLote := Trim(NumLote.AsString);
+
+  If (vProt <> '') or (vLote <> '') Then
   Begin
     Try
-      facbr.ConsultarSituacao(Protocolo.AsString, NumLote.AsString);
+      facbr.ConsultarSituacao(vProt, vLote);
       Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebService.ConsultaSituacao));
     Except
       on E: Exception Do
       Begin
+        Result := TJSONObject.Create;
         Result.Add(RSStatusField, RSStatusErro);
         Result.Add(RSMessageField, 'Erro na consulta de situacao: ' + E.Message);
       End;
@@ -406,6 +417,7 @@ Begin
   End
   Else
   Begin
+    Result := TJSONObject.Create;
     Result.Add(RSStatusField, RSStatusErro);
     Result.Add(RSMessageField, 'Protocolo ou NumLote nao informados.');
   End;
@@ -414,18 +426,31 @@ End;
 Function TACBRBridgeNFSe.ConsultarLote(Const jConsulta: TJSONObject): TJSONObject;
 Var
   Protocolo, NumLote: TJSONData;
+  vProt, vLote: string;
 Begin
   CarregaConfig;
-  Result := TJSONObject.Create;
+  Result := nil;
 
-  If jConsulta.Find('Protocolo', Protocolo) and jConsulta.Find('NumLote', NumLote) Then
+  Protocolo := jConsulta.Find('Protocolo');
+  if not Assigned(Protocolo) then Protocolo := jConsulta.Find('protocolo');
+  NumLote := jConsulta.Find('NumLote');
+  if not Assigned(NumLote) then NumLote := jConsulta.Find('NumeroLote');
+  if not Assigned(NumLote) then NumLote := jConsulta.Find('numeroLote');
+
+  vProt := '';
+  if Assigned(Protocolo) then vProt := Trim(Protocolo.AsString);
+  vLote := '';
+  if Assigned(NumLote) then vLote := Trim(NumLote.AsString);
+
+  If (vProt <> '') or (vLote <> '') Then
   Begin
     Try
-      facbr.ConsultarLoteRps(Protocolo.AsString, NumLote.AsString);
+      facbr.ConsultarLoteRps(vProt, vLote);
       Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebService.ConsultaLoteRps));
     Except
       on E: Exception Do
       Begin
+        Result := TJSONObject.Create;
         Result.Add(RSStatusField, RSStatusErro);
         Result.Add(RSMessageField, 'Erro na consulta de lote: ' + E.Message);
       End;
@@ -433,6 +458,7 @@ Begin
   End
   Else
   Begin
+    Result := TJSONObject.Create;
     Result.Add(RSStatusField, RSStatusErro);
     Result.Add(RSMessageField, 'Protocolo ou NumLote nao informados.');
   End;
@@ -441,23 +467,43 @@ End;
 Function TACBRBridgeNFSe.ConsultarNFSePorRps(Const jConsulta: TJSONObject): TJSONObject;
 Var
   NumRps, Serie, Tipo, CodVerificacao: TJSONData;
-  vCodVerificacao: string;
+  vNumRps, vSerie, vTipo, vCodVerificacao: string;
 Begin
   CarregaConfig;
-  Result := TJSONObject.Create;
+  Result := nil;
 
-  If jConsulta.Find('NumeroRps', NumRps) and jConsulta.Find('Serie', Serie) and jConsulta.Find('Tipo', Tipo) Then
+  NumRps := jConsulta.Find('NumeroRps');
+  if not Assigned(NumRps) then NumRps := jConsulta.Find('numeroRps');
+  Serie := jConsulta.Find('Serie');
+  if not Assigned(Serie) then Serie := jConsulta.Find('SerieRps');
+  if not Assigned(Serie) then Serie := jConsulta.Find('serieRps');
+  Tipo := jConsulta.Find('Tipo');
+  if not Assigned(Tipo) then Tipo := jConsulta.Find('TipoRps');
+  if not Assigned(Tipo) then Tipo := jConsulta.Find('tipoRps');
+  CodVerificacao := jConsulta.Find('CodVerificacao');
+  if not Assigned(CodVerificacao) then CodVerificacao := jConsulta.Find('CodigoVerificacao');
+  if not Assigned(CodVerificacao) then CodVerificacao := jConsulta.Find('codigoVerificacao');
+
+  If Assigned(NumRps) and (Trim(NumRps.AsString) <> '') Then
   Begin
     Try
+      vNumRps := Trim(NumRps.AsString);
+      vSerie := '1';
+      if Assigned(Serie) and (Trim(Serie.AsString) <> '') then
+        vSerie := Trim(Serie.AsString);
+      vTipo := '1';
+      if Assigned(Tipo) and (Trim(Tipo.AsString) <> '') then
+        vTipo := Trim(Tipo.AsString);
       vCodVerificacao := '';
-      If jConsulta.Find('CodVerificacao', CodVerificacao) Then
-        vCodVerificacao := CodVerificacao.AsString;
+      if Assigned(CodVerificacao) then
+        vCodVerificacao := Trim(CodVerificacao.AsString);
 
-      facbr.ConsultarNFSePorRps(NumRps.AsString, Serie.AsString, Tipo.AsString, vCodVerificacao);
+      facbr.ConsultarNFSePorRps(vNumRps, vSerie, vTipo, vCodVerificacao);
       Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebService.ConsultaNFSeporRps));
     Except
       on E: Exception Do
       Begin
+        Result := TJSONObject.Create;
         Result.Add(RSStatusField, RSStatusErro);
         Result.Add(RSMessageField, 'Erro na consulta por RPS: ' + E.Message);
       End;
@@ -465,6 +511,7 @@ Begin
   End
   Else
   Begin
+    Result := TJSONObject.Create;
     Result.Add(RSStatusField, RSStatusErro);
     Result.Add(RSMessageField, 'NumeroRps, Serie ou Tipo nao informados.');
   End;
@@ -472,14 +519,12 @@ End;
 
 Function TACBRBridgeNFSe.ConsultarNFSe(Const jConsulta: TJSONObject): TJSONObject;
 Var
-  DataInicial, DataFinal, NumeroNFSe, Pagina, CNPJTomador, IMTomador, NomeIntermediario, 
-  CNPJIntermediario, IMIntermediario: TJSONData;
+  DataInicial, DataFinal, Pagina: TJSONData;
   vDataInicial, vDataFinal: TDateTime;
-  vNumeroNFSe: Integer;
-  vPagina, vCNPJTomador, vIMTomador, vNomeIntermediario, vCNPJIntermediario, vIMIntermediario: String;
+  vPagina: String;
 Begin
   CarregaConfig;
-  Result := TJSONObject.Create;
+  Result := nil;
 
   vDataInicial := 0;
   vDataFinal := 0;
@@ -495,6 +540,7 @@ Begin
   Except
     on E: Exception Do
     Begin
+      Result := TJSONObject.Create;
       Result.Add(RSStatusField, RSStatusErro);
       Result.Add(RSMessageField, 'Erro na consulta NFSe: ' + E.Message);
     End;
@@ -506,7 +552,7 @@ Var
   InfCancelamento: TInfCancelamento;
 Begin
   CarregaConfig;
-  Result := TJSONObject.Create;
+  Result := nil;
 
   InfCancelamento := TInfCancelamento.Create;
   Try
@@ -515,6 +561,7 @@ Begin
     Except
       on E: Exception Do
       Begin
+        Result := TJSONObject.Create;
         Result.Add(RSStatusField, RSStatusErro);
         Result.Add(RSMessageField, 'Erro ao converter JSON para InfCancelamento: ' + E.Message);
         Exit;
@@ -527,6 +574,7 @@ Begin
     Except
       on E: Exception Do
       Begin
+        Result := TJSONObject.Create;
         Result.Add(RSStatusField, RSStatusErro);
         Result.Add(RSMessageField, 'Erro ao cancelar: ' + E.Message);
       End;
@@ -538,20 +586,37 @@ End;
 
 Function TACBRBridgeNFSe.Substituir(Const jSubstituir: TJSONObject): TJSONObject;
 Var
-  CodigoCancelamento, MotivoCancelamento, NumeroNFSe, ChaveNFSe: TJSONData;
+  CodigoCancelamento, NumeroNFSe, jTargetNode, jPrestNode, jTomNode: TJSONData;
   Nota: TNotaFiscal;
+  jTarget: TJSONObject;
 Begin
   CarregaConfig;
-  Result := TJSONObject.Create;
+  Result := nil;
 
   // Carrega RPS contida no JSON para Substituição
   facbr.NotasFiscais.Clear;
   Nota := facbr.NotasFiscais.New;
   Try
     TJSONTools.JsonToObj(jSubstituir, Nota);
+    jTargetNode := jSubstituir.Find('NFSe');
+    if not Assigned(jTargetNode) then jTargetNode := jSubstituir.Find('nfse');
+    if Assigned(jTargetNode) and (jTargetNode.JSONType = jtObject) then
+      jTarget := TJSONObject(jTargetNode)
+    else
+      jTarget := jSubstituir;
+    TJSONTools.JsonToObj(jTarget, Nota.NFSe);
+    jPrestNode := jTarget.Find('Prestador');
+    if not Assigned(jPrestNode) then jPrestNode := jTarget.Find('prestador');
+    if Assigned(jPrestNode) and (jPrestNode.JSONType = jtObject) then
+      TJSONTools.JsonToObj(TJSONObject(jPrestNode), Nota.NFSe.Prestador.IdentificacaoPrestador);
+    jTomNode := jTarget.Find('Tomador');
+    if not Assigned(jTomNode) then jTomNode := jTarget.Find('tomador');
+    if Assigned(jTomNode) and (jTomNode.JSONType = jtObject) then
+      TJSONTools.JsonToObj(TJSONObject(jTomNode), Nota.NFSe.Tomador.IdentificacaoTomador);
   Except
     on E: Exception Do
     Begin
+      Result := TJSONObject.Create;
       Result.Add(RSStatusField, RSStatusErro);
       Result.Add(RSMessageField, 'Erro ao converter RPS para JSON: ' + E.Message);
       Exit;
@@ -569,6 +634,7 @@ Begin
     Except
       on E: Exception Do
       Begin
+        Result := TJSONObject.Create;
         Result.Add(RSStatusField, RSStatusErro);
         Result.Add(RSMessageField, 'Erro na substituicao: ' + E.Message);
       End;
@@ -576,6 +642,7 @@ Begin
   End
   Else
   Begin
+    Result := TJSONObject.Create;
     Result.Add(RSStatusField, RSStatusErro);
     Result.Add(RSMessageField, 'NumeroNFSe ou CodigoCancelamento nao informados.');
   End;
@@ -587,7 +654,7 @@ Var
   NSU: TJSONData;
 Begin
   CarregaConfig;
-  Result := TJSONObject.Create;
+  Result := nil;
   Try
     If jDistribuicao.Find('Chave', Chave) Then
       facbr.ConsultarDFe(Chave.AsString)
@@ -600,6 +667,7 @@ Begin
     End
     Else
     Begin
+      Result := TJSONObject.Create;
       Result.Add(RSStatusField, RSStatusErro);
       Result.Add(RSMessageField, 'Parametros insuficientes para consultar DFe. Informe Chave ou NSU.');
       Exit;
@@ -609,6 +677,7 @@ Begin
   Except
     on E: Exception Do
     Begin
+      Result := TJSONObject.Create;
       Result.Add(RSStatusField, RSStatusErro);
       Result.Add(RSMessageField, 'Erro na consulta de distribuicao (DFe): ' + E.Message);
     End;
@@ -658,7 +727,7 @@ Begin
   fdanfse.MostraStatus := False;
   fdanfse.MostraSetup := False;
 
-  fileName := ExtractFilePath(ParamStr(0)) + 'pdf' + PathDelim;
+  fileName := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim;
   if not DirectoryExists(fileName) then
     CreateDir(fileName);
   Try
@@ -703,32 +772,35 @@ Var
   stringXml: string;
 Begin
   CarregaConfig;
-  Result := TJSONObject.Create;
+  Result := nil;
 
   Try
     stringXml := ReadXMLFromJSON(jXML);
   Except
     on E: Exception Do
-          Begin
-            Result.Add(RSErrorField, E.Message);
-            Exit;
-          End;
+    Begin
+      Result := TJSONObject.Create;
+      Result.Add(RSErrorField, E.Message);
+      Exit;
+    End;
   End;
 
   Try
     facbr.NotasFiscais.LoadFromString(stringXml);
   Except
     on E: Exception Do
-          Begin
-            Result.Add(RSErrorField, RSXMLReadError + E.Message);
-            Exit;
-          End;
+    Begin
+      Result := TJSONObject.Create;
+      Result.Add(RSErrorField, RSXMLReadError + E.Message);
+      Exit;
+    End;
   End;
 
   stringXml := '';
 
   If facbr.NotasFiscais.Count = 0 Then
   Begin
+    Result := TJSONObject.Create;
     Result.Add(RSErrorField, 'Nenhuma NFS-e carregada a partir do XML.');
     Exit;
   End;
@@ -745,7 +817,7 @@ Begin
   Except
     on E: Exception Do
     Begin
-      Result.Free;
+      FreeAndNil(Result);
       Result := TJSONTools.SafeObjToJson(nil, 'Erro ao converter objeto para JSON: ' + E.Message);
     End;
   End;
@@ -757,6 +829,8 @@ Function TACBRBridgeNFSe.NFSeToXML(Const jNFSe: TJSONObject): TJSONObject;
 Var
   Nota: TNotaFiscal;
   xmlString: string;
+  jTargetNode, jPrestNode, jTomNode: TJSONData;
+  jTarget: TJSONObject;
 Begin
   CarregaConfig;
   Result := TJSONObject.Create;
@@ -765,6 +839,21 @@ Begin
   Nota := facbr.NotasFiscais.New;
   Try
     TJSONTools.JsonToObj(jNFSe, Nota);
+    jTargetNode := jNFSe.Find('NFSe');
+    if not Assigned(jTargetNode) then jTargetNode := jNFSe.Find('nfse');
+    if Assigned(jTargetNode) and (jTargetNode.JSONType = jtObject) then
+      jTarget := TJSONObject(jTargetNode)
+    else
+      jTarget := jNFSe;
+    TJSONTools.JsonToObj(jTarget, Nota.NFSe);
+    jPrestNode := jTarget.Find('Prestador');
+    if not Assigned(jPrestNode) then jPrestNode := jTarget.Find('prestador');
+    if Assigned(jPrestNode) and (jPrestNode.JSONType = jtObject) then
+      TJSONTools.JsonToObj(TJSONObject(jPrestNode), Nota.NFSe.Prestador.IdentificacaoPrestador);
+    jTomNode := jTarget.Find('Tomador');
+    if not Assigned(jTomNode) then jTomNode := jTarget.Find('tomador');
+    if Assigned(jTomNode) and (jTomNode.JSONType = jtObject) then
+      TJSONTools.JsonToObj(TJSONObject(jTomNode), Nota.NFSe.Tomador.IdentificacaoTomador);
   Except
     on E: Exception Do
     Begin
@@ -777,7 +866,7 @@ Begin
 
   Try
     xmlString := Nota.GerarXML;
-    Result.Add('xml', EncodeStringBase64(xmlString));
+    Result.Add(RSXmlKey, EncodeStringBase64(xmlString));
   Except
     on E: Exception Do
     Begin
@@ -792,7 +881,7 @@ End;
 Function TACBRModelosJSONNFSe.ModelNFSeFromXML: TJSONObject;
 Begin
   Result := TJSONObject.Create;
-  Result.Add('xml', 'XML da NFS-e em Base64 — retorna a NFS-e como JSON');
+  Result.Add(RSXmlKey, 'XML da NFS-e em Base64 — retorna a NFS-e como JSON');
 End;
 
 Function TACBRModelosJSONNFSe.ModelNFSeToXML: TJSONObject;
@@ -814,8 +903,11 @@ End;
 Function TACBRBridgeNFSe.EnviarEvento(Const jEvento: TJSONObject): TJSONObject;
 Var
   Evento: TInfEvento;
+  jInfData, jPedData: TJSONData;
+  jInf, jPed: TJSONObject;
   tpEventoStr, chNFSe, chSub, xMotivo: string;
-  cMotivo: Integer;
+  cMotivo, tpAmbVal: Integer;
+  ok: Boolean;
 Begin
   CarregaConfig;
   Result := TJSONObject.Create;
@@ -823,39 +915,75 @@ Begin
   Evento := TInfEvento.Create;
   Try
     Try
-      TJSONTools.JsonToObj(jEvento, Evento);
-      if jEvento.Find('pedRegEvento') <> nil then
-        TJSONTools.JsonToObj(jEvento.Objects['pedRegEvento'], Evento.pedRegEvento);
+      jInf := jEvento;
+      jInfData := jEvento.Find('infEvento');
+      if not Assigned(jInfData) then
+        jInfData := jEvento.Find('InfEvento');
+      if Assigned(jInfData) and (jInfData.JSONType = jtObject) then
+        jInf := TJSONObject(jInfData);
 
-      chNFSe := jEvento.Get('chNFSe', '');
+      jPed := jInf;
+      if jInf.Find('pedRegEvento', jPedData) and (jPedData.JSONType = jtObject) then
+      begin
+        jPed := TJSONObject(jPedData);
+        jInf := jPed;
+      end
+      else if jEvento.Find('pedRegEvento', jPedData) and (jPedData.JSONType = jtObject) then
+      begin
+        jPed := TJSONObject(jPedData);
+        jInf := jPed;
+      end;
+
+      TJSONTools.JsonToObj(jEvento, Evento);
+      TJSONTools.JsonToObj(jInf, Evento.pedRegEvento);
+
+      chNFSe := jInf.Get('chNFSe', jEvento.Get('chNFSe', ''));
       if chNFSe <> '' then
         Evento.pedRegEvento.chNFSe := chNFSe;
 
-      chSub := jEvento.Get('chSubstituta', '');
+      chSub := jInf.Get('chSubstituta', jEvento.Get('chSubstituta', ''));
       if chSub <> '' then
         Evento.pedRegEvento.chSubstituta := chSub;
 
-      cMotivo := jEvento.Get('cMotivo', 0);
+      cMotivo := jInf.Get('cMotivo', jEvento.Get('cMotivo', 0));
       if cMotivo > 0 then
         Evento.pedRegEvento.cMotivo := cMotivo;
 
-      xMotivo := jEvento.Get('xMotivo', '');
+      tpAmbVal := jInf.Get('tpAmb', jEvento.Get('tpAmb', 0));
+      if tpAmbVal > 0 then
+        Evento.pedRegEvento.tpAmb := tpAmbVal;
+
+      xMotivo := jInf.Get('xMotivo', jEvento.Get('xMotivo', ''));
       if xMotivo = '' then
-        xMotivo := jEvento.Get('justificativa', '');
+        xMotivo := jInf.Get('justificativa', jEvento.Get('justificativa', ''));
       if xMotivo <> '' then
         Evento.pedRegEvento.xMotivo := xMotivo;
 
-      tpEventoStr := jEvento.Get('tpEvento', '');
-      if tpEventoStr = 'e101101' then
-        Evento.pedRegEvento.tpEvento := ACBrNFSeXConversao.teCancelamento
-      else if tpEventoStr = 'e105102' then
-        Evento.pedRegEvento.tpEvento := ACBrNFSeXConversao.teCancelamentoSubstituicao
-      else if tpEventoStr = 'e101103' then
-        Evento.pedRegEvento.tpEvento := ACBrNFSeXConversao.teAnaliseParaCancelamento
-      else if tpEventoStr = 'e202201' then
-        Evento.pedRegEvento.tpEvento := ACBrNFSeXConversao.teConfirmacaoPrestador
-      else if tpEventoStr = 'e202205' then
-        Evento.pedRegEvento.tpEvento := ACBrNFSeXConversao.teRejeicaoPrestador;
+      tpEventoStr := jInf.Get('tpEvento', jEvento.Get('tpEvento', ''));
+
+      if tpEventoStr <> '' then
+      begin
+        Evento.pedRegEvento.tpEvento := ACBrNFSeXConversao.StrTotpEvento(ok, tpEventoStr);
+        if not ok then
+        begin
+          if tpEventoStr = 'e101101' then
+            Evento.pedRegEvento.tpEvento := ACBrNFSeXConversao.teCancelamento
+          else if tpEventoStr = 'e105102' then
+            Evento.pedRegEvento.tpEvento := ACBrNFSeXConversao.teCancelamentoSubstituicao
+          else if tpEventoStr = 'e101103' then
+            Evento.pedRegEvento.tpEvento := ACBrNFSeXConversao.teAnaliseParaCancelamento
+          else if tpEventoStr = 'e202201' then
+            Evento.pedRegEvento.tpEvento := ACBrNFSeXConversao.teConfirmacaoPrestador
+          else if tpEventoStr = 'e202205' then
+            Evento.pedRegEvento.tpEvento := ACBrNFSeXConversao.teRejeicaoPrestador;
+        end;
+      end;
+
+      if (Length(Evento.pedRegEvento.chNFSe) >= 50) or (Evento.pedRegEvento.tpEvento <> ACBrNFSeXConversao.teNenhum) then
+      begin
+        if facbr.Configuracoes.Geral.LayoutNFSe = lnfsProvedor then
+          facbr.Configuracoes.Geral.LayoutNFSe := lnfsPadraoNacionalv1;
+      end;
 
       if Evento.pedRegEvento.dhEvento = 0 then
         Evento.pedRegEvento.dhEvento := Now;

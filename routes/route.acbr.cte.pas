@@ -6,6 +6,7 @@ interface
 
 uses
   method.acbr.cte,
+  jsonconvert,
   fpjson, Horse, Horse.Commons, Classes, SysUtils,
   resource.strings.global,
   resource.strings.routes;
@@ -28,7 +29,8 @@ procedure PostStatusServico(Req: THorseRequest; Res: THorseResponse; Next: TNext
 procedure PostConsulta(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostInutilizacao(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostDistCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
-procedure PostDACTE(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);procedure PostDACTEURL(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostDACTE(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostDACTEURL(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostCancelamento(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostCTeFromXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
@@ -48,30 +50,13 @@ procedure regRouter;
 
 implementation
 
-
-
-function ExtractConfig(O: TJSONObject; const Field: string): string;
-var
-  Data: TJSONData;
-begin
-  Result := '';
-  if Assigned(O) then
-  begin
-    Data := O.Extract(Field);
-    if Assigned(Data) then
-    begin
-      Result := Data.AsJSON;
-      Data.Free;
-    end;
-  end;
-end;
 procedure GetModeloConfigCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   AcC: TACBRModelosJSONCTe;
 begin
   AcC := TACBRModelosJSONCTe.Create('');
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(AcC.ModelConfig.AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(AcC.ModelConfig));
   finally
     AcC.Free;
   end;
@@ -83,20 +68,19 @@ var
 begin
   AcC := TACBRModelosJSONCTe.Create('');
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(AcC.ModelEvento.AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(AcC.ModelEvento));
   finally
     AcC.Free;
   end;
 end;
 
 procedure GetModeloCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
-
 var
   AcC: TACBRModelosJSONCTe;
 begin
   AcC := TACBRModelosJSONCTe.Create('');
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(AcC.ModelCTe.AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(AcC.ModelCTe));
   finally
     AcC.Free;
   end;
@@ -106,9 +90,9 @@ procedure GetCTePDFFile(Req: THorseRequest; Res: THorseResponse; Next: TNextProc
 var
   Chave, FilePath, PdfDir: string;
 begin
-  Chave := Req.Params['chave'];
+  Chave := Req.Params[RSChaveField];
   Chave := StringReplace(Chave, 'CTe', '', [rfIgnoreCase]);
-  PdfDir := ExtractFilePath(ParamStr(0)) + 'pdf' + PathDelim;
+  PdfDir := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim;
 
   FilePath := PdfDir + 'CTe' + Chave + '-cte.pdf';
   if not FileExists(FilePath) then
@@ -123,13 +107,19 @@ end;
 procedure PostEventosCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   O: TJSONObject;
+  LEventos: TJSONArray;
   Ac: TACBRBridgeCTe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeCTe.Create(TJSONTools.ExtractConfig(O));
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
-      .Send(Ac.Evento(O.Extract(RSEventosField) as TJSONArray));
+    LEventos := O.Extract(RSEventosField) as TJSONArray;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+        .Send(Ac.Evento(LEventos));
+    finally
+      LEventos.Free;
+    end;
   finally
     O.Free;
     Ac.Free;
@@ -143,7 +133,7 @@ var
 begin
   try
     O := GetJSON(Req.Body) as TJSONObject;
-    Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
+    Ac := TACBRBridgeCTe.Create(TJSONTools.ExtractConfig(O));
     try
       LJson := Ac.DACTE(O);
       try
@@ -163,16 +153,17 @@ begin
     end;
   end;
 end;
+
 procedure PostDACTEURL(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   O: TJSONObject;
   Ac: TACBRBridgeCTe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeCTe.Create(TJSONTools.ExtractConfig(O));
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
-      .Send(Ac.DACTE(O, True).AsJSON);
+      .Send(TJSONTools.JsonAndFree(Ac.DACTE(O, True)));
   finally
     O.Free;
     Ac.Free;
@@ -186,20 +177,19 @@ var
   ErrObj: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeCTe.Create(TJSONTools.ExtractConfig(O));
   try
     try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.CTe(O).AsJSON);
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.CTe(O)));
     except
       on E: Exception do
       begin
         ErrObj := TJSONObject.Create;
         ErrObj.Add('Status', 'Erro');
-        ErrObj.Add('error', 'Excecao em PostCTe: ' + E.Message);
+        ErrObj.Add(RSErrorField, 'Excecao em PostCTe: ' + E.Message);
         ErrObj.Add('Message', 'Excecao em PostCTe: ' + E.Message);
         ErrObj.Add('ClassName', E.ClassName);
-        Res.Status(400).ContentType(TMimeTypes.ApplicationJSON.ToString).Send(ErrObj.AsJSON);
-        ErrObj.Free;
+        Res.Status(400).ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(ErrObj));
       end;
     end;
   finally
@@ -226,10 +216,10 @@ var
   Ac: TACBRBridgeCTe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeCTe.Create(TJSONTools.ExtractConfig(O));
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
-      .Send(Ac.Distribuicao(O).AsJSON);
+      .Send(TJSONTools.JsonAndFree(Ac.Distribuicao(O)));
   finally
     O.Free;
     Ac.Free;
@@ -242,7 +232,7 @@ var
 begin
   Ac := TACBRModelosJSONCTe.Create('');
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelStatusServico.AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.ModelStatusServico));
   finally
     Ac.Free;
   end;
@@ -254,7 +244,7 @@ var
 begin
   Ac := TACBRModelosJSONCTe.Create('');
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelConsulta.AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.ModelConsulta));
   finally
     Ac.Free;
   end;
@@ -266,7 +256,7 @@ var
 begin
   Ac := TACBRModelosJSONCTe.Create('');
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelInutilizacao.AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.ModelInutilizacao));
   finally
     Ac.Free;
   end;
@@ -278,9 +268,9 @@ var
   Ac: TACBRBridgeCTe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeCTe.Create(TJSONTools.ExtractConfig(O));
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.StatusServico(O).AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.StatusServico(O)));
   finally
     O.Free;
     Ac.Free;
@@ -293,9 +283,9 @@ var
   Ac: TACBRBridgeCTe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeCTe.Create(TJSONTools.ExtractConfig(O));
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.Consulta(O).AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.Consulta(O)));
   finally
     O.Free;
     Ac.Free;
@@ -308,9 +298,9 @@ var
   Ac: TACBRBridgeCTe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeCTe.Create(TJSONTools.ExtractConfig(O));
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.Inutilizacao(O).AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.Inutilizacao(O)));
   finally
     O.Free;
     Ac.Free;
@@ -324,7 +314,7 @@ var
 begin
   Ac := TACBRModelosJSONCTe.Create('');
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelCancelamento.AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.ModelCancelamento));
   finally
     Ac.Free;
   end;
@@ -336,7 +326,7 @@ var
 begin
   Ac := TACBRModelosJSONCTe.Create('');
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelCTeFromXML.AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.ModelCTeFromXML));
   finally
     Ac.Free;
   end;
@@ -348,7 +338,7 @@ var
 begin
   Ac := TACBRModelosJSONCTe.Create('');
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelCTeToXML.AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.ModelCTeToXML));
   finally
     Ac.Free;
   end;
@@ -360,9 +350,9 @@ var
   Ac: TACBRBridgeCTe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeCTe.Create(TJSONTools.ExtractConfig(O));
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.Cancelamento(O).AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.Cancelamento(O)));
   finally
     O.Free;
     Ac.Free;
@@ -373,18 +363,9 @@ procedure PostCTeFromXML(Req: THorseRequest; Res: THorseResponse; Next: TNextPro
 var
   O, ORes: TJSONObject;
   Ac: TACBRBridgeCTe;
-  ConfigData: TJSONData;
-  ConfigStr: string;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  ConfigStr := '';
-  ConfigData := O.Extract(RSConfigField);
-  if Assigned(ConfigData) then
-  begin
-    ConfigStr := ConfigData.AsJSON;
-    ConfigData.Free;
-  end;
-  Ac := TACBRBridgeCTe.Create(ConfigStr);
+  Ac := TACBRBridgeCTe.Create(TJSONTools.ExtractConfig(O));
   try
     ORes := Ac.CTeFromXML(O);
     try
@@ -400,13 +381,18 @@ end;
 
 procedure PostCTeToXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O: TJSONObject;
+  O, LJson: TJSONObject;
   Ac: TACBRBridgeCTe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeCTe.Create(TJSONTools.ExtractConfig(O));
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.CTeToXML(O.Extract('CTe') as TJSONObject).AsJSON);
+    LJson := Ac.CTeToXML(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
   finally
     O.Free;
     Ac.Free;
@@ -420,7 +406,7 @@ var
   LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeCTe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.DebugConfig;
     try
@@ -441,7 +427,7 @@ var
   LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeCTe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.DebugCTe(O);
     try
@@ -461,9 +447,9 @@ var
   Ac: TACBRBridgeCTe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeCTe.Create(TJSONTools.ExtractConfig(O));
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ValidarRegras(O).AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.ValidarRegras(O)));
   finally
     O.Free;
     Ac.Free;
@@ -476,9 +462,9 @@ var
   Ac: TACBRBridgeCTe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeCTe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeCTe.Create(TJSONTools.ExtractConfig(O));
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.DACTEEvento(O).AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.DACTEEvento(O)));
   finally
     O.Free;
     Ac.Free;
@@ -491,7 +477,7 @@ var
 begin
   Ac := TACBRModelosJSONCTe.Create('');
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelValidarRegras.AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.ModelValidarRegras));
   finally
     Ac.Free;
   end;
@@ -503,7 +489,7 @@ var
 begin
   Ac := TACBRModelosJSONCTe.Create('');
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelDACTEEvento.AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.ModelDACTEEvento));
   finally
     Ac.Free;
   end;
@@ -530,7 +516,7 @@ begin
   THorse.Post(RSCTeDistribuicaoRoute, PostDistCTe);
   THorse.Post(RSCTeDACTERoute, PostDACTE);
   THorse.Post(RSCTeDACTEURLRoute, PostDACTEURL);
-  THorse.Get('/cte/pdf/:chave', GetCTePDFFile);
+  THorse.Get(RSCTePDFRoute, GetCTePDFFile);
   THorse.Post(RSCTeCTeRoute, PostCTe);
   THorse.Post(RSCTeCancelamentoRoute, PostCancelamento);
   THorse.Post(RSCTeCTeFromXMLRoute, PostCTeFromXML);
@@ -538,8 +524,8 @@ begin
   THorse.Post(RSCTeValidarRegrasRoute, PostValidarRegrasCTe);
   THorse.Post(RSCTeDACTEEventoRoute, PostDACTEEvento);
 
-  THorse.Post('/cte/debug-config', PostDebugConfig);
-  THorse.Post('/cte/debug-cte', PostDebugCTe);
+  THorse.Post(RSCTeDebugConfigRoute, PostDebugConfig);
+  THorse.Post(RSCTeDebugCTeRoute, PostDebugCTe);
 
   THorse.Get(RSModeloCTeValidarRegrasRoute, GetModeloValidarRegrasCTe);
   THorse.Get(RSModeloCTeDACTEEventoRoute, GetModeloDACTEEvento);

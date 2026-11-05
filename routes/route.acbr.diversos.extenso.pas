@@ -1,11 +1,12 @@
-unit route.acbr.diversos.extenso;
+﻿unit route.acbr.diversos.extenso;
 
 {$mode Delphi}{$H+}
 
 interface
 
 uses
-  method.acbr.diversos.extenso, fpjson, Horse, Horse.Commons, Classes, SysUtils;
+  method.acbr.diversos.extenso, fpjson, Horse, Horse.Commons, Classes, SysUtils,
+  resource.strings.routes;
 
 
   procedure GetModeloExtenso(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
@@ -14,22 +15,6 @@ uses
   procedure regRouter;
 implementation
 
-
-function ExtractConfig(O: TJSONObject; const Field: string): string;
-var
-  Data: TJSONData;
-begin
-  Result := '';
-  if Assigned(O) then
-  begin
-    Data := O.Extract(Field);
-    if Assigned(Data) then
-    begin
-      Result := Data.AsJSON;
-      Data.Free;
-    end;
-  end;
-end;
 procedure GetModeloExtenso(Req: THorseRequest; Res: THorseResponse;
   Next: TNextProc);
 var
@@ -61,8 +46,8 @@ end;
 
 procedure regRouter;
 begin
-  THorse.Get('/modelo/diversos/extenso', GetModeloExtenso);
-  THorse.Get('/diversos/extenso', GetTraduzValor);
+  THorse.Get(RSModeloDiversosExtensoRoute, GetModeloExtenso);
+  THorse.Get(RSDiversosExtensoRoute, GetTraduzValor);
 end;
 
 

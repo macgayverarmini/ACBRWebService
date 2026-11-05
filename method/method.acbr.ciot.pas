@@ -1,4 +1,4 @@
-unit method.acbr.ciot;
+﻿unit method.acbr.ciot;
 
 {$mode Delphi}
 {$M+}
@@ -19,7 +19,8 @@ uses
   jsonparser,
   Classes, SysUtils,
   streamtools,
-  resource.strings.global;
+  resource.strings.global,
+  resource.strings.msg;
 
 type
   TACBRBridgeCIOT = class
@@ -54,18 +55,18 @@ procedure TACBRBridgeCIOT.CarregaConfig;
 var
   O: TJSONObject;
 begin
-  if (fcfg = '') or (fcfg = '') then
-    raise Exception.Create('Configuracao vazia ou nao informada.');
+  if Trim(fcfg) = '' then
+    raise Exception.Create(RSConfigEmptyError);
   try
     O := GetJSON(fcfg) as TJSONObject;
-      try
-        TJSONTools.JsonToObj(O, facbr.Configuracoes);
-      finally
-        O.Free;
-      end;
+    try
+      TJSONTools.JsonToObj(O, facbr.Configuracoes);
+    finally
+      O.Free;
+    end;
   except
     on E: Exception do
-      raise Exception.Create('Erro na leitura da configuracao: ' + E.Message);
+      raise Exception.Create(RSConfigReadError + E.Message);
   end;
   fcfg := '';
 end;
@@ -86,8 +87,8 @@ function TACBRBridgeCIOT.CIOT(const jCIOT: TJSONObject): TJSONObject;
 begin
   CarregaConfig;
   Result := TJSONObject.Create;
-  Result.Add('status', 'sucesso');
-  Result.Add('message', 'ACBr CIOT inicializado com sucesso.');
+  Result.Add(RSStatusField, RSStatusSucesso);
+  Result.Add(RSMessageField, 'ACBr CIOT inicializado com sucesso.');
 end;
 
 function TACBRBridgeCIOT.Enviar(const jCIOT: TJSONObject): TJSONObject;
@@ -95,25 +96,22 @@ begin
   CarregaConfig;
   Result := TJSONObject.Create;
   try
-    try
-      if facbr.Enviar('') then
-      begin
-        Result.Add('status', 'sucesso');
-        Result.Add('message', 'CIOT enviado com sucesso.');
-      end
-      else
-      begin
-        Result.Add('status', 'erro');
-        Result.Add('message', 'Falha no envio do CIOT.');
-      end;
-    except
-      on E: Exception do
-      begin
-        Result.Add('status', 'erro');
-        Result.Add('message', 'Erro ao enviar CIOT: ' + E.Message);
-      end;
+    if facbr.Enviar('') then
+    begin
+      Result.Add(RSStatusField, RSStatusSucesso);
+      Result.Add(RSMessageField, 'CIOT enviado com sucesso.');
+    end
+    else
+    begin
+      Result.Add(RSStatusField, RSStatusErro);
+      Result.Add(RSMessageField, 'Falha no envio do CIOT.');
     end;
-  finally
+  except
+    on E: Exception do
+    begin
+      Result.Add(RSStatusField, RSStatusErro);
+      Result.Add(RSMessageField, 'Erro ao enviar CIOT: ' + E.Message);
+    end;
   end;
 end;
 

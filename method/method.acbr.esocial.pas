@@ -1,4 +1,4 @@
-unit method.acbr.esocial;
+﻿unit method.acbr.esocial;
 
 {$mode Delphi}
 {$M+}
@@ -15,7 +15,9 @@ uses
   Base64,
   jsonparser,
   Classes, SysUtils,
-  streamtools;
+  streamtools,
+  resource.strings.global,
+  resource.strings.msg;
 
 type
   TACBRBridgeeSocial = class
@@ -49,18 +51,18 @@ procedure TACBRBridgeeSocial.CarregaConfig;
 var
   O: TJSONObject;
 begin
-  if (fcfg = '') or (fcfg = '') then
-    raise Exception.Create('Configuracao vazia ou nao informada.');
+  if Trim(fcfg) = '' then
+    raise Exception.Create(RSConfigEmptyError);
   try
     O := GetJSON(fcfg) as TJSONObject;
-      try
-        TJSONTools.JsonToObj(O, facbr.Configuracoes);
-      finally
-        O.Free;
-      end;
+    try
+      TJSONTools.JsonToObj(O, facbr.Configuracoes);
+    finally
+      O.Free;
+    end;
   except
     on E: Exception do
-      raise Exception.Create('Erro na leitura da configuracao: ' + E.Message);
+      raise Exception.Create(RSConfigReadError + E.Message);
   end;
   fcfg := '';
 end;
@@ -81,8 +83,8 @@ function TACBRBridgeeSocial.eSocial(const jeSocial: TJSONObject): TJSONObject;
 begin
   CarregaConfig;
   Result := TJSONObject.Create;
-  Result.Add('status', 'sucesso');
-  Result.Add('message', 'ACBr eSocial inicializado com sucesso.');
+  Result.Add(RSStatusField, RSStatusSucesso);
+  Result.Add(RSMessageField, 'ACBr eSocial inicializado com sucesso.');
 end;
 
 end.

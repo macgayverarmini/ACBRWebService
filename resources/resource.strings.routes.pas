@@ -36,6 +36,9 @@ resourcestring
   RSModeloNFeDanfeEscPosRoute = '/modelo/nfe/danfe-escpos';
   RSModeloNFeConsultaCadastroRoute = '/modelo/nfe/consulta-cadastro';
   RSModeloNFeEmailRoute = '/modelo/nfe/email';
+  RSNFeConsultaReciboRoute = '/nfe/consulta-recibo';
+  RSNFeDebugConfigRoute = '/nfe/debug-config';
+  RSNFeLoteRoute = '/nfe/nfe-lote';
   
   // Rotas - CTe
   RSModeloCTeConfigRoute = '/modelo/cte/config';
@@ -62,6 +65,9 @@ resourcestring
   RSCTeDACTEEventoRoute = '/cte/dacte-evento';
   RSModeloCTeValidarRegrasRoute = '/modelo/cte/validar-regras';
   RSModeloCTeDACTEEventoRoute = '/modelo/cte/dacte-evento';
+  RSCTePDFRoute = '/cte/pdf/:chave';
+  RSCTeDebugConfigRoute = '/cte/debug-config';
+  RSCTeDebugCTeRoute = '/cte/debug-cte';
   
   // Rotas - NFSe
   RSModeloNFSeConfigRoute = '/modelo/nfse/config';
@@ -94,11 +100,14 @@ resourcestring
   RSMDFeMDFeRoute = '/mdfe/mdfe';
   RSMDFeEventosRoute = '/mdfe/eventos';
   RSMDFeDAMDFeRoute = '/mdfe/damdfe';
-  RSMDFeDistribuicaoRoute = '/mdfe/distribuicao';  RSModeloMDFeMDFeFromXMLRoute = '/modelo/mdfe/mdfe-from-xml';
+  RSMDFeDistribuicaoRoute = '/mdfe/distribuicao';
+  RSModeloMDFeMDFeFromXMLRoute = '/modelo/mdfe/mdfe-from-xml';
   RSModeloMDFeMDFeToXMLRoute = '/modelo/mdfe/mdfe-to-xml';
   RSMDFeMDFeFromXMLRoute = '/mdfe/mdfe-from-xml';
-  RSMDFeMDFeToXMLRoute = '/mdfe/mdfe-to-xml';  RSMDFeDAMDFeEventoRoute = '/mdfe/damdfe-evento';
-  RSMDFePDFRoute = '/mdfe/pdf/:chave';  RSMDFeDAMDFeURLRoute = '/mdfe/damdfe-url';
+  RSMDFeMDFeToXMLRoute = '/mdfe/mdfe-to-xml';
+  RSMDFeDAMDFeEventoRoute = '/mdfe/damdfe-evento';
+  RSMDFePDFRoute = '/mdfe/pdf/:chave';
+  RSMDFeDAMDFeURLRoute = '/mdfe/damdfe-url';
   RSCTeDACTEURLRoute = '/cte/dacte-url';
   RSNFeDANFeURLRoute = '/nfe/danfe-url';
   RSNFSeDANFSeURLRoute = '/nfse/danfse-url';
@@ -204,6 +213,8 @@ resourcestring
   RSDiversosCalcDigitoRoute = '/diversos/calc-digito';
   RSModeloDiversosMailRoute = '/modelo/diversos/mail';
   RSDiversosMailRoute = '/diversos/mail';
+  RSModeloNFSeEventosRoute = '/modelo/nfse/eventos';
+  RSNFSeEventosRoute = '/nfse/eventos';
 
 implementation
 

@@ -1,4 +1,4 @@
-unit method.acbr.reinf;
+﻿unit method.acbr.reinf;
 
 {$mode Delphi}
 {$M+}
@@ -17,7 +17,8 @@ uses
   jsonparser,
   synacode,
   Classes, SysUtils,
-  streamtools;
+  streamtools,
+  resource.strings.global;
 
 type
   TACBRBridgeReinf = class
@@ -50,9 +51,8 @@ end;
 
 procedure TACBRBridgeReinf.CarregaConfig;
 var
-  O, CertConfig: TJSONObject;
-  tempData: TJSONData;
-  b64String: string;
+  O: TJSONObject;
+  LPfx: AnsiString;
 begin
   if fcfg = '' then
     Exit;
@@ -61,14 +61,9 @@ begin
     try
       TJSONTools.JsonToObj(O, facbr.Configuracoes);
 
-      tempData := O.Find('Certificados');
-      if Assigned(tempData) and (tempData.JSONType = jtObject) then
-      begin
-        CertConfig := TJSONObject(tempData);
-        b64String := CertConfig.Get('DadosPFXBase64', '');
-        if b64String <> '' then
-          facbr.Configuracoes.Certificados.DadosPFX := synacode.DecodeBase64(AnsiString(b64String));
-      end;
+      LPfx := TJSONTools.ExtractCertificadoPFX(O);
+      if LPfx <> '' then
+        facbr.Configuracoes.Certificados.DadosPFX := LPfx;
 
       with facbr.Configuracoes.Geral do
       begin
@@ -86,7 +81,7 @@ begin
   end;
 
   if facbr.Configuracoes.Arquivos.PathSchemas = '' then
-    facbr.Configuracoes.Arquivos.PathSchemas := ExtractFilePath(ParamStr(0)) + 'Schemas' + PathDelim + 'Reinf';
+    facbr.Configuracoes.Arquivos.PathSchemas := ExtractFilePath(ParamStr(0)) + RSSchemasDir + PathDelim + 'Reinf';
 
   fcfg := '';
 end;
@@ -110,7 +105,7 @@ var
 begin
   CarregaConfig;
   try
-    xmlBase64 := jReinf.Get('xml', '');
+    xmlBase64 := jReinf.Get(RSXmlKey, '');
     if xmlBase64 <> '' then
       facbr.Eventos.LoadFromString(DecodeStringBase64(xmlBase64))
     else

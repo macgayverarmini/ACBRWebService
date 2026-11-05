@@ -1,4 +1,4 @@
-unit resource.strings.global;
+﻿unit resource.strings.global;
 
 {$mode Delphi}{$H+}
 
@@ -21,8 +21,10 @@ resourcestring
   RSConfigField = 'config';
   RSEventosField = 'eventos';
   RSXMLField = 'XML';
+  RSXmlKey = 'xml';
   RSXMLOriginalField = 'XMLOriginal';
   RSNomeArqField = 'NomeArq';
+  RSProtocoloField = 'Protocolo';
   RSErroValidacaoCompletoField = 'ErroValidacaoCompleto';
   RSErroValidacaoField = 'ErroValidacao';
   RSErroRegrasdeNegociosField = 'ErroRegrasdeNegocios';
@@ -43,9 +45,15 @@ resourcestring
   RSChNFeField = 'chNFe';
   RSChCTeField = 'chCTe';
   RSChMDFeField = 'chMDFe';
+  RSURLField = 'url';
+  RSPDFDir = 'pdf';
+  RSSchemasDir = 'Schemas';
+  RSDocsDir = 'Docs';
   
   // Status e valores
   RSStatusErro = 'erro';
+  RSStatusSucesso = 'sucesso';
+  RSStatusOK = 'sucesso';
   RSCertificadoA1 = 'A1';
   RSCertificadoA3 = 'A3';
   
@@ -109,6 +117,13 @@ resourcestring
   RSCodigoIBGE_SP = '35';
   RSCodigoIBGE_SE = '28';
   RSCodigoIBGE_TO = '27';
+
+const
+  CodigosIBGE: array [0..26] of string = (
+    '11', '12', '13', '14', '15', '16', '17', '21', '22', '23', '24',
+    '25', '26', '27', '28', '29', '31', '32', '33', '35', '41', '42',
+    '43', '50', '51', '52', '53'
+  );
 
 implementation
 

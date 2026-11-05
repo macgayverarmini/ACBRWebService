@@ -6,7 +6,7 @@
 interface
 
 uses
-  method.acbr.nfe, fpjson, Horse, Horse.Commons, Classes, SysUtils,
+  method.acbr.nfe, jsonconvert, fpjson, Horse, Horse.Commons, Classes, SysUtils,
   resource.strings.global,
   resource.strings.routes;
 
@@ -52,22 +52,6 @@ procedure GetNFePDF(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
 implementation
 
-
-function ExtractConfig(O: TJSONObject; const Field: string): string;
-var
-  Data: TJSONData;
-begin
-  Result := '';
-  if Assigned(O) then
-  begin
-    Data := O.Extract(Field);
-    if Assigned(Data) then
-    begin
-      Result := Data.AsJSON;
-      Data.Free;
-    end;
-  end;
-end;
 procedure GetModeloConfig(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   Ac: TACBRModelosJSON;
@@ -137,13 +121,19 @@ end;
 procedure PostEventos(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   O: TJSONObject;
+  LEventos: TJSONArray;
   Ac: TACBRBridgeNFe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeNFe.Create(TJSONTools.ExtractConfig(O));
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
-      .Send(Ac.Evento(O.Extract(RSEventosField) as TJSONArray));
+    LEventos := O.Extract(RSEventosField) as TJSONArray;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+        .Send(Ac.Evento(LEventos));
+    finally
+      LEventos.Free;
+    end;
   finally
     O.Free;
     Ac.Free;
@@ -156,7 +146,7 @@ var
   Ac: TACBRBridgeNFe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeNFe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.Distribuicao(O);
     try
@@ -183,7 +173,7 @@ begin
     O := GetJSON(Req.Body) as TJSONObject;
     
     Step := 'CreateTACBRBridgeNFe';
-    Ac := TACBRBridgeNFe.Create(ExtractConfig(O, RSConfigField));
+    Ac := TACBRBridgeNFe.Create(TJSONTools.ExtractConfig(O));
     try
       Step := 'CallAcNFe';
       LJson := Ac.NFe(O);
@@ -203,11 +193,10 @@ begin
     begin
       ErrObj := TJSONObject.Create;
       ErrObj.Add('Status', 'Erro');
-      ErrObj.Add('error', 'Excecao em PostNFe (' + Step + '): ' + E.Message); // 'error' em lowercase para bater com a checagem no python
+      ErrObj.Add(RSErrorField, 'Excecao em PostNFe (' + Step + '): ' + E.Message); // 'error' em lowercase para bater com a checagem no python
       ErrObj.Add('Message', 'Excecao em PostNFe (' + Step + '): ' + E.Message);
       ErrObj.Add('ClassName', E.ClassName);
-      Res.Status(400).ContentType(TMimeTypes.ApplicationJSON.ToString).Send(ErrObj.AsJSON);
-      ErrObj.Free;
+      Res.Status(400).ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(ErrObj));
     end;
   end;
 end;
@@ -220,7 +209,7 @@ var
 begin
   try
     O := GetJSON(Req.Body) as TJSONObject;
-    Ac := TACBRBridgeNFe.Create(ExtractConfig(O, RSConfigField));
+    Ac := TACBRBridgeNFe.Create(TJSONTools.ExtractConfig(O));
     try
       LJson := Ac.Danfe(O);
       try
@@ -246,9 +235,9 @@ var
   Ac: TACBRBridgeNFe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeNFe.Create(TJSONTools.ExtractConfig(O));
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.StatusServico(O).AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.StatusServico(O)));
   finally
     O.Free;
     Ac.Free;
@@ -261,9 +250,9 @@ var
   Ac: TACBRBridgeNFe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeNFe.Create(TJSONTools.ExtractConfig(O));
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.Consulta(O).AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.Consulta(O)));
   finally
     O.Free;
     Ac.Free;
@@ -277,7 +266,7 @@ var
   LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeNFe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.ConsultaRecibo(O);
     try
@@ -297,9 +286,9 @@ var
   Ac: TACBRBridgeNFe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeNFe.Create(TJSONTools.ExtractConfig(O));
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.Inutilizacao(O).AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.Inutilizacao(O)));
   finally
     O.Free;
     Ac.Free;
@@ -312,9 +301,9 @@ var
   Ac: TACBRBridgeNFe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeNFe.Create(TJSONTools.ExtractConfig(O));
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.Cancelamento(O).AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.Cancelamento(O)));
   finally
     O.Free;
     Ac.Free;
@@ -327,9 +316,9 @@ var
   Ac: TACBRBridgeNFe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeNFe.Create(TJSONTools.ExtractConfig(O));
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.NFeFromXML(O).AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.NFeFromXML(O)));
   finally
     O.Free;
     Ac.Free;
@@ -340,21 +329,12 @@ procedure PostNFeToXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc)
 var
   O, ErrObj: TJSONObject;
   Ac: TACBRBridgeNFe;
-  CfgData: TJSONData;
 begin
   try
     O := GetJSON(Req.Body) as TJSONObject;
-    CfgData := O.Extract(RSConfigField);
-    if Assigned(CfgData) then
-    begin
-      Ac := TACBRBridgeNFe.Create(CfgData.AsJSON);
-      CfgData.Free;
-    end
-    else
-      Ac := TACBRBridgeNFe.Create('');
-
+    Ac := TACBRBridgeNFe.Create(TJSONTools.ExtractConfig(O));
     try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.NFeToXML(O).AsJSON);
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.NFeToXML(O)));
     finally
       O.Free;
       Ac.Free;
@@ -366,8 +346,7 @@ begin
       ErrObj.Add('Status', 'Erro');
       ErrObj.Add('Message', 'Excecao em PostNFeToXML: ' + E.Message);
       ErrObj.Add('ClassName', E.ClassName);
-      Res.Status(400).ContentType(TMimeTypes.ApplicationJSON.ToString).Send(ErrObj.AsJSON);
-      ErrObj.Free;
+      Res.Status(400).ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(ErrObj));
     end;
   end;
 end;
@@ -378,9 +357,9 @@ var
   Ac: TACBRBridgeNFe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeNFe.Create(TJSONTools.ExtractConfig(O));
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ValidarRegras(O).AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.ValidarRegras(O)));
   finally
     O.Free;
     Ac.Free;
@@ -393,9 +372,9 @@ var
   Ac: TACBRBridgeNFe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeNFe.Create(TJSONTools.ExtractConfig(O));
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.DanfeEvento(O).AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.DanfeEvento(O)));
   finally
     O.Free;
     Ac.Free;
@@ -408,7 +387,7 @@ var
 begin
   Ac := TACBRModelosJSON.Create('');
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelStatusServico.AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.ModelStatusServico));
   finally
     Ac.Free;
   end;
@@ -420,7 +399,7 @@ var
 begin
   Ac := TACBRModelosJSON.Create('');
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelConsulta.AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.ModelConsulta));
   finally
     Ac.Free;
   end;
@@ -432,7 +411,7 @@ var
 begin
   Ac := TACBRModelosJSON.Create('');
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelInutilizacao.AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.ModelInutilizacao));
   finally
     Ac.Free;
   end;
@@ -444,7 +423,7 @@ var
 begin
   Ac := TACBRModelosJSON.Create('');
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelCancelamento.AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.ModelCancelamento));
   finally
     Ac.Free;
   end;
@@ -456,7 +435,7 @@ var
 begin
   Ac := TACBRModelosJSON.Create('');
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelNFeFromXML.AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.ModelNFeFromXML));
   finally
     Ac.Free;
   end;
@@ -468,7 +447,7 @@ var
 begin
   Ac := TACBRModelosJSON.Create('');
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelNFeToXML.AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.ModelNFeToXML));
   finally
     Ac.Free;
   end;
@@ -480,7 +459,7 @@ var
 begin
   Ac := TACBRModelosJSON.Create('');
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelConfig.AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.ModelConfig));
     // ValidarRegras usa o mesmo modelo do NF-e
   finally
     Ac.Free;
@@ -493,7 +472,7 @@ var
 begin
   Ac := TACBRModelosJSON.Create('');
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(Ac.ModelNFeFromXML.AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.ModelNFeFromXML));
     // DanfeEvento usa o mesmo formato: xml em Base64
   finally
     Ac.Free;
@@ -513,7 +492,7 @@ begin
     O := GetJSON(Req.Body) as TJSONObject;
 
     Step := 'CreateTACBRBridgeNFe';
-    Ac := TACBRBridgeNFe.Create(ExtractConfig(O, RSConfigField));
+    Ac := TACBRBridgeNFe.Create(TJSONTools.ExtractConfig(O));
     try
       Step := 'ExtractNFesArray';
       LNFes := O.Find('NFes', jtArray) as TJSONArray;
@@ -521,9 +500,8 @@ begin
       begin
         ErrObj := TJSONObject.Create;
         ErrObj.Add('Status', 'Erro');
-        ErrObj.Add('error', 'Campo NFes (array) nao encontrado no payload');
-        Res.Status(400).ContentType(TMimeTypes.ApplicationJSON.ToString).Send(ErrObj.AsJSON);
-        ErrObj.Free;
+        ErrObj.Add(RSErrorField, 'Campo NFes (array) nao encontrado no payload');
+        Res.Status(400).ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(ErrObj));
         Exit;
       end;
 
@@ -544,11 +522,10 @@ begin
     begin
       ErrObj := TJSONObject.Create;
       ErrObj.Add('Status', 'Erro');
-      ErrObj.Add('error', 'Excecao em PostNFeLote (' + Step + '): ' + E.Message);
+      ErrObj.Add(RSErrorField, 'Excecao em PostNFeLote (' + Step + '): ' + E.Message);
       ErrObj.Add('Message', 'Excecao em PostNFeLote (' + Step + '): ' + E.Message);
       ErrObj.Add('ClassName', E.ClassName);
-      Res.Status(400).ContentType(TMimeTypes.ApplicationJSON.ToString).Send(ErrObj.AsJSON);
-      ErrObj.Free;
+      Res.Status(400).ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(ErrObj));
     end;
   end;
 end;
@@ -560,7 +537,7 @@ var
   LJson: TJSONObject;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeNFe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.DebugConfig;
     try
@@ -580,7 +557,7 @@ var
   Ac: TACBRBridgeNFe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeNFe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.DanfeEscPos(O);
     try
@@ -600,7 +577,7 @@ var
 begin
   LJson := TJSONObject.Create;
   try
-    LJson.Add('xml', 'XML da NF-e ou NFC-e em Base64');
+    LJson.Add(RSXMLField, 'XML da NF-e ou NFC-e em Base64');
     LJson.Add('IgnorarTags', False);
     LJson.Add('ImprimeEmUmaLinha', False);
     LJson.Add('ColunasFonteNormal', 48);
@@ -617,7 +594,7 @@ var
   Ac: TACBRBridgeNFe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeNFe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.ConsultaCadastro(O);
     try
@@ -637,7 +614,7 @@ var
 begin
   LJson := TJSONObject.Create;
   try
-    LJson.Add('UF', 'ES');
+    LJson.Add('UF', RSDefaultUF);
     LJson.Add('CNPJ', '00000000000191');
     LJson.Add('CPF', '');
     LJson.Add('IE', '');
@@ -653,7 +630,7 @@ var
   Ac: TACBRBridgeNFe;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeNFe.Create(ExtractConfig(O, RSConfigField));
+  Ac := TACBRBridgeNFe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.EnviarEmail(O);
     try
@@ -673,7 +650,7 @@ var
 begin
   LJson := TJSONObject.Create;
   try
-    LJson.Add('xml', 'XML da NF-e ou NFC-e em Base64 ou XML puro');
+    LJson.Add(RSXMLField, 'XML da NF-e ou NFC-e em Base64 ou XML puro');
     LJson.Add('para', 'cliente@empresa.com.br');
     LJson.Add('assunto', 'Nota Fiscal Eletronica');
     LJson.Add('mensagem', 'Segue em anexo o documento fiscal eletronico.');
@@ -698,8 +675,8 @@ procedure GetNFePDF(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   chave, pdfDir, filePath: string;
 begin
-  chave := Req.Params['chave'];
-  pdfDir := ExtractFilePath(ParamStr(0)) + 'pdf' + PathDelim;
+  chave := Req.Params[RSChaveField];
+  pdfDir := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim;
   filePath := pdfDir + chave + '-nfe.pdf';
   if not FileExists(filePath) then
     filePath := pdfDir + 'NFe' + chave + '-nfe.pdf';
@@ -741,7 +718,7 @@ begin
   THorse.Post(RSNFeConsultaRoute, PostConsultaNFe);
   THorse.Post(RSNFeConsultaCadastroRoute, PostConsultaCadastroNFe);
   THorse.Post(RSNFeEmailRoute, PostEmailNFe);
-  THorse.Post('/nfe/consulta-recibo', PostConsultaReciboNFe);
+  THorse.Post(RSNFeConsultaReciboRoute, PostConsultaReciboNFe);
   THorse.Post(RSNFeInutilizacaoRoute, PostInutilizacaoNFe);
   THorse.Post(RSNFeCancelamentoRoute, PostCancelamentoNFe);
   THorse.Post(RSNFeNFeFromXMLRoute, PostNFeFromXML);
@@ -750,8 +727,8 @@ begin
   THorse.Post(RSNFeDanfeEventoRoute, PostDanfeEvento);
 
   // Debug temporário
-  THorse.Post('/nfe/debug-config', PostDebugConfig);
-  THorse.Post('/nfe/nfe-lote', PostNFeLote);
+  THorse.Post(RSNFeDebugConfigRoute, PostDebugConfig);
+  THorse.Post(RSNFeLoteRoute, PostNFeLote);
 end;
 
 end.

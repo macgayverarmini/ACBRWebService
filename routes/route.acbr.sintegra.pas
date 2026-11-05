@@ -1,4 +1,4 @@
-unit route.acbr.sintegra;
+﻿unit route.acbr.sintegra;
 
 {$mode Delphi}{$H+}
 
@@ -6,7 +6,10 @@ interface
 
 uses
   method.acbr.sintegra,
+  jsonconvert,
   fpjson, Horse, Horse.Commons, Classes, SysUtils,
+  resource.strings.global,
+  resource.strings.msg,
   resource.strings.routes;
 
 procedure GetModeloConfigSintegra(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
@@ -17,29 +20,13 @@ procedure regRouter;
 
 implementation
 
-
-function ExtractConfig(O: TJSONObject; const Field: string): string;
-var
-  Data: TJSONData;
-begin
-  Result := '';
-  if Assigned(O) then
-  begin
-    Data := O.Extract(Field);
-    if Assigned(Data) then
-    begin
-      Result := Data.AsJSON;
-      Data.Free;
-    end;
-  end;
-end;
 procedure GetModeloConfigSintegra(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   AcM: TACBRModelosJSONSintegra;
 begin
   AcM := TACBRModelosJSONSintegra.Create('');
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(AcM.ModelConfig.AsJSON);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(AcM.ModelConfig));
   finally
     AcM.Free;
   end;
@@ -55,12 +42,12 @@ begin
   except
     on E: Exception do
     begin
-      Res.Status(400).Send(TJSONObject.Create(['message', 'Corpo JSON inválido.']).AsJSON);
+      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSInvalidJSONBodyError])));
       Exit;
     end;
   end;
 
-  Ac := TACBRBridgeSintegra.Create(ExtractConfig(O, 'config'));
+  Ac := TACBRBridgeSintegra.Create(TJSONTools.ExtractConfig(O));
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(Ac.Sintegra(O));
   finally
@@ -75,7 +62,7 @@ var
   Ac: TACBRBridgeSintegra;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeSintegra.Create(ExtractConfig(O, 'config'));
+  Ac := TACBRBridgeSintegra.Create(TJSONTools.ExtractConfig(O));
   try
     try
       Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(Ac.Gerar(O));

@@ -4,10 +4,10 @@
 uses
   {$ifdef unix}
   cthreads,
+  Math,
   {$endif}
   Interfaces,
   SysUtils,
-  Math,
   Classes,
   Horse,
   Horse.HandleException,
@@ -36,14 +36,8 @@ uses
     WriteLn(AMessage);
   end;
 
-  procedure LogRouteMapping(const AModuleName: string);
-  begin
-  end;
-
 const
   cAppPort = 9002;
-
-
 
 {$DEFINE UseGenerics}
 
@@ -57,71 +51,62 @@ begin
   WriteLn(RSSeparatorLine);
 
   LogInfo(RSInitializingMiddleware);
-  // THorse.Use(Jhonson);
-  // LogInfo(RSJsonMiddlewareInitialized);
   THorse.Use(HandleException);
   LogInfo(RSHandleExceptionMiddlewareInitialized);
   WriteLn(RSSeparatorLine);
 
   LogInfo(RSInitializingRoutes);
 
-  LogRouteMapping('route.acbr.nfe');
   route.acbr.nfe.regRouter;
   LogInfo(RSACBRNFeRoutesMapped);
 
-  LogRouteMapping('route.acbr.nfse');
   route.acbr.nfse.regRouter;
   LogInfo(RSACBRNFSeRoutesMapped);
 
-  LogRouteMapping('route.acbr.cte');
-  route.acbr.cte.regrouter;
+  route.acbr.cte.regRouter;
   LogInfo(RSACBRCTeRoutesMapped);
 
-  LogRouteMapping('route.acbr.mdfe');
-  route.acbr.mdfe.regrouter;
+  route.acbr.mdfe.regRouter;
   LogInfo(RSACBRMDFeRoutesMapped);
 
-  LogRouteMapping('route.acbr.diversos.extenso');
   route.acbr.diversos.extenso.regRouter;
   LogInfo(RSACBRDiversosExtensoRoutesMapped);
 
-  LogRouteMapping('route.acbr.diversos.validador');
   route.acbr.diversos.validador.regRouter;
   LogInfo(RSACBRDiversosValidadorRoutesMapped);
 
-  LogRouteMapping('route.acbr.certificados');
   route.acbr.certificados.regRouter;
   LogInfo(RSACBRCertificadosRoutesMapped);
 
-  LogRouteMapping('route.acbr.ciot');
   route.acbr.ciot.regRouter;
+  LogInfo(RSACBRCIOTRoutesMapped);
 
-  LogRouteMapping('route.acbr.esocial');
   route.acbr.esocial.regRouter;
+  LogInfo(RSACBReSocialRoutesMapped);
 
-  LogRouteMapping('route.acbr.bpe');
   route.acbr.bpe.regRouter;
+  LogInfo(RSACBRBPeRoutesMapped);
 
-  LogRouteMapping('route.acbr.sped');
   route.acbr.sped.regRouter;
+  LogInfo(RSACBRSPEDRoutesMapped);
 
-  LogRouteMapping('route.acbr.sintegra');
   route.acbr.sintegra.regRouter;
+  LogInfo(RSACBRSintegraRoutesMapped);
 
-  LogRouteMapping('route.acbr.escpos');
   route.acbr.escpos.regRouter;
+  LogInfo(RSACBREscPosRoutesMapped);
 
-  LogRouteMapping('route.acbr.boleto');
   route.acbr.boleto.regRouter;
+  LogInfo(RSACBRBoletoRoutesMapped);
 
-  LogRouteMapping('route.acbr.reinf');
   route.acbr.reinf.regRouter;
+  LogInfo(RSACBRReinfRoutesMapped);
 
-  LogRouteMapping('route.acbr.gnre');
   route.acbr.gnre.regRouter;
+  LogInfo(RSACBRGNRERoutesMapped);
 
-  LogRouteMapping('route.acbr.diversos.legado');
   route.acbr.diversos.legado.regRouter;
+  LogInfo(RSACBRDiversosLegadoRoutesMapped);
 
   WriteLn(RSSeparatorLine);
   LogInfo(RSHorseApplicationStarted);

@@ -48,10 +48,25 @@
         <PackageName Value="ACBr_NFe"/>
       </Item>
       <Item>
+        <PackageName Value="ACBr_NFe_DanfeFPDF"/>
+      </Item>
+      <Item>
         <PackageName Value="ACBr_MDFe"/>
       </Item>
       <Item>
+        <PackageName Value="ACBr_MDFe_DAMDFeFPDF"/>
+      </Item>
+      <Item>
         <PackageName Value="ACBr_NFSeX"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBr_NFSeXDanfseFPDF"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBrSerial"/>
+      </Item>
+      <Item>
+        <PackageName Value="ACBrTCP"/>
       </Item>
     </RequiredPackages>
     <Units>
@@ -113,7 +128,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="..\..\method;..\..\routes;..\..\resources;..\..\tools;..\..\..\horse-master\src;..\..\..\handle-exception\src;..\..\..\jhonson\src"/>
+      <OtherUnitFiles Value="..\..\method;..\..\routes;..\..\resources;..\..\tools;..\..\..\horse-master\src;..\..\..\handle-exception\src;..\..\..\jhonson\src;..\..\..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFCe\FPDF;..\..\..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFCe\EscPos"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <CodeGeneration>

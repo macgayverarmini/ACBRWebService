@@ -249,7 +249,7 @@ End;
 Function TACBRModelosJSON.ModelNFeFromXML: TJSONObject;
 Begin
   Result := TJSONObject.Create;
-  Result.Add('xml', 'XML da NF-e em Base64 Ã¢â‚¬â€ retorna a NF-e como JSON');
+  Result.Add(RSXmlKey, 'XML da NF-e em Base64 Ã¢â‚¬â€ retorna a NF-e como JSON');
 End;
 
 Function TACBRModelosJSON.ModelNFeToXML: TJSONObject;
@@ -299,7 +299,7 @@ Begin
     if facbr.NotasFiscais.Count > 0 then
     begin
       Result.Add('xml_autorizado', EncodeStringBase64(facbr.NotasFiscais.Items[0].XML));
-      Result.Add('chave', StringReplace(facbr.NotasFiscais.Items[0].NFe.infNFe.ID, 'NFe', '', [rfIgnoreCase]));
+      Result.Add(RSChaveField, StringReplace(facbr.NotasFiscais.Items[0].NFe.infNFe.ID, 'NFe', '', [rfIgnoreCase]));
     end;
   Finally
   facbr.NotasFiscais.Clear;
@@ -356,88 +356,48 @@ End;
 
 
 Procedure TACBRBridgeNFe.CarregaConfig;
-
 Var 
-  O, CertConfig: TJSONObject;
-  tempData: TJSONData;
-  b64String: String;
+  O: TJSONObject;
+  LPfx: AnsiString;
 Begin
-  if (fcfg = '') or (fcfg = '') then
-    raise Exception.Create('Configuracao vazia ou nao informada.');
+  if Trim(fcfg) = '' then
+    raise Exception.Create(RSConfigEmptyError);
 
-  O := GetJSON(fcfg) as TJSONObject;
-  Try
-    TJSONTools.JsonToObj(O, facbr.Configuracoes);
-    
-    tempData := O.Find('Certificados');
-    if Assigned(tempData) and (tempData.JSONType = jtObject) then
-    begin
-      CertConfig := TJSONObject(tempData);
-      b64String := CertConfig.Get('DadosPFXBase64', '');
-      if b64String <> '' then
+  try
+    O := GetJSON(fcfg) as TJSONObject;
+    Try
+      TJSONTools.JsonToObj(O, facbr.Configuracoes);
+
+      LPfx := TJSONTools.ExtractCertificadoPFX(O);
+      if LPfx <> '' then
+        facbr.Configuracoes.Certificados.DadosPFX := LPfx;
+
+      with facbr.Configuracoes.Geral do
       begin
-        facbr.Configuracoes.Certificados.DadosPFX := synacode.DecodeBase64(AnsiString(b64String));
+        SSLLib := libOpenSSL;
+        SSLCryptLib := cryOpenSSL;
+        SSLHttpLib := httpOpenSSL;
+        SSLXmlSignLib := xsLibXml2;
       end;
-    end;
 
-    with facbr.Configuracoes.Geral do
-    begin
-      SSLLib := libNone;
-      SSLLib := libOpenSSL;
-      SSLCryptLib := cryOpenSSL;
-      SSLHttpLib := httpOpenSSL;
-      SSLXmlSignLib := xsLibXml2;
-    end;
-
-  Finally
-    O.Free;
-  End;
+    Finally
+      O.Free;
+    End;
+  except
+    on E: Exception do
+      raise Exception.Create(RSConfigReadError + E.Message);
+  end;
 
   // Garante PathSchemas padrão para NFe se não foi informado
   if facbr.Configuracoes.Arquivos.PathSchemas = '' then
-    facbr.Configuracoes.Arquivos.PathSchemas := ExtractFilePath(ParamStr(0)) + 'Schemas' + PathDelim + 'NFe';
+    facbr.Configuracoes.Arquivos.PathSchemas := ExtractFilePath(ParamStr(0)) + RSSchemasDir + PathDelim + 'NFe';
 
   fcfg := '';
 End;
 
 Function TACBRBridgeNFe.ReadXMLFromJSON(Const jsonData: TJSONObject): string;
-Var 
-  xmlRawOrB64: string;
-  xmlData: TJSONData;
 Begin
-  xmlData := jsonData.Find('xml');
-  if not Assigned(xmlData) then
-    xmlData := jsonData.Find('XML');
-  if not Assigned(xmlData) then
-    xmlData := jsonData.Find('XMLEvento');
-  if not Assigned(xmlData) then
-    xmlData := jsonData.Find('xml_evento');
-  if not Assigned(xmlData) then
-    xmlData := jsonData.Find('xml_nfe');
-  if not Assigned(xmlData) then
-    xmlData := jsonData.Find('NFeXML');
-
-  If not Assigned(xmlData) Then
-    raise Exception.Create(RSErrorReadingXMLParam + 'Parâmetro "xml" não encontrado.');
-
-  xmlRawOrB64 := Trim(xmlData.AsString);
-  If xmlRawOrB64 = '' Then
-    raise Exception.Create(RSErrorReadingXMLParam + 'Parâmetro "xml" está vazio.');
-
-  if (Length(xmlRawOrB64) > 0) and (xmlRawOrB64[1] = '<') then
-  begin
-    Result := xmlRawOrB64;
-    Exit;
-  end;
-
-  Try
-    Result := DecodeStringBase64(xmlRawOrB64);
-  Except
-    on E: Exception Do
-          Begin
-            raise Exception.Create(RSInvalidBase64XML + E.Message);
-          End;
-  End;
+  Result := TJSONTools.ReadXMLFromJSON(jsonData, ['xml_nfe', 'NFeXML']);
 End;
 
 constructor TACBRBridgeNFe.Create(Const Cfg: String);
@@ -459,11 +419,14 @@ Function TACBRBridgeNFe.Evento(Const jEventos: TJSONArray): string;
 
 Var 
   objEvento: TInfEventoCollectionItem;
-  oEvento: TJSONObject;
-  I: integer;
-  InfEventoData, XmlData: TJSONData;
-  InfEvento: TJSONObject;
-  xmlStr: string;
+  oEvento, InfEvento, DetJson, ItemJson, CtrlJson: TJSONObject;
+  I, J: integer;
+  InfEventoData, XmlData, DetData, ArrData: TJSONData;
+  ArrJson: TJSONArray;
+  xmlStr, LTpEventoStr: string;
+  LOk: Boolean;
+  LItemZFM: TgConsumoZFMCollectionItem;
+  LItemPerecForn: TgPerecimentoFornCollectionItem;
 Begin
   CarregaConfig;
   Result := '';
@@ -482,7 +445,10 @@ Begin
         XmlData := InfEvento.Find(RSLoadXMLField);
       end
       else
+      begin
+        InfEvento := oEvento;
         XmlData := oEvento.Find(RSLoadXMLField);
+      end;
 
       if Assigned(XmlData) and (Trim(XmlData.AsString) <> '') then
       begin
@@ -498,6 +464,184 @@ Begin
       else
         TJSONTools.JsonToObj(oEvento, objEvento.InfEvento);
 
+      if objEvento.InfEvento.tpEvento = teNaoMapeado then
+      begin
+        LTpEventoStr := Trim(InfEvento.Get('tpEvento', oEvento.Get('tpEvento', '')));
+        if LTpEventoStr <> '' then
+        begin
+          objEvento.InfEvento.tpEvento := StrToTpEventoNFe(LOk, LTpEventoStr);
+        end;
+      end;
+
+      DetData := InfEvento.Find('detEvento');
+      if not Assigned(DetData) then
+        DetData := InfEvento.Find('DetEvento');
+
+      if Assigned(DetData) and (DetData.JSONType = jtObject) then
+      begin
+        DetJson := TJSONObject(DetData);
+        TJSONTools.JsonToObj(DetJson, objEvento.InfEvento.detEvento);
+
+        ArrData := DetJson.Find('autXML');
+        if Assigned(ArrData) and (ArrData.JSONType = jtArray) then
+        begin
+          ArrJson := TJSONArray(ArrData);
+          objEvento.InfEvento.detEvento.autXML.Clear;
+          for J := 0 to ArrJson.Count - 1 do
+            if ArrJson.Items[J].JSONType = jtObject then
+              TJSONTools.JsonToObj(TJSONObject(ArrJson.Items[J]), objEvento.InfEvento.detEvento.autXML.New);
+        end;
+
+        ArrData := DetJson.Find('itemPedido');
+        if Assigned(ArrData) and (ArrData.JSONType = jtArray) then
+        begin
+          ArrJson := TJSONArray(ArrData);
+          objEvento.InfEvento.detEvento.itemPedido.Clear;
+          for J := 0 to ArrJson.Count - 1 do
+            if ArrJson.Items[J].JSONType = jtObject then
+              TJSONTools.JsonToObj(TJSONObject(ArrJson.Items[J]), objEvento.InfEvento.detEvento.itemPedido.New);
+        end;
+
+        ArrData := DetJson.Find('detPag');
+        if Assigned(ArrData) and (ArrData.JSONType = jtArray) then
+        begin
+          ArrJson := TJSONArray(ArrData);
+          objEvento.InfEvento.detEvento.detPag.Clear;
+          for J := 0 to ArrJson.Count - 1 do
+            if ArrJson.Items[J].JSONType = jtObject then
+              TJSONTools.JsonToObj(TJSONObject(ArrJson.Items[J]), objEvento.InfEvento.detEvento.detPag.New);
+        end;
+
+        ArrData := DetJson.Find('gCredPres');
+        if not Assigned(ArrData) then
+          ArrData := DetJson.Find('gCredPresOper');
+        if Assigned(ArrData) and (ArrData.JSONType = jtArray) then
+        begin
+          ArrJson := TJSONArray(ArrData);
+          objEvento.InfEvento.detEvento.gCredPres.Clear;
+          for J := 0 to ArrJson.Count - 1 do
+            if ArrJson.Items[J].JSONType = jtObject then
+              TJSONTools.JsonToObj(TJSONObject(ArrJson.Items[J]), objEvento.InfEvento.detEvento.gCredPres.New);
+        end;
+
+        if objEvento.InfEvento.tpEvento <> teImporALCZFM then
+        begin
+          ArrData := DetJson.Find('gConsumo');
+          if Assigned(ArrData) and (ArrData.JSONType = jtArray) then
+          begin
+            ArrJson := TJSONArray(ArrData);
+            objEvento.InfEvento.detEvento.gConsumo.Clear;
+            for J := 0 to ArrJson.Count - 1 do
+              if ArrJson.Items[J].JSONType = jtObject then
+                TJSONTools.JsonToObj(TJSONObject(ArrJson.Items[J]), objEvento.InfEvento.detEvento.gConsumo.New);
+          end;
+        end
+        else
+          objEvento.InfEvento.detEvento.gConsumo.Clear;
+
+        ArrData := DetJson.Find('gConsumoZFM');
+        if not Assigned(ArrData) then
+          ArrData := DetJson.Find('gImporALCZFM');
+        if (not Assigned(ArrData)) and (objEvento.InfEvento.tpEvento = teImporALCZFM) then
+          ArrData := DetJson.Find('gConsumo');
+        if Assigned(ArrData) and (ArrData.JSONType = jtArray) then
+        begin
+          ArrJson := TJSONArray(ArrData);
+          objEvento.InfEvento.detEvento.gConsumoZFM.Clear;
+          for J := 0 to ArrJson.Count - 1 do
+            if ArrJson.Items[J].JSONType = jtObject then
+            begin
+              ItemJson := TJSONObject(ArrJson.Items[J]);
+              LItemZFM := objEvento.InfEvento.detEvento.gConsumoZFM.New;
+              TJSONTools.JsonToObj(ItemJson, LItemZFM);
+              if (ItemJson.Find('gControleEstoque') <> nil) and (ItemJson.Find('gControleEstoque').JSONType = jtObject) then
+              begin
+                CtrlJson := TJSONObject(ItemJson.Find('gControleEstoque'));
+                TJSONTools.JsonToObj(CtrlJson, LItemZFM.gControleEstoque);
+                if (LItemZFM.gControleEstoque.qtde = 0) and (CtrlJson.Find('qConsumo') <> nil) then
+                  LItemZFM.gControleEstoque.qtde := CtrlJson.Get('qConsumo', 0.0);
+                if (LItemZFM.gControleEstoque.unidade = '') and (CtrlJson.Find('uConsumo') <> nil) then
+                  LItemZFM.gControleEstoque.unidade := CtrlJson.Get('uConsumo', '');
+              end;
+            end;
+        end;
+
+        if objEvento.InfEvento.tpEvento <> tePerecPerdaRouboFurtoTranspContratFornec then
+        begin
+          ArrData := DetJson.Find('gPerecimento');
+          if Assigned(ArrData) and (ArrData.JSONType = jtArray) then
+          begin
+            ArrJson := TJSONArray(ArrData);
+            objEvento.InfEvento.detEvento.gPerecimento.Clear;
+            for J := 0 to ArrJson.Count - 1 do
+              if ArrJson.Items[J].JSONType = jtObject then
+                TJSONTools.JsonToObj(TJSONObject(ArrJson.Items[J]), objEvento.InfEvento.detEvento.gPerecimento.New);
+          end;
+        end
+        else
+          objEvento.InfEvento.detEvento.gPerecimento.Clear;
+
+        ArrData := DetJson.Find('gPerecimentoForn');
+        if (not Assigned(ArrData)) and (objEvento.InfEvento.tpEvento = tePerecPerdaRouboFurtoTranspContratFornec) then
+          ArrData := DetJson.Find('gPerecimento');
+        if Assigned(ArrData) and (ArrData.JSONType = jtArray) then
+        begin
+          ArrJson := TJSONArray(ArrData);
+          objEvento.InfEvento.detEvento.gPerecimentoForn.Clear;
+          for J := 0 to ArrJson.Count - 1 do
+            if ArrJson.Items[J].JSONType = jtObject then
+            begin
+              ItemJson := TJSONObject(ArrJson.Items[J]);
+              LItemPerecForn := objEvento.InfEvento.detEvento.gPerecimentoForn.New;
+              TJSONTools.JsonToObj(ItemJson, LItemPerecForn);
+              if (LItemPerecForn.gControleEstoque.vIBS = 0) and (ItemJson.Find('vIBS') <> nil) then
+                LItemPerecForn.gControleEstoque.vIBS := ItemJson.Get('vIBS', 0.0);
+              if (LItemPerecForn.gControleEstoque.vCBS = 0) and (ItemJson.Find('vCBS') <> nil) then
+                LItemPerecForn.gControleEstoque.vCBS := ItemJson.Get('vCBS', 0.0);
+            end;
+        end;
+
+        ArrData := DetJson.Find('gItemNaoFornecido');
+        if Assigned(ArrData) and (ArrData.JSONType = jtArray) then
+        begin
+          ArrJson := TJSONArray(ArrData);
+          objEvento.InfEvento.detEvento.gItemNaoFornecido.Clear;
+          for J := 0 to ArrJson.Count - 1 do
+            if ArrJson.Items[J].JSONType = jtObject then
+              TJSONTools.JsonToObj(TJSONObject(ArrJson.Items[J]), objEvento.InfEvento.detEvento.gItemNaoFornecido.New);
+        end;
+
+        ArrData := DetJson.Find('gImobilizacao');
+        if Assigned(ArrData) and (ArrData.JSONType = jtArray) then
+        begin
+          ArrJson := TJSONArray(ArrData);
+          objEvento.InfEvento.detEvento.gImobilizacao.Clear;
+          for J := 0 to ArrJson.Count - 1 do
+            if ArrJson.Items[J].JSONType = jtObject then
+              TJSONTools.JsonToObj(TJSONObject(ArrJson.Items[J]), objEvento.InfEvento.detEvento.gImobilizacao.New);
+        end;
+
+        ArrData := DetJson.Find('gConsumoComb');
+        if Assigned(ArrData) and (ArrData.JSONType = jtArray) then
+        begin
+          ArrJson := TJSONArray(ArrData);
+          objEvento.InfEvento.detEvento.gConsumoComb.Clear;
+          for J := 0 to ArrJson.Count - 1 do
+            if ArrJson.Items[J].JSONType = jtObject then
+              TJSONTools.JsonToObj(TJSONObject(ArrJson.Items[J]), objEvento.InfEvento.detEvento.gConsumoComb.New);
+        end;
+
+        ArrData := DetJson.Find('gCredito');
+        if Assigned(ArrData) and (ArrData.JSONType = jtArray) then
+        begin
+          ArrJson := TJSONArray(ArrData);
+          objEvento.InfEvento.detEvento.gCredito.Clear;
+          for J := 0 to ArrJson.Count - 1 do
+            if ArrJson.Items[J].JSONType = jtObject then
+              TJSONTools.JsonToObj(TJSONObject(ArrJson.Items[J]), objEvento.InfEvento.detEvento.gCredito.New);
+        end;
+      end;
+
       with objEvento.InfEvento do
       begin
         if dhEvento = 0 then dhEvento := Now;
@@ -507,30 +651,18 @@ Begin
     End;
 
   facbr.EnviarEvento(1);
-  Result := TJSONTools.ObjToJsonString(
-            facbr.WebServices.EnvEvento.EventoRetorno.retEvento);
+  Result := TJSONTools.SafeObjToJsonString(
+            facbr.WebServices.EnvEvento, 'Erro ao enviar evento de NF-e');
 End;
 
-Function TACBRBridgeNFe.Distribuicao(Const jDistribuicao: TJSONObject):
-                                                                     TJSONObject
-;
-
+Function TACBRBridgeNFe.Distribuicao(Const jDistribuicao: TJSONObject): TJSONObject;
 Var 
   objDistribuicao: TDistribuicaoDFe;
   UF: TJSONString;
   CNPJCPF, ultNSU, NSU, chNFe: TJSONString;
-
-Const 
-  CodigosIBGE: array [0..26] Of string = (
-                                          '11', '12', '13', '14', '15', '16',
-                                          '17', '21', '22', '23', '24',
-                                          '25', '26', '27', '28', '29', '31',
-                                          '32', '33', '35', '41', '42', '43',
-                                          '50', '51', '52', '53');
 Begin
   CarregaConfig;
-
-  Result := TJSONObject.Create;
+  Result := nil;
 
   objDistribuicao := facbr.WebServices.DistribuicaoDFe;
 
@@ -538,6 +670,7 @@ Begin
     Begin
       If Not MatchStr(UF.ToString, CodigosIBGE) Then
         Begin
+          Result := TJSONObject.Create;
           Result.Add(RSErrorField, RSInvalidUFCode);
           Exit;
         End;
@@ -565,7 +698,10 @@ Begin
               Result := TJSONObject(TJSONTools.ObjToJson(
                         objDistribuicao.RetDistDFeInt))
             Else
-              Result.Add(RSErrorField, E.message);
+            Begin
+              Result := TJSONObject.Create;
+              Result.Add(RSErrorField, E.Message);
+            End;
             Exit;
           End;
 End;
@@ -618,7 +754,7 @@ Begin
   Exit;
 End;
 
-pdfDir := ExtractFilePath(ParamStr(0)) + 'pdf' + PathDelim;
+pdfDir := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim;
 If Not DirectoryExists(pdfDir) Then
   CreateDir(pdfDir);
 
@@ -693,9 +829,8 @@ End;
 
 Result.Add(RSPDFField, arquivofinal);
 Result.Add(RSChaveField, chClean);
-Result.Add('url', '/nfe/pdf/' + chClean);
+Result.Add(RSURLField, '/nfe/pdf/' + chClean);
 Result.Add(RSTamanhoField, tamanho.ToString);
-// Adiciona o identificador ÃƒÂºnico se ele existir
 If xmlData.Find(RSIDField, id) Then
   Result.Add(RSIDField, id);
 
@@ -738,9 +873,9 @@ Begin
   CarregaConfig;
 
   Chave := jConsulta.Find('NFe_Chave');
-  if not Assigned(Chave) then Chave := jConsulta.Find('chave');
+  if not Assigned(Chave) then Chave := jConsulta.Find(RSChaveField);
   if not Assigned(Chave) then Chave := jConsulta.Find('Chave');
-  if not Assigned(Chave) then Chave := jConsulta.Find('chNFe');
+  if not Assigned(Chave) then Chave := jConsulta.Find(RSChNFeField);
 
   If Assigned(Chave) and (Trim(Chave.AsString) <> '') Then
   Begin
@@ -756,8 +891,8 @@ Begin
   End
   Else
   Begin
-    XmlNode := jConsulta.Find('xml');
-    if not Assigned(XmlNode) then XmlNode := jConsulta.Find('XML');
+    XmlNode := jConsulta.Find(RSXmlKey);
+    if not Assigned(XmlNode) then XmlNode := jConsulta.Find(RSXMLField);
     if Assigned(XmlNode) and (Trim(XmlNode.AsString) <> '') then
     begin
       Try
@@ -820,20 +955,21 @@ Var
   sChave, sProt, sJust, sCnpj, sChaveSubst: string;
 Begin
   CarregaConfig;
-  Result := TJSONObject.Create;
+  Result := nil;
   idLote := 1;
   facbr.EventoNFe.Evento.Clear;
   facbr.EventoNFe.idLote := idLote;
 
   evtItem := facbr.EventoNFe.Evento.New;
   Try
-    if Assigned(jCancelamento.Find('InfEvento')) or Assigned(jCancelamento.Find('infEvento')) then
+    if Assigned(jCancelamento.Find(RSInfEventoField)) or Assigned(jCancelamento.Find('infEvento')) then
       TJSONTools.JsonToObj(jCancelamento, evtItem)
     else
       TJSONTools.JsonToObj(jCancelamento, evtItem.InfEvento);
   Except
     on E: Exception Do
     Begin
+      Result := TJSONObject.Create;
       Result.Add(RSStatusField, RSStatusErro);
       Result.Add(RSMessageField, 'Erro ao converter JSON para Evento: ' + E.Message);
       Exit;
@@ -860,6 +996,14 @@ Begin
       tpEvento := teCancSubst
     else if (tpEvento <> teCancelamento) and (tpEvento <> teCancSubst) then
       tpEvento := teCancelamento;
+
+    if tpEvento = teCancSubst then
+    begin
+      if (detEvento.cOrgaoAutor = 0) and (Length(chNFe) >= 2) then
+        detEvento.cOrgaoAutor := StrToIntDef(Copy(chNFe, 1, 2), 0);
+      if detEvento.verAplic = '' then
+        detEvento.verAplic := 'DataLider2.0';
+    end;
 
     if dhEvento = 0 then dhEvento := Now;
     if (CNPJ = '') and (Length(chNFe) >= 20) then CNPJ := Copy(chNFe, 7, 14);
@@ -937,9 +1081,9 @@ Begin
     chClean := StringReplace(facbr.NotasFiscais.Items[0].NFe.infNFe.ID, 'NFe', '', [rfIgnoreCase]);
 
     Result := TJSONObject.Create;
-    Result.Add('xml', EncodeStringBase64(xmlString));
+    Result.Add(RSXmlKey, EncodeStringBase64(xmlString));
     Result.Add('xml_raw', xmlString);
-    Result.Add('chave', chClean);
+    Result.Add(RSChaveField, chClean);
   Except
     on E: Exception Do
       Result := TJSONTools.SafeObjToJson(nil, 'Erro ao gerar XML da NF-e: ' + E.Message);
@@ -953,7 +1097,7 @@ Var
   Nota: NotaFiscal;
 Begin
   CarregaConfig;
-  Result := TJSONObject.Create;
+  Result := nil;
 
   Try
     facbr.NotasFiscais.Clear;
@@ -968,6 +1112,7 @@ Begin
     Except
       on E: Exception Do
       Begin
+        Result := TJSONObject.Create;
         Result.Add(RSStatusField, 'erro_parse');
         Result.Add(RSMessageField, 'Erro na conversao JSON para Objeto: ' + E.Message);
         Exit;
@@ -979,10 +1124,10 @@ Begin
       facbr.NotasFiscais.Items[0].Validar;
 
       Result := TJSONObject.Create;
-      Result.Add(RSStatusField, 'sucesso');
+      Result.Add(RSStatusField, RSStatusSucesso);
       Result.Add(RSMessageField, 'XML Valido e Assinado');
       Result.Add('xml_assinado', EncodeStringBase64(facbr.NotasFiscais.Items[0].XML));
-      Result.Add('chave', StringReplace(facbr.NotasFiscais.Items[0].NFe.infNFe.ID, 'NFe', '', [rfIgnoreCase]));
+      Result.Add(RSChaveField, StringReplace(facbr.NotasFiscais.Items[0].NFe.infNFe.ID, 'NFe', '', [rfIgnoreCase]));
     Except
       on E: Exception Do
       Begin
@@ -1003,14 +1148,23 @@ Function TACBRBridgeNFe.DanfeEvento(Const xmlEvento: TJSONObject): TJSONObject;
 Var
   arquivofinal: string;
   stringXml, nfeXmlStr, fileName: string;
-  nfeXmlNode: TJSONData;
+  evtXmlNode, nfeXmlNode: TJSONData;
   tamanho: integer;
 Begin
   CarregaConfig;
   Result := TJSONObject.Create;
 
   Try
-    stringXml := ReadXMLFromJSON(xmlEvento);
+    evtXmlNode := xmlEvento.Find('XMLEvento');
+    if not Assigned(evtXmlNode) then evtXmlNode := xmlEvento.Find('xml_evento');
+    if Assigned(evtXmlNode) and (Trim(evtXmlNode.AsString) <> '') then
+    begin
+      stringXml := Trim(evtXmlNode.AsString);
+      if stringXml[1] <> '<' then
+        stringXml := DecodeStringBase64(stringXml);
+    end
+    else
+      stringXml := ReadXMLFromJSON(xmlEvento);
   Except
     on E: Exception Do
     Begin
@@ -1022,9 +1176,11 @@ Begin
 
   Try
     facbr.NotasFiscais.Clear;
-    nfeXmlNode := xmlEvento.Find('XML');
+    nfeXmlNode := xmlEvento.Find('XMLNFe');
     if not Assigned(nfeXmlNode) then nfeXmlNode := xmlEvento.Find('xml_nfe');
     if not Assigned(nfeXmlNode) then nfeXmlNode := xmlEvento.Find('NFeXML');
+    if not Assigned(nfeXmlNode) then nfeXmlNode := xmlEvento.Find(RSXMLField);
+    if not Assigned(nfeXmlNode) then nfeXmlNode := xmlEvento.Find(RSXmlKey);
     if Assigned(nfeXmlNode) and (Trim(nfeXmlNode.AsString) <> '') then
     begin
       nfeXmlStr := Trim(nfeXmlNode.AsString);
@@ -1050,7 +1206,7 @@ Begin
     fdanfe.MostraPreview := False;
     fdanfe.MostraStatus := False;
 
-    fileName := ExtractFilePath(ParamStr(0)) + 'pdf' + PathDelim;
+    fileName := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim;
     if not DirectoryExists(fileName) then
       CreateDir(fileName);
     fdanfe.PathPDF := fileName;
@@ -1058,7 +1214,7 @@ Begin
     facbr.ImprimirEventoPDF;
     fileName := fdanfe.ArquivoPDF;
     if (fileName = '') or (not FileExists(fileName)) then
-      fileName := ExtractFilePath(ParamStr(0)) + 'pdf' + PathDelim +
+      fileName := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim +
         TpEventoToStr(facbr.EventoNFe.Evento.Items[0].InfEvento.tpEvento) +
         StringReplace(facbr.EventoNFe.Evento.Items[0].InfEvento.chNFe, 'NFe', '', [rfIgnoreCase]) + '-nfe.pdf';
 
@@ -1066,7 +1222,7 @@ Begin
 
     Result.Add(RSPDFField, arquivofinal);
     Result.Add(RSTamanhoField, tamanho.ToString);
-    Result.Add(RSStatusField, 'sucesso');
+    Result.Add(RSStatusField, RSStatusSucesso);
   Except
     on E: Exception Do
     Begin
@@ -1131,7 +1287,7 @@ Begin
 
       chClean := StringReplace(facbr.NotasFiscais.Items[0].NFe.infNFe.ID, 'NFe', '', [rfIgnoreCase]);
 
-      Result.Add(RSStatusField, 'sucesso');
+      Result.Add(RSStatusField, RSStatusSucesso);
       Result.Add(RSChaveField, chClean);
       Result.Add('modelo', facbr.NotasFiscais.Items[0].NFe.Ide.modelo);
       Result.Add('buffer_texto', bufferTxt);
@@ -1285,7 +1441,7 @@ Begin
         Exit;
       end;
 
-      pdfDir := ExtractFilePath(ParamStr(0)) + 'pdf' + PathDelim;
+      pdfDir := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim;
       if not DirectoryExists(pdfDir) then
         CreateDir(pdfDir);
       fdanfe.PathPDF := pdfDir;
@@ -1298,7 +1454,7 @@ Begin
 
       facbr.NotasFiscais.Items[0].EnviarEmail(para, assunto, msgLines, enviaPdf, ccLines, nil, nil);
 
-      Result.Add(RSStatusField, 'sucesso');
+      Result.Add(RSStatusField, RSStatusSucesso);
       Result.Add('para', para);
       Result.Add('assunto', assunto);
     Except
