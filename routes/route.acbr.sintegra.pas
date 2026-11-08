@@ -49,7 +49,7 @@ begin
 
   Ac := TACBRBridgeSintegra.Create(TJSONTools.ExtractConfig(O));
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(Ac.Sintegra(O));
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.Sintegra(O)));
   finally
     O.Free;
     Ac.Free;
@@ -61,11 +61,20 @@ var
   O: TJSONObject;
   Ac: TACBRBridgeSintegra;
 begin
-  O := GetJSON(Req.Body) as TJSONObject;
+  try
+    O := GetJSON(Req.Body) as TJSONObject;
+  except
+    on E: Exception do
+    begin
+      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSInvalidJSONBodyError])));
+      Exit;
+    end;
+  end;
+
   Ac := TACBRBridgeSintegra.Create(TJSONTools.ExtractConfig(O));
   try
     try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(Ac.Gerar(O));
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.Gerar(O)));
     except
       on E: Exception do
         Res.Status(500).Send(E.Message);

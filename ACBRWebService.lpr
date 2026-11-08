@@ -42,6 +42,8 @@ const
 {$DEFINE UseGenerics}
 
 begin
+  DefaultFormatSettings.DecimalSeparator := ',';
+  DefaultFormatSettings.ThousandSeparator := '.';
   {$ifdef unix}
   SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
   {$endif}

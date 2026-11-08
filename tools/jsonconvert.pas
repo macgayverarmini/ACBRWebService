@@ -17,7 +17,7 @@ type
 
   TJSONTools = class
   private
-    class procedure PopulateObjectList(AListObj: TObject; AArray: TJSONArray);
+    class procedure PopulateObjectList(AListObj: TObject; AArray: TJSONArray; AOwner: TObject = nil);
     class function InternalObjToJson(const Obj: TObject; Visited: TList): TJSONData;
     class function ValueToJson(const Value: TValue; Visited: TList): TJSONData;
   public
@@ -43,13 +43,15 @@ uses
 
 { TJSONTools }
 
-class procedure TJSONTools.PopulateObjectList(AListObj: TObject; AArray: TJSONArray);
+class procedure TJSONTools.PopulateObjectList(AListObj: TObject; AArray: TJSONArray; AOwner: TObject = nil);
 var
   I: Integer;
-  LNewItem: TObject;
+  LNewItem, LOwnerArg: TObject;
   Ctx: TRttiContext;
   RttiType: TRttiType;
   RttiMethod: TRttiMethod;
+  LParams: TRttiParameterArray;
+  LParamVal: TValue;
 begin
   if not Assigned(AListObj) then Exit;
 
@@ -90,13 +92,29 @@ begin
 
     if Assigned(RttiMethod) then
     begin
+      LParams := RttiMethod.GetParameters;
       if AListObj is TObjectList then
         TObjectList(AListObj).Clear;
       for I := 0 to AArray.Count - 1 do
       begin
         if AArray.Items[I] is TJSONObject then
         begin
-          LNewItem := RttiMethod.Invoke(AListObj, []).AsObject;
+          LNewItem := nil;
+          if Length(LParams) = 0 then
+            LNewItem := RttiMethod.Invoke(AListObj, []).AsObject
+          else if Length(LParams) = 1 then
+          begin
+            LOwnerArg := AOwner;
+            if Assigned(LOwnerArg) and Assigned(LParams[0].ParamType) and
+               (LParams[0].ParamType is TRttiInstanceType) and
+               not (LOwnerArg is TRttiInstanceType(LParams[0].ParamType).MetaclassType) then
+              LOwnerArg := nil;
+            if Assigned(LParams[0].ParamType) then
+              TValue.Make(@LOwnerArg, LParams[0].ParamType.Handle, LParamVal)
+            else
+              LParamVal := TValue.From<TObject>(LOwnerArg);
+            LNewItem := RttiMethod.Invoke(AListObj, [LParamVal]).AsObject;
+          end;
           if Assigned(LNewItem) then
             JsonToObj(TJSONObject(AArray.Items[I]), LNewItem);
         end;
@@ -388,7 +406,7 @@ begin
             if JsonVal is TJSONObject then
               JsonToObj(TJSONObject(JsonVal), ObjRef)
             else if JsonVal is TJSONArray then
-              PopulateObjectList(ObjRef, TJSONArray(JsonVal));
+              PopulateObjectList(ObjRef, TJSONArray(JsonVal), Obj);
           end;
         end
         else if Prop.IsWritable then
@@ -399,14 +417,19 @@ begin
                 Prop.SetValue(Obj, TValue.From<Int64>(JsonVal.AsInt64));
               tkFloat:
                 begin
-                  if Prop.PropertyType.Handle = TypeInfo(TDateTime) then
+                  if (Prop.PropertyType.Handle = TypeInfo(TDateTime)) or
+                     (Prop.PropertyType.Handle = TypeInfo(TDate)) then
                   begin
                     if JsonVal is TJSONString then
                     begin
-                      if TryISO8601ToDate(JsonVal.AsString, LDate, False) then
+                      SVal := Trim(JsonVal.AsString);
+                      LOk := (Length(SVal) > 10) and
+                             ((Pos('+', Copy(SVal, 11, MaxInt)) > 0) or
+                              (Pos('-', Copy(SVal, 11, MaxInt)) > 0));
+                      if TryISO8601ToDate(SVal, LDate, not LOk) then
                         Prop.SetValue(Obj, TValue.From<Extended>(LDate))
                       else
-                        Prop.SetValue(Obj, TValue.From<Extended>(StrToDateTimeDef(JsonVal.AsString, 0)));
+                        Prop.SetValue(Obj, TValue.From<Extended>(StrToDateTimeDef(SVal, 0)));
                     end
                     else if JsonVal is TJSONNumber then
                       Prop.SetValue(Obj, TValue.From<Extended>(JsonVal.AsFloat));

@@ -55,7 +55,7 @@ begin
 
   Ac := TACBRBridgeSPED.Create(TJSONTools.ExtractConfig(O));
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(Ac.SPED(O));
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.SPED(O)));
   finally
     O.Free;
     Ac.Free;
@@ -71,7 +71,7 @@ begin
   Ac := TACBRBridgeSPED.Create(TJSONTools.ExtractConfig(O));
   try
     try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(Ac.Gerar(O));
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.Gerar(O)));
     except
       on E: Exception do
         Res.Status(500).Send(E.Message);
@@ -103,7 +103,7 @@ begin
   Ac := TACBRBridgeSPEDPisCofins.Create(TJSONTools.ExtractConfig(O));
   try
     try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(Ac.Gerar(O));
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.Gerar(O)));
     except
       on E: Exception do
         Res.Status(500).Send(E.Message);

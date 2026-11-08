@@ -24,38 +24,45 @@ uses
 type
   TACBRBridgeSPED = class
   private
-    fcfg: string;
+      fcfg: string;
     facbr: TACBrSpedFiscal;
     procedure CarregaConfig;
   public
-    constructor Create(const Cfg: string);
-    destructor Destroy; override;
+      constructor Create(const Cfg: string);
+    destructor Destroy;
+    override;
     function SPED(const jSPED: TJSONObject): TJSONObject;
     function Gerar(const jSPED: TJSONObject): TJSONObject;
     function Importar(const jSPED: TJSONObject): TJSONObject;
   end;
 
-  TACBRModelosJSONSPED = class(TACBRBridgeSPED)
-  public
-    function ModelConfig: TJSONObject;
+  TACBRModelosJSONSPED = class (TACBRBridgeSPED)
+    public
+      function ModelConfig: TJSONObject;
   end;
 
   TACBRBridgeSPEDPisCofins = class
   private
-    fcfg: string;
+      fcfg: string;
     facbr: TACBrSPEDPisCofins;
+    fErrosValidacao: TStringList;
     procedure CarregaConfig;
+    procedure DoAcbrError(const MsnError: string);
+    procedure AjustarRegistrosImportados(const ASL: TStringList;
+      const ASped: TACBrSPEDPisCofins);
+    procedure NormalizarTxtRegerado(const AFileName: string);
   public
-    constructor Create(const Cfg: string);
-    destructor Destroy; override;
+      constructor Create(const Cfg: string);
+    destructor Destroy;
+    override;
     function Gerar(const jSPED: TJSONObject): TJSONObject;
     function Importar(const jSPED: TJSONObject): TJSONObject;
     function Consolidar(const jConsolidar: TJSONObject): TJSONObject;
   end;
 
-  TACBRModelosJSONSPEDPisCofins = class(TACBRBridgeSPEDPisCofins)
-  public
-    function ModelConfig: TJSONObject;
+  TACBRModelosJSONSPEDPisCofins = class (TACBRBridgeSPEDPisCofins)
+    public
+      function ModelConfig: TJSONObject;
     function ModelImportar: TJSONObject;
   end;
 
@@ -124,11 +131,13 @@ begin
 
       // Mapeamento Generico das Propriedades
       TJSONTools.JsonToObj(jSPED, facbr);
+      if jSPED.Get('Arquivo', jSPED.Get('arquivo', '')) <> '' then
+        facbr.Arquivo := jSPED.Get('Arquivo', jSPED.Get('arquivo', ''));
 
       // Gera o TXT do SPED Fiscal baseado nos blocos
       facbr.SaveFileTXT;
 
-      fullFile := IncludeTrailingPathDelimiter(facbr.Path) + facbr.Arquivo;
+      fullFile := IncludeTrailingPathDelimiter(facbr.Path)+facbr.Arquivo;
       Result.Add('status', 'sucesso');
       Result.Add('message', 'SPED gerado com sucesso.');
       Result.Add('arquivo', fullFile);
@@ -183,11 +192,20 @@ end;
 constructor TACBRBridgeSPEDPisCofins.Create(const Cfg: string);
 begin
   facbr := TACBrSPEDPisCofins.Create(nil);
+  fErrosValidacao := TStringList.Create;
+  facbr.OnError := DoAcbrError;
   fcfg := Cfg;
+end;
+
+procedure TACBRBridgeSPEDPisCofins.DoAcbrError(const MsnError: string);
+begin
+  if Assigned(fErrosValidacao) and (Trim(MsnError) <> '') then
+    fErrosValidacao.Add(Trim(MsnError));
 end;
 
 destructor TACBRBridgeSPEDPisCofins.Destroy;
 begin
+  FreeAndNil(fErrosValidacao);
   FreeAndNil(facbr);
   inherited Destroy;
 end;
@@ -206,9 +224,11 @@ begin
       facbr.Arquivo := 'sped_piscofins.txt';
 
     TJSONTools.JsonToObj(jSPED, facbr);
+    if jSPED.Get('Arquivo', jSPED.Get('arquivo', '')) <> '' then
+      facbr.Arquivo := jSPED.Get('Arquivo', jSPED.Get('arquivo', ''));
     facbr.SaveFileTXT;
 
-    fullFile := IncludeTrailingPathDelimiter(facbr.Path) + facbr.Arquivo;
+    fullFile := IncludeTrailingPathDelimiter(facbr.Path)+facbr.Arquivo;
     Result.Add('status', 'sucesso');
     Result.Add('message', 'SPED Contribuicoes (PIS/COFINS) gerado com sucesso.');
     Result.Add('arquivo', fullFile);
@@ -222,8 +242,6 @@ begin
     end;
   end;
 end;
-
-
 
 
 procedure CopySpedObjProperties(const Origem, Destino: TObject);
@@ -253,11 +271,11 @@ begin
   SL := TStringList.Create;
   try
     try
-      b64 := jSPED.Get('arquivo_base64', '');
-      tmpFile := jSPED.Get('Arquivo', '');
+      b64 := jSPED.Get('arquivo_base64', jSPED.Get('ArquivoData', ''));
+      tmpFile := jSPED.Get('Arquivo', jSPED.Get('arquivo', ''));
       if b64 <> '' then
       begin
-        tmpFile := ExtractFilePath(ParamStr(0)) + 'sped_efdimp_' + IntToStr(GetTickCount64) + '.txt';
+        tmpFile := ExtractFilePath(ParamStr(0))+'sped_efdimp_' + IntToStr(GetTickCount64)+'.txt';
         SL.Text := DecodeStringBase64(b64);
         SL.SaveToFile(tmpFile);
       end;
@@ -297,8 +315,11 @@ end;
 function TACBRBridgeSPEDPisCofins.Importar(const jSPED: TJSONObject): TJSONObject;
 var
   Imp: TACBrSpedPCImportar;
-  b64, tmpFile: string;
+  b64, tmpFile, outFile: string;
   SL: TStringList;
+  regerar: Boolean;
+  tamanho, I: Integer;
+  arrAvisos: TJSONArray;
 begin
   CarregaConfig;
   Result := TJSONObject.Create;
@@ -306,11 +327,13 @@ begin
   SL := TStringList.Create;
   try
     try
-      b64 := jSPED.Get('arquivo_base64', '');
-      tmpFile := jSPED.Get('Arquivo', '');
+      fErrosValidacao.Clear;
+      b64 := jSPED.Get('arquivo_base64', jSPED.Get('ArquivoData', ''));
+      tmpFile := jSPED.Get('Arquivo', jSPED.Get('arquivo', ''));
+      regerar := jSPED.Get('RegerarTXT', jSPED.Get('regerar_txt', False));
       if b64 <> '' then
       begin
-        tmpFile := ExtractFilePath(ParamStr(0)) + 'sped_epcimp_' + IntToStr(GetTickCount64) + '.txt';
+        tmpFile := ExtractFilePath(ParamStr(0))+'sped_epcimp_' + IntToStr(GetTickCount64)+'.txt';
         SL.Text := DecodeStringBase64(b64);
         SL.SaveToFile(tmpFile);
       end;
@@ -325,6 +348,7 @@ begin
       Imp.ACBrSpedPisCofins := facbr;
       Imp.Arquivo := tmpFile;
       Imp.Importar;
+      AjustarRegistrosImportados(SL, facbr);
 
       if (b64 <> '') and FileExists(tmpFile) then
         DeleteFile(tmpFile);
@@ -332,6 +356,35 @@ begin
       Result.Add('status', 'sucesso');
       Result.Add('message', 'SPED Contribuicoes importado com sucesso.');
       Result.Add('sped', TJSONTools.SafeObjToJson(facbr, 'Erro ao serializar SPED Contribuicoes importado'));
+
+      if regerar then
+      begin
+        if facbr.Bloco_0.Registro0000.DT_INI > 0 then
+          facbr.DT_INI := facbr.Bloco_0.Registro0000.DT_INI
+        else
+            if facbr.DT_INI = 0 then
+            facbr.DT_INI := EncodeDate(2026, 8, 1);
+
+        if facbr.Bloco_0.Registro0000.DT_FIN > 0 then
+          facbr.DT_FIN := facbr.Bloco_0.Registro0000.DT_FIN
+        else
+            if facbr.DT_FIN = 0 then
+            facbr.DT_FIN := EncodeDate(2026, 8, 31);
+
+        facbr.Path := ExtractFilePath(ParamStr(0));
+        facbr.Arquivo := 'sped_epcreg_' + IntToStr(GetTickCount64)+'.txt';
+        facbr.SaveFileTXT;
+
+        outFile := IncludeTrailingPathDelimiter(facbr.Path)+facbr.Arquivo;
+        NormalizarTxtRegerado(outFile);
+        if FileExists(outFile) then
+          Result.Add('arquivo_base64', FileToStringBase64(outFile, True, tamanho));
+      end;
+
+      arrAvisos := TJSONArray.Create;
+      for I := 0 to fErrosValidacao.Count - 1 do
+        arrAvisos.Add(fErrosValidacao[I]);
+      Result.Add('avisos_acbr', arrAvisos);
     except
       on E: Exception do
       begin
@@ -364,6 +417,8 @@ begin
   arrData := jConsolidar.Find('arquivos');
   if not Assigned(arrData) then
     arrData := jConsolidar.Find('Arquivos');
+  if not Assigned(arrData) then
+    arrData := jConsolidar.Find('arquivos_base64');
 
   if not Assigned(arrData) or (arrData.JSONType <> jtArray) or (TJSONArray(arrData).Count = 0) then
   begin
@@ -382,27 +437,36 @@ begin
     try
       for I := 0 to arr.Count - 1 do
       begin
+        b64 := '';
         if arr.Items[I].JSONType = jtObject then
         begin
           itemObj := TJSONObject(arr.Items[I]);
           b64 := itemObj.Get('arquivo_base64', itemObj.Get('ArquivoData', ''));
-          if b64 <> '' then
-          begin
-            tmpFile := ExtractFilePath(ParamStr(0)) + 'sped_cons_' + IntToStr(GetTickCount64) + '_' + IntToStr(I) + '.txt';
-            SL.Text := DecodeStringBase64(b64);
-            SL.SaveToFile(tmpFile);
-            try
-              ItemSped := TACBrSPEDPisCofins.Create(nil);
-              Lista.Add(ItemSped);
-              Imp.ACBrSpedPisCofins := ItemSped;
-              Imp.Arquivo := tmpFile;
-              Imp.Importar;
-              if itemObj.Get('principal', itemObj.Get('Principal', False)) or not Assigned(Principal) then
-                Principal := ItemSped;
-            finally
-              if FileExists(tmpFile) then
-                DeleteFile(tmpFile);
-            end;
+        end
+        else
+          if arr.Items[I].JSONType = jtString then
+        begin
+          itemObj := nil;
+          b64 := arr.Items[I].AsString;
+        end;
+
+        if b64 <> '' then
+        begin
+          tmpFile := ExtractFilePath(ParamStr(0))+'sped_cons_' + IntToStr(GetTickCount64)+'_' + IntToStr(I)+'.txt';
+          SL.Text := DecodeStringBase64(b64);
+          SL.SaveToFile(tmpFile);
+          try
+            ItemSped := TACBrSPEDPisCofins.Create(nil);
+            Lista.Add(ItemSped);
+            Imp.ACBrSpedPisCofins := ItemSped;
+            Imp.Arquivo := tmpFile;
+            Imp.Importar;
+            AjustarRegistrosImportados(SL, ItemSped);
+            if (Assigned(itemObj) and itemObj.Get('principal', itemObj.Get('Principal', False))) or not Assigned(Principal) then
+              Principal := ItemSped;
+          finally
+            if FileExists(tmpFile) then
+              DeleteFile(tmpFile);
           end;
         end;
       end;
@@ -421,8 +485,18 @@ begin
         CopySpedObjProperties(
           Principal.Bloco_0.Registro0001.Registro0100.Items[Y],
           Destino.Bloco_0.Registro0001.Registro0100.New
-        );
+          );
       CopySpedObjProperties(Principal.Bloco_0.Registro0001.Registro0110, Destino.Bloco_0.Registro0001.Registro0110);
+      for Y := 0 to Principal.Bloco_0.Registro0001.Registro0500.Count - 1 do
+        CopySpedObjProperties(
+          Principal.Bloco_0.Registro0001.Registro0500.Items[Y],
+          Destino.Bloco_0.Registro0001.Registro0500.New
+          );
+      if Assigned(Principal.Bloco_0.Registro0001.Registro0900) then
+        CopySpedObjProperties(
+          Principal.Bloco_0.Registro0001.Registro0900,
+          Destino.Bloco_0.Registro0900New
+          );
 
       // Mescla 0140, Bloco A e Bloco C de todas as filiais
       for I := 0 to Lista.Count - 1 do
@@ -432,7 +506,7 @@ begin
           CopySpedObjProperties(
             ItemSped.Bloco_0.Registro0001.Registro0140.Items[Y],
             Destino.Bloco_0.Registro0001.Registro0140.New
-          );
+            );
 
         if ItemSped.Bloco_A.RegistroA001.IND_MOV = imComDados then
         begin
@@ -441,7 +515,7 @@ begin
             CopySpedObjProperties(
               ItemSped.Bloco_A.RegistroA001.RegistroA010.Items[Y],
               Destino.Bloco_A.RegistroA001.RegistroA010.New
-            );
+              );
         end;
 
         if ItemSped.Bloco_C.RegistroC001.IND_MOV = imComDados then
@@ -451,17 +525,51 @@ begin
             CopySpedObjProperties(
               ItemSped.Bloco_C.RegistroC001.RegistroC010.Items[Y],
               Destino.Bloco_C.RegistroC001.RegistroC010.New
-            );
+              );
+        end;
+
+        if ItemSped.Bloco_D.RegistroD001.IND_MOV = imComDados then
+        begin
+          Destino.Bloco_D.RegistroD001.IND_MOV := imComDados;
+          for Y := 0 to ItemSped.Bloco_D.RegistroD001.RegistroD010.Count - 1 do
+            CopySpedObjProperties(
+              ItemSped.Bloco_D.RegistroD001.RegistroD010.Items[Y],
+              Destino.Bloco_D.RegistroD001.RegistroD010.New
+              );
+        end;
+
+        if ItemSped.Bloco_F.RegistroF001.IND_MOV = imComDados then
+        begin
+          Destino.Bloco_F.RegistroF001.IND_MOV := imComDados;
+          for Y := 0 to ItemSped.Bloco_F.RegistroF001.RegistroF010.Count - 1 do
+            CopySpedObjProperties(
+              ItemSped.Bloco_F.RegistroF001.RegistroF010.Items[Y],
+              Destino.Bloco_F.RegistroF001.RegistroF010.New
+              );
+        end;
+
+        if ItemSped.Bloco_P.RegistroP001.IND_MOV = imComDados then
+        begin
+          Destino.Bloco_P.RegistroP001.IND_MOV := imComDados;
+          for Y := 0 to ItemSped.Bloco_P.RegistroP001.RegistroP010.Count - 1 do
+            CopySpedObjProperties(
+              ItemSped.Bloco_P.RegistroP001.RegistroP010.Items[Y],
+              Destino.Bloco_P.RegistroP001.RegistroP010.New
+              );
         end;
       end;
+
+      CopySpedObjProperties(Principal.Bloco_M.RegistroM001, Destino.Bloco_M.RegistroM001);
+      CopySpedObjProperties(Principal.Bloco_1.Registro1001, Destino.Bloco_1.Registro1001);
 
       Destino.DT_INI := Destino.Bloco_0.Registro0000.DT_INI;
       Destino.DT_FIN := Destino.Bloco_0.Registro0000.DT_FIN;
       Destino.Path := ExtractFilePath(ParamStr(0));
-      Destino.Arquivo := 'sped_piscofins_consolidado_' + IntToStr(GetTickCount64) + '.txt';
+      Destino.Arquivo := 'sped_piscofins_consolidado_' + IntToStr(GetTickCount64)+'.txt';
       Destino.SaveFileTXT;
 
-      outFile := IncludeTrailingPathDelimiter(Destino.Path) + Destino.Arquivo;
+      outFile := IncludeTrailingPathDelimiter(Destino.Path)+Destino.Arquivo;
+      NormalizarTxtRegerado(outFile);
       Result.Add('status', 'sucesso');
       Result.Add('message', 'SPED Contribuicoes consolidado com sucesso.');
       Result.Add('total_arquivos', Lista.Count);
@@ -484,4 +592,78 @@ begin
   end;
 end;
 
+procedure TACBRBridgeSPEDPisCofins.AjustarRegistrosImportados(const ASL: TStringList;
+const ASped: TACBrSPEDPisCofins);
+var
+  Fields: TStringList;
+begin
+  if not Assigned(ASL) or not Assigned(ASped) or (ASL.Count = 0) then
+    Exit;
+  Fields := TStringList.Create;
+  try
+    Fields.StrictDelimiter := True;
+    Fields.Delimiter := '|';
+    Fields.DelimitedText := ASL[0];
+    if (Fields.Count > 4) and (Fields[1] = '0000') then
+    begin
+      if Trim(Fields[4]) = '' then
+        ASped.Bloco_0.Registro0000.IND_SIT_ESP := indNenhum;
+      if (Fields.Count > 13) and (Trim(Fields[13]) = '') then
+        ASped.Bloco_0.Registro0000.IND_NAT_PJ := indNatPJNenhum;
+    end;
+  finally
+    Fields.Free;
+  end;
+end;
+
+procedure TACBRBridgeSPEDPisCofins.NormalizarTxtRegerado(const AFileName: string);
+var
+  Lines, Fields: TStringList;
+  I, CommaPos: Integer;
+  Modified, LineModified: Boolean;
+begin
+  if (AFileName = '') or not FileExists(AFileName) then
+    Exit;
+  Lines := TStringList.Create;
+  Fields := TStringList.Create;
+  try
+    Lines.LoadFromFile(AFileName);
+    Fields.StrictDelimiter := True;
+    Fields.Delimiter := '|';
+    Modified := False;
+    for I := 0 to Lines.Count - 1 do
+    begin
+      if Pos('|C175|', Lines[I]) = 1 then
+      begin
+        LineModified := False;
+        Fields.DelimitedText := Lines[I];
+        if Fields.Count > 13 then
+        begin
+          CommaPos := Pos(',', Fields[7]);
+          if (CommaPos > 0) and (Length(Fields[7])-CommaPos = 2) then
+          begin
+            Fields[7] := Fields[7]+'00';
+            LineModified := True;
+          end;
+          CommaPos := Pos(',', Fields[13]);
+          if (CommaPos > 0) and (Length(Fields[13])-CommaPos = 2) then
+          begin
+            Fields[13] := Fields[13]+'00';
+            LineModified := True;
+          end;
+          if LineModified then
+          begin
+            Lines[I] := Fields.DelimitedText;
+            Modified := True;
+          end;
+        end;
+      end;
+    end;
+    if Modified then
+      Lines.SaveToFile(AFileName);
+  finally
+    Fields.Free;
+    Lines.Free;
+  end;
+end;
 end.

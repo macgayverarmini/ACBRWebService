@@ -28,7 +28,8 @@ jsonparser,
 Classes, SysUtils,
 pcnConversao,
 resource.strings.global,
-resource.strings.msg;
+resource.strings.msg,
+  IniFiles;
 
 Type 
 
@@ -202,17 +203,71 @@ End;
 
 Procedure TACBRBridgeNFSe.CarregaConfig;
 Var 
-  O: TJSONObject;
+  O, jGeral, jEmit: TJSONObject;
+  jNode: TJSONData;
   LPfx: AnsiString;
+  vForcarNacional, vPadraoNacional, vNaoAssinarXml, vOk: Boolean;
+  vUrlHom, vUrlPro, vVersaoStr, vVersaoNtHom, vVersaoNtPro, vSubversaoSmarApd: string;
+  vCodMun: Integer;
+  TempIni, IniNT: TMemIniFile;
+  sl: TStringList;
+  sCodigoMun, sNomeMun, sUFMun, sProvedorMun, LSchemaFile: string;
 Begin
   if Trim(fcfg) = '' then
     raise Exception.Create(RSConfigEmptyError);
 
+  vForcarNacional := False;
+  vPadraoNacional := False;
+  vNaoAssinarXml := False;
+  vUrlHom := '';
+  vUrlPro := '';
+  vVersaoStr := '';
+  vVersaoNtHom := '';
+  vVersaoNtPro := '';
+  vSubversaoSmarApd := '';
+  vCodMun := 0;
+
+  // Garante PathSchemas padrão para NFSe antes de SetProvider
+  if facbr.Configuracoes.Arquivos.PathSchemas = '' then
+    facbr.Configuracoes.Arquivos.PathSchemas := ExtractFilePath(ParamStr(0)) + RSSchemasDir + PathDelim + 'NFSe';
+
   try
     O := GetJSON(fcfg) as TJSONObject;
     Try
+      jGeral := nil;
+      jNode := O.Find('Geral');
+      if not Assigned(jNode) then jNode := O.Find('geral');
+      if Assigned(jNode) and (jNode.JSONType = jtObject) then
+        jGeral := TJSONObject(jNode);
+
+      if Assigned(jGeral) then
+      begin
+        vCodMun := jGeral.Get('CodigoMunicipio', jGeral.Get('codigoMunicipio', 0));
+        vVersaoStr := jGeral.Get('Versao', jGeral.Get('versao', ''));
+        vForcarNacional := jGeral.Get('ForcarNacional', jGeral.Get('forcarNacional', False));
+        vPadraoNacional := jGeral.Get('PadraoNacional', jGeral.Get('padraoNacional', False));
+        vNaoAssinarXml := jGeral.Get('NaoAssinarXml', jGeral.Get('naoAssinarXml', False));
+        vUrlHom := jGeral.Get('UrlNacionalHom', jGeral.Get('urlNacionalHom', ''));
+        vUrlPro := jGeral.Get('UrlNacionalPro', jGeral.Get('urlNacionalPro', ''));
+        vVersaoNtHom := jGeral.Get('VersaoNtHom', jGeral.Get('versaoNtHom', ''));
+        vVersaoNtPro := jGeral.Get('VersaoNtPro', jGeral.Get('versaoNtPro', ''));
+        vSubversaoSmarApd := jGeral.Get('SubversaoSmarApd', jGeral.Get('subversaoSmarApd', ''));
+      end;
+
+      vForcarNacional := O.Get('ForcarNacional', O.Get('forcarNacional', vForcarNacional));
+      vPadraoNacional := O.Get('PadraoNacional', O.Get('padraoNacional', vPadraoNacional));
+      vNaoAssinarXml := O.Get('NaoAssinarXml', O.Get('naoAssinarXml', vNaoAssinarXml));
+      if vUrlHom = '' then vUrlHom := O.Get('UrlNacionalHom', O.Get('urlNacionalHom', ''));
+      if vUrlPro = '' then vUrlPro := O.Get('UrlNacionalPro', O.Get('urlNacionalPro', ''));
+      if vVersaoNtHom = '' then vVersaoNtHom := O.Get('VersaoNtHom', O.Get('versaoNtHom', ''));
+      if vVersaoNtPro = '' then vVersaoNtPro := O.Get('VersaoNtPro', O.Get('versaoNtPro', ''));
+      if vSubversaoSmarApd = '' then vSubversaoSmarApd := O.Get('SubversaoSmarApd', O.Get('subversaoSmarApd', ''));
+
       TJSONTools.JsonToObj(O, facbr.Configuracoes);
-      
+
+      if vCodMun = 0 then
+        vCodMun := facbr.Configuracoes.Geral.CodigoMunicipio;
+
       LPfx := TJSONTools.ExtractCertificadoPFX(O);
       if LPfx <> '' then
         facbr.Configuracoes.Certificados.DadosPFX := LPfx;
@@ -223,6 +278,203 @@ Begin
         SSLCryptLib := cryOpenSSL;
         SSLHttpLib := httpOpenSSL;
         SSLXmlSignLib := xsLibXml2;
+      end;
+
+      // ForcarNacional: sobrescreve INI em memória (ex: E&L API Própria ve101) ANTES de LerParamsMunicipio
+      if vForcarNacional and (not vPadraoNacional) and (vCodMun > 0) then
+      begin
+        if facbr.Configuracoes.WebServices.Params.Count = 0 then
+          facbr.LerCidades;
+
+        sCodigoMun := IntToStr(vCodMun);
+        TempIni := TMemIniFile.Create('');
+        try
+          TempIni.SetStrings(facbr.Configuracoes.WebServices.Params);
+
+          sNomeMun := TempIni.ReadString(sCodigoMun, 'Nome', '');
+          sUFMun := TempIni.ReadString(sCodigoMun, 'UF', '');
+          sProvedorMun := Trim(TempIni.ReadString(sCodigoMun, 'Provedor', ''));
+          if sProvedorMun = '' then
+            sProvedorMun := 'EL';
+
+          TempIni.EraseSection(sCodigoMun);
+          if sNomeMun <> '' then
+            TempIni.WriteString(sCodigoMun, 'Nome', sNomeMun);
+          if sUFMun <> '' then
+            TempIni.WriteString(sCodigoMun, 'UF', sUFMun);
+          TempIni.WriteString(sCodigoMun, 'Provedor', sProvedorMun);
+          TempIni.WriteString(sCodigoMun, 'Versao', '1.01');
+          TempIni.WriteString(sCodigoMun, 'Params', '*|APIPropria:|ServicosAPIPropria:ConsultarNFSeRps,ConsultarNFSePorChave,EnviarEvento,ConsultarEvento');
+
+          TempIni.WriteString(sProvedorMun, 'Versao', '1.01');
+          TempIni.WriteString(sProvedorMun, 'Params', 'APIPropria:|ServicosAPIPropria:ConsultarNFSeRps,ConsultarNFSePorChave,EnviarEvento,ConsultarEvento');
+
+          if vUrlHom <> '' then
+          begin
+            TempIni.WriteString(sCodigoMun, 'HomRecepcionar', vUrlHom);
+            TempIni.WriteString(sCodigoMun, 'HomEnviarEvento', vUrlHom);
+            TempIni.WriteString(sCodigoMun, 'HomConsultarNFSeRps', vUrlHom);
+            TempIni.WriteString(sCodigoMun, 'HomConsultarNFSePorChave', vUrlHom);
+            TempIni.WriteString(sCodigoMun, 'HomConsultarEvento', vUrlHom);
+          end;
+          if vUrlPro <> '' then
+          begin
+            TempIni.WriteString(sCodigoMun, 'ProRecepcionar', vUrlPro);
+            TempIni.WriteString(sCodigoMun, 'ProEnviarEvento', vUrlPro);
+            TempIni.WriteString(sCodigoMun, 'ProConsultarNFSeRps', vUrlPro);
+            TempIni.WriteString(sCodigoMun, 'ProConsultarNFSePorChave', vUrlPro);
+            TempIni.WriteString(sCodigoMun, 'ProConsultarEvento', vUrlPro);
+          end;
+
+          sl := TStringList.Create;
+          try
+            TempIni.GetStrings(sl);
+            facbr.Configuracoes.WebServices.Params := sl;
+          finally
+            sl.Free;
+          end;
+        finally
+          TempIni.Free;
+        end;
+      end;
+
+      if vForcarNacional then
+        facbr.Configuracoes.Geral.LayoutNFSe := lnfsProvedor
+      else if vPadraoNacional then
+        facbr.Configuracoes.Geral.LayoutNFSe := lnfsPadraoNacionalv101
+      else
+        facbr.Configuracoes.Geral.LayoutNFSe := lnfsProvedor;
+
+      if vCodMun > 0 then
+      begin
+        facbr.Configuracoes.Geral.CodigoMunicipio := vCodMun;
+        facbr.Configuracoes.Geral.LerParamsMunicipio;
+      end;
+
+      if not vPadraoNacional then
+      begin
+        if vForcarNacional and ((vVersaoStr = '') or (vVersaoStr = '2.04') or (vVersaoStr = '2.00') or SameText(vVersaoStr, 've204') or SameText(vVersaoStr, 've200')) then
+          vVersaoStr := '1.01';
+
+        if vVersaoStr <> '' then
+        begin
+          facbr.Configuracoes.Geral.Versao := StrToVersaoNFSe(vOk, vVersaoStr);
+          if not vOk then
+          begin
+            if (SameText(vVersaoStr, 've100')) or (vVersaoStr = '1.00') then
+              facbr.Configuracoes.Geral.Versao := ve100
+            else if (SameText(vVersaoStr, 've101')) or (vVersaoStr = '1.01') then
+              facbr.Configuracoes.Geral.Versao := ve101
+            else if (SameText(vVersaoStr, 've200')) or (vVersaoStr = '2.00') then
+              facbr.Configuracoes.Geral.Versao := ve200
+            else if (SameText(vVersaoStr, 've201')) or (vVersaoStr = '2.01') then
+              facbr.Configuracoes.Geral.Versao := ve201
+            else if (SameText(vVersaoStr, 've202')) or (vVersaoStr = '2.02') then
+              facbr.Configuracoes.Geral.Versao := ve202
+            else if (SameText(vVersaoStr, 've203')) or (vVersaoStr = '2.03') then
+              facbr.Configuracoes.Geral.Versao := ve203
+            else if (SameText(vVersaoStr, 've204')) or (vVersaoStr = '2.04') then
+              facbr.Configuracoes.Geral.Versao := ve204;
+          end;
+        end;
+      end;
+
+      // Reaplica Emitente caso LerParamsMunicipio tenha alterado configurações
+      if Assigned(jGeral) then
+      begin
+        jNode := jGeral.Find('Emitente');
+        if not Assigned(jNode) then jNode := jGeral.Find('emitente');
+        if Assigned(jNode) and (jNode.JSONType = jtObject) then
+        begin
+          jEmit := TJSONObject(jNode);
+          TJSONTools.JsonToObj(jEmit, facbr.Configuracoes.Geral.Emitente);
+        end;
+      end;
+
+      if (facbr.Configuracoes.Geral.Provedor = proEL) and (facbr.Configuracoes.Geral.Versao = ve100) and (not vForcarNacional) and (not vPadraoNacional) then
+        facbr.Configuracoes.Geral.ConsultaLoteAposEnvio := True
+      else
+        facbr.Configuracoes.Geral.ConsultaLoteAposEnvio := False;
+
+      if Assigned(facbr.Provider) then
+      begin
+        if vPadraoNacional or vForcarNacional or (facbr.Configuracoes.Geral.Provedor = proPadraoNacional) or facbr.Configuracoes.Geral.APIPropria then
+        begin
+          IniNT := TMemIniFile.Create('');
+          try
+            IniNT.SetStrings(facbr.Configuracoes.WebServices.Params);
+            if vVersaoNtPro <> '' then
+            begin
+              if vVersaoNtPro = '1' then vVersaoNtPro := '009.1.01';
+              IniNT.WriteString('OverrideNT', 'ProVersaoNT', vVersaoNtPro);
+              facbr.Provider.ConfigWebServices.LoadVersaoNTProducao(IniNT, 'OverrideNT');
+            end
+            else if facbr.Provider.ConfigWebServices.Producao.VersaoNT = '' then
+              facbr.Provider.ConfigWebServices.LoadVersaoNTProducao(IniNT, 'PadraoNacional');
+
+            if vVersaoNtHom <> '' then
+            begin
+              if vVersaoNtHom = '1' then vVersaoNtHom := '009.1.01';
+              IniNT.WriteString('OverrideNT', 'HomVersaoNT', vVersaoNtHom);
+              facbr.Provider.ConfigWebServices.LoadVersaoNTHomologacao(IniNT, 'OverrideNT');
+            end
+            else if facbr.Provider.ConfigWebServices.Homologacao.VersaoNT = '' then
+              facbr.Provider.ConfigWebServices.LoadVersaoNTHomologacao(IniNT, 'PadraoNacional');
+          finally
+            IniNT.Free;
+          end;
+
+          LSchemaFile := IncludeTrailingPathDelimiter(facbr.Provider.GetSchemaPath) + facbr.Provider.ConfigSchemas.GerarNFSe;
+          if not FileExists(LSchemaFile) then
+            facbr.Provider.ConfigSchemas.Validar := False;
+        end;
+
+        if vNaoAssinarXml then
+        begin
+          with facbr.Provider.ConfigAssinar do
+          begin
+            Rps := False;
+            LoteRps := False;
+            ConsultarSituacao := False;
+            ConsultarLote := False;
+            ConsultarNFSeRps := False;
+            ConsultarNFSe := False;
+            ConsultarNFSePorChave := False;
+            ConsultarNFSePorFaixa := False;
+            ConsultarNFSeServicoPrestado := False;
+            ConsultarNFSeServicoTomado := False;
+            ConsultarLinkNFSe := False;
+            CancelarNFSe := False;
+            RpsGerarNFSe := False;
+            LoteGerarNFSe := False;
+            RpsSubstituirNFSe := False;
+            SubstituirNFSe := False;
+            AbrirSessao := False;
+            FecharSessao := False;
+            GerarToken := False;
+            EnviarEvento := False;
+            ConsultarEvento := False;
+            ConsultarDFe := False;
+            ConsultarParam := False;
+            ConsultarSeqRps := False;
+            IncluirURI := False;
+            AssinaturaAdicional := False;
+          end;
+          facbr.Configuracoes.Geral.Assinaturas := taNaoAssinar;
+          facbr.Configuracoes.Geral.Autenticacao.RequerCertificado := False;
+          facbr.Configuracoes.Geral.Autenticacao.RequerLogin := True;
+          facbr.Configuracoes.Geral.Autenticacao.RequerChaveAcesso := False;
+          facbr.Configuracoes.Geral.Autenticacao.RequerChaveAutorizacao := False;
+          facbr.Configuracoes.Geral.Autenticacao.RequerFraseSecreta := False;
+        end;
+
+        if (facbr.Configuracoes.Geral.Provedor = proSmarAPD) and ((vSubversaoSmarApd = '1') or SameText(vSubversaoSmarApd, 'true')) then
+        begin
+          if Pos('SubVersao=1', facbr.Provider.ConfigGeral.Params.AsString) = 0 then
+            facbr.Provider.ConfigGeral.Params.AsString := facbr.Provider.ConfigGeral.Params.AsString + '|SubVersao=1:';
+          if facbr.Configuracoes.Geral.Versao = ve204 then
+            facbr.Provider.ConfigAssinar.Rps := False;
+        end;
       end;
     Finally
       O.Free;
@@ -447,6 +699,8 @@ Begin
     Try
       facbr.ConsultarLoteRps(vProt, vLote);
       Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebService.ConsultaLoteRps));
+      if (facbr.NotasFiscais.Count > 0) and (facbr.NotasFiscais.Items[0].XmlNfse <> '') then
+        Result.Add('xml_autorizado', EncodeStringBase64(facbr.NotasFiscais.Items[0].XmlNfse));
     Except
       on E: Exception Do
       Begin
@@ -500,6 +754,8 @@ Begin
 
       facbr.ConsultarNFSePorRps(vNumRps, vSerie, vTipo, vCodVerificacao);
       Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebService.ConsultaNFSeporRps));
+      if (facbr.NotasFiscais.Count > 0) and (facbr.NotasFiscais.Items[0].XmlNfse <> '') then
+        Result.Add('xml_autorizado', EncodeStringBase64(facbr.NotasFiscais.Items[0].XmlNfse));
     Except
       on E: Exception Do
       Begin
@@ -519,9 +775,9 @@ End;
 
 Function TACBRBridgeNFSe.ConsultarNFSe(Const jConsulta: TJSONObject): TJSONObject;
 Var
-  DataInicial, DataFinal, Pagina: TJSONData;
+  DataInicial, DataFinal, Pagina, ChaveNFSe, NumeroNFSe, IdDPS: TJSONData;
   vDataInicial, vDataFinal: TDateTime;
-  vPagina: String;
+  vPagina, vChaveNFSe, vNumeroNFSe, vIdDPS: String;
 Begin
   CarregaConfig;
   Result := nil;
@@ -529,14 +785,45 @@ Begin
   vDataInicial := 0;
   vDataFinal := 0;
   vPagina := '1';
+  vChaveNFSe := '';
+  vNumeroNFSe := '';
+  vIdDPS := '';
 
-  If jConsulta.Find('DataInicial', DataInicial) Then vDataInicial := StrToDateDef(DataInicial.AsString, 0);
-  If jConsulta.Find('DataFinal', DataFinal) Then vDataFinal := StrToDateDef(DataFinal.AsString, 0);
-  If jConsulta.Find('Pagina', Pagina) Then vPagina := Pagina.AsString;
+  If jConsulta.Find('DataInicial', DataInicial) Then vDataInicial := StrToDateDef(DataInicial.AsString, 0)
+  Else If jConsulta.Find('dataInicial', DataInicial) Then vDataInicial := StrToDateDef(DataInicial.AsString, 0);
+
+  If jConsulta.Find('DataFinal', DataFinal) Then vDataFinal := StrToDateDef(DataFinal.AsString, 0)
+  Else If jConsulta.Find('dataFinal', DataFinal) Then vDataFinal := StrToDateDef(DataFinal.AsString, 0);
+
+  If jConsulta.Find('Pagina', Pagina) Then vPagina := Pagina.AsString
+  Else If jConsulta.Find('pagina', Pagina) Then vPagina := Pagina.AsString;
+
+  If jConsulta.Find('ChaveNFSe', ChaveNFSe) Then vChaveNFSe := Trim(ChaveNFSe.AsString)
+  Else If jConsulta.Find('chaveNfse', ChaveNFSe) Then vChaveNFSe := Trim(ChaveNFSe.AsString)
+  Else If jConsulta.Find('chave', ChaveNFSe) Then vChaveNFSe := Trim(ChaveNFSe.AsString);
+
+  If jConsulta.Find('NumeroNFSe', NumeroNFSe) Then vNumeroNFSe := Trim(NumeroNFSe.AsString)
+  Else If jConsulta.Find('numeroNfse', NumeroNFSe) Then vNumeroNFSe := Trim(NumeroNFSe.AsString)
+  Else If jConsulta.Find('numero', NumeroNFSe) Then vNumeroNFSe := Trim(NumeroNFSe.AsString);
+
+  If jConsulta.Find('IdDPS', IdDPS) Then vIdDPS := Trim(IdDPS.AsString)
+  Else If jConsulta.Find('idDps', IdDPS) Then vIdDPS := Trim(IdDPS.AsString)
+  Else If jConsulta.Find('idDPS', IdDPS) Then vIdDPS := Trim(IdDPS.AsString);
 
   Try
-    facbr.ConsultarNFSePorPeriodo(vDataInicial, vDataFinal, StrToIntDef(vPagina, 1));
+    facbr.NotasFiscais.Clear;
+    if vIdDPS <> '' then
+      facbr.ConsultarDPSPorChave(vIdDPS)
+    else if vChaveNFSe <> '' then
+      facbr.ConsultarNFSePorChave(vChaveNFSe)
+    else if vNumeroNFSe <> '' then
+      facbr.ConsultarNFSePorNumero(vNumeroNFSe, StrToIntDef(vPagina, 1))
+    else
+      facbr.ConsultarNFSePorPeriodo(vDataInicial, vDataFinal, StrToIntDef(vPagina, 1));
+
     Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebService.ConsultaNFSe));
+    if (facbr.NotasFiscais.Count > 0) and (facbr.NotasFiscais.Items[0].XmlNfse <> '') then
+      Result.Add('xml_autorizado', EncodeStringBase64(facbr.NotasFiscais.Items[0].XmlNfse));
   Except
     on E: Exception Do
     Begin
@@ -981,8 +1268,11 @@ Begin
 
       if (Length(Evento.pedRegEvento.chNFSe) >= 50) or (Evento.pedRegEvento.tpEvento <> ACBrNFSeXConversao.teNenhum) then
       begin
-        if facbr.Configuracoes.Geral.LayoutNFSe = lnfsProvedor then
-          facbr.Configuracoes.Geral.LayoutNFSe := lnfsPadraoNacionalv1;
+        if (facbr.Configuracoes.Geral.LayoutNFSe = lnfsProvedor) and (not facbr.Configuracoes.Geral.APIPropria) and (facbr.Configuracoes.Geral.Provedor <> proEL) then
+        begin
+          facbr.Configuracoes.Geral.LayoutNFSe := lnfsPadraoNacionalv101;
+          facbr.Configuracoes.Geral.LerParamsMunicipio;
+        end;
       end;
 
       if Evento.pedRegEvento.dhEvento = 0 then
