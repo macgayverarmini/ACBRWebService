@@ -24,7 +24,7 @@ uses
   Base64, jsonparser,
   ACBrDFeConfiguracoes,
   ACBrMDFeConfiguracoes,
-  Classes, SysUtils,
+  Classes, SysUtils, DateUtils,
   resource.strings.global,
   synacode,
   resource.strings.msg;
@@ -39,7 +39,10 @@ type
     facbr: TACBrMDFe;
     fdamdfe: TACBrMDFeDAMDFeFPDF;
     procedure CarregaConfig;
+    function DecodeXMLValue(const rawValue: string): string;
     function ReadXMLFromJSON(const jsonData: TJSONObject): string;
+    procedure ApplyLogoFromJSON(const jsonData: TJSONObject; const pdfDir: string; out tempLogoFile: string);
+    procedure CleanupTempLogo(var tempLogoFile: string);
   public
     constructor Create(const Cfg: string);
     destructor Destroy; override;
@@ -268,10 +271,36 @@ end;
 
 { TACBRBridgeMDFe }
 
+procedure SetJSONFieldStr(const Obj: TJSONObject; const Key, Value: string);
+begin
+  if not Assigned(Obj) then
+    Exit;
+  Obj.Delete(Key);
+  Obj.Add(Key, Value);
+end;
+
+procedure SetJSONFieldInt(const Obj: TJSONObject; const Key: string; const Value: Integer);
+begin
+  if not Assigned(Obj) then
+    Exit;
+  Obj.Delete(Key);
+  Obj.Add(Key, Value);
+end;
+
+procedure SetJSONFieldBool(const Obj: TJSONObject; const Key: string; const Value: Boolean);
+begin
+  if not Assigned(Obj) then
+    Exit;
+  Obj.Delete(Key);
+  Obj.Add(Key, Value);
+end;
+
 procedure TACBRBridgeMDFe.CarregaConfig;
 var
   O: TJSONObject;
   LPfx: AnsiString;
+  tempData: TJSONData;
+  logoCfg: string;
 begin
   if Trim(fcfg) = '' then
     raise Exception.Create(RSConfigEmptyError);
@@ -280,6 +309,22 @@ begin
     O := GetJSON(fcfg) as TJSONObject;
     try
       TJSONTools.JsonToObj(O, facbr.Configuracoes);
+
+      tempData := O.Find('DAMDFE');
+      if not Assigned(tempData) then
+        tempData := O.Find('DAMDFe');
+      if Assigned(tempData) and (tempData.JSONType = jtObject) then
+        TJSONTools.JsonToObj(TJSONObject(tempData), fdamdfe);
+
+      tempData := O.Find('Logo');
+      if not Assigned(tempData) then
+        tempData := O.Find('logo');
+      if Assigned(tempData) and (tempData.JSONType = jtString) then
+      begin
+        logoCfg := Trim(tempData.AsString);
+        if logoCfg <> '' then
+          fdamdfe.Logo := logoCfg;
+      end;
 
       LPfx := TJSONTools.ExtractCertificadoPFX(O);
       if LPfx <> '' then
@@ -306,9 +351,177 @@ begin
   fcfg := '';
 end;
 
+function TACBRBridgeMDFe.DecodeXMLValue(const rawValue: string): string;
+var
+  trimmed: string;
+begin
+  Result := '';
+  trimmed := Trim(rawValue);
+  if trimmed = '' then
+    Exit;
+
+  if trimmed[1] = '<' then
+  begin
+    Result := trimmed;
+    Exit;
+  end;
+
+  try
+    Result := DecodeStringBase64(trimmed);
+  except
+    on E: Exception do
+      raise Exception.Create('A string XML em base64 e invalida: ' + E.Message);
+  end;
+end;
+
 function TACBRBridgeMDFe.ReadXMLFromJSON(const jsonData: TJSONObject): string;
 begin
-  Result := TJSONTools.ReadXMLFromJSON(jsonData, ['xml_mdfe', 'MDFeXML']);
+  Result := TJSONTools.ReadXMLFromJSON(jsonData, ['xml_mdfe', 'MDFeXML', 'XMLMDFe', 'xmlMdfe', 'XMLEvento', 'xml_evento', 'xmlEvento']);
+end;
+
+procedure TACBRBridgeMDFe.ApplyLogoFromJSON(
+  const jsonData: TJSONObject;
+  const pdfDir: string;
+  out tempLogoFile: string
+);
+var
+  logoNode, damdfeNode: TJSONData;
+  logoStr, b64Payload, ext, guidStr: string;
+  decodedBytes: AnsiString;
+  semiPos: Integer;
+  hasDataUri, isImageMagic: Boolean;
+  LGuid: TGUID;
+  fs: TFileStream;
+begin
+  tempLogoFile := '';
+  logoStr := '';
+
+  if Assigned(jsonData) then
+  begin
+    logoNode := jsonData.Find('Logo');
+    if not Assigned(logoNode) then logoNode := jsonData.Find('logo');
+    if not Assigned(logoNode) then logoNode := jsonData.Find('LogoBase64');
+    if not Assigned(logoNode) then logoNode := jsonData.Find('logoBase64');
+    if not Assigned(logoNode) then logoNode := jsonData.Find('logo_base64');
+    if not Assigned(logoNode) then logoNode := jsonData.Find('logomarca');
+
+    if not Assigned(logoNode) then
+    begin
+      damdfeNode := jsonData.Find('DAMDFE');
+      if not Assigned(damdfeNode) then damdfeNode := jsonData.Find('DAMDFe');
+      if Assigned(damdfeNode) and (damdfeNode.JSONType = jtObject) then
+      begin
+        logoNode := TJSONObject(damdfeNode).Find('Logo');
+        if not Assigned(logoNode) then logoNode := TJSONObject(damdfeNode).Find('logo');
+      end;
+    end;
+
+    if Assigned(logoNode) and (logoNode.JSONType = jtString) then
+      logoStr := Trim(logoNode.AsString);
+  end;
+
+  if logoStr = '' then
+    logoStr := Trim(fdamdfe.Logo);
+
+  if logoStr = '' then
+    Exit;
+
+  hasDataUri := False;
+  b64Payload := logoStr;
+  semiPos := Pos('base64,', LowerCase(b64Payload));
+  if semiPos > 0 then
+  begin
+    hasDataUri := True;
+    b64Payload := Trim(Copy(b64Payload, semiPos + 7, Length(b64Payload)));
+  end;
+
+  if (not hasDataUri) and FileExists(logoStr) then
+  begin
+    fdamdfe.Logo := logoStr;
+    Exit;
+  end;
+
+  if hasDataUri or (Length(b64Payload) > 32) then
+  begin
+    try
+      b64Payload := StringReplace(b64Payload, #13, '', [rfReplaceAll]);
+      b64Payload := StringReplace(b64Payload, #10, '', [rfReplaceAll]);
+      b64Payload := StringReplace(b64Payload, ' ', '', [rfReplaceAll]);
+      decodedBytes := synacode.DecodeBase64(AnsiString(b64Payload));
+
+      ext := '';
+      isImageMagic := False;
+      if (Length(decodedBytes) >= 8) and
+         (Byte(decodedBytes[1]) = $89) and (Byte(decodedBytes[2]) = $50) and
+         (Byte(decodedBytes[3]) = $4E) and (Byte(decodedBytes[4]) = $47) then
+      begin
+        ext := '.png';
+        isImageMagic := True;
+      end
+      else if (Length(decodedBytes) >= 3) and
+              (Byte(decodedBytes[1]) = $FF) and (Byte(decodedBytes[2]) = $D8) and
+              (Byte(decodedBytes[3]) = $FF) then
+      begin
+        ext := '.jpg';
+        isImageMagic := True;
+      end
+      else if (Length(decodedBytes) >= 14) and
+              (Byte(decodedBytes[1]) = $42) and (Byte(decodedBytes[2]) = $4D) then
+      begin
+        ext := '.bmp';
+        isImageMagic := True;
+      end
+      else if (Length(decodedBytes) >= 6) and
+              (Byte(decodedBytes[1]) = $47) and (Byte(decodedBytes[2]) = $49) and
+              (Byte(decodedBytes[3]) = $46) and (Byte(decodedBytes[4]) = $38) then
+      begin
+        ext := '.gif';
+        isImageMagic := True;
+      end
+      else if hasDataUri and (Length(decodedBytes) > 0) then
+      begin
+        ext := '.png';
+        isImageMagic := True;
+      end;
+
+      if isImageMagic then
+      begin
+        if not DirectoryExists(pdfDir) then
+          CreateDir(pdfDir);
+        CreateGUID(LGuid);
+        guidStr := StringReplace(GUIDToString(LGuid), '{', '', [rfReplaceAll]);
+        guidStr := StringReplace(guidStr, '}', '', [rfReplaceAll]);
+        tempLogoFile := IncludeTrailingPathDelimiter(pdfDir) + 'logo_' + guidStr + ext;
+
+        fs := TFileStream.Create(tempLogoFile, fmCreate);
+        try
+          fs.WriteBuffer(PAnsiChar(decodedBytes)^, Length(decodedBytes));
+        finally
+          fs.Free;
+        end;
+
+        fdamdfe.Logo := tempLogoFile;
+        Exit;
+      end;
+    except
+      tempLogoFile := '';
+    end;
+  end;
+
+  if not hasDataUri then
+    fdamdfe.Logo := logoStr;
+end;
+
+procedure TACBRBridgeMDFe.CleanupTempLogo(var tempLogoFile: string);
+begin
+  if tempLogoFile <> '' then
+  begin
+    if fdamdfe.Logo = tempLogoFile then
+      fdamdfe.Logo := '';
+    if FileExists(tempLogoFile) then
+      SysUtils.DeleteFile(tempLogoFile);
+    tempLogoFile := '';
+  end;
 end;
 
 constructor TACBRBridgeMDFe.Create(const Cfg: string);
@@ -329,14 +542,45 @@ end;
 function TACBRBridgeMDFe.MDFe(const jMDFe: TJSONObject): TJSONObject;
 var
   Manifesto: TManifesto;
-  Lote: string;
-  jTarget, jInf, jEmit, jModal, jRodo: TJSONData;
+  Lote, sendExceptionMsg, erroVal, xmlFinal, chClean: string;
+  wsXMotivo, wsProtocolo, wsRecibo: string;
+  wsCStat: Integer;
+  Sincrono: Boolean;
+  jOpt, jTarget, jInf, jEmit, jModal, jRodo: TJSONData;
 begin
   CarregaConfig;
 
   Result := nil;
+  Sincrono := True;
+  jOpt := jMDFe.Find('sincrono');
+  if not Assigned(jOpt) then
+    jOpt := jMDFe.Find('Sincrono');
+  if Assigned(jOpt) then
+  begin
+    if jOpt.JSONType = jtBoolean then
+      Sincrono := jOpt.AsBoolean
+    else if jOpt.JSONType = jtNumber then
+      Sincrono := (jOpt.AsInteger <> 0)
+    else if jOpt.JSONType = jtString then
+      Sincrono := not (SameText(Trim(jOpt.AsString), 'false') or (Trim(jOpt.AsString) = '0'));
+  end;
+
+  Lote := '';
+  jOpt := jMDFe.Find('Lote');
+  if not Assigned(jOpt) then jOpt := jMDFe.Find('lote');
+  if not Assigned(jOpt) then jOpt := jMDFe.Find('idLote');
+  if Assigned(jOpt) then
+  begin
+    if jOpt.JSONType = jtString then
+      Lote := Trim(jOpt.AsString)
+    else if jOpt.JSONType = jtNumber then
+      Lote := IntToStr(jOpt.AsInt64);
+  end;
+  if Lote = '' then
+    Lote := '1';
+
+  facbr.Manifestos.Clear;
   Manifesto := facbr.Manifestos.Add;
-  Lote := '1';
 
   try
     jTarget := nil;
@@ -399,19 +643,113 @@ begin
     end;
   end;
 
+  sendExceptionMsg := '';
   try
-    // Agrupa as chamadas de preparação e envio dentro do bloco try
-    facbr.Manifestos.Assinar;
-    facbr.Manifestos.Validar;
-    facbr.Enviar(Lote);
-  finally
-    // Garante que o retorno do webservice seja sempre capturado e retornado
-    Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.Retorno));
-    if facbr.Manifestos.Count > 0 then
-      Result.Add('xml_autorizado', EncodeStringBase64(facbr.Manifestos.Items[0].XML));
-  end;
+    try
+      facbr.Manifestos.GerarMDFe;
+      facbr.Manifestos.Assinar;
+      facbr.Manifestos.Validar;
+      // SVRS (NT 2024.001 / MDF-e 3.00): MDFeRecepcaoSinc obrigatorio (Sincrono = True por padrao; Imprimir = False)
+      facbr.Enviar(Lote, False, Sincrono);
+    except
+      on E: Exception do
+        sendExceptionMsg := E.Message;
+    end;
 
-  facbr.Manifestos.Clear;
+    wsXMotivo := '';
+    wsProtocolo := '';
+    wsRecibo := '';
+    if Sincrono then
+    begin
+      wsCStat := facbr.WebServices.Enviar.cStat;
+      wsXMotivo := Trim(facbr.WebServices.Enviar.xMotivo);
+      wsProtocolo := Trim(facbr.WebServices.Enviar.Protocolo);
+      wsRecibo := Trim(facbr.WebServices.Enviar.Recibo);
+    end
+    else
+    begin
+      wsCStat := facbr.WebServices.Retorno.cStat;
+      if wsCStat = 0 then
+      begin
+        wsCStat := facbr.WebServices.Enviar.cStat;
+        wsXMotivo := Trim(facbr.WebServices.Enviar.xMotivo);
+      end;
+      wsRecibo := Trim(facbr.WebServices.Retorno.Recibo);
+      if wsRecibo = '' then
+        wsRecibo := Trim(facbr.WebServices.Enviar.Recibo);
+    end;
+
+    erroVal := '';
+    xmlFinal := '';
+    chClean := '';
+    if facbr.Manifestos.Count > 0 then
+    begin
+      erroVal := Trim(facbr.Manifestos.Items[0].ErroValidacao);
+
+      if facbr.Manifestos.Items[0].MDFe.procMDFe.cStat <> 0 then
+      begin
+        wsCStat := facbr.Manifestos.Items[0].MDFe.procMDFe.cStat;
+        if Trim(facbr.Manifestos.Items[0].MDFe.procMDFe.xMotivo) <> '' then
+          wsXMotivo := Trim(facbr.Manifestos.Items[0].MDFe.procMDFe.xMotivo);
+        if Trim(facbr.Manifestos.Items[0].MDFe.procMDFe.nProt) <> '' then
+          wsProtocolo := Trim(facbr.Manifestos.Items[0].MDFe.procMDFe.nProt);
+      end;
+
+      xmlFinal := Trim(facbr.Manifestos.Items[0].XML);
+      if xmlFinal = '' then
+        xmlFinal := Trim(facbr.Manifestos.Items[0].XMLAssinado);
+      if xmlFinal = '' then
+        xmlFinal := Trim(facbr.Manifestos.Items[0].XMLOriginal);
+
+      chClean := StringReplace(
+        Trim(facbr.Manifestos.Items[0].MDFe.infMDFe.ID),
+        'MDFe',
+        '',
+        [rfIgnoreCase]
+      );
+    end;
+
+    if (sendExceptionMsg <> '') and (wsCStat = 0) and (erroVal = '') then
+      raise Exception.Create(sendExceptionMsg);
+
+    if Sincrono then
+      Result := TJSONTools.SafeObjToJson(facbr.WebServices.Enviar, 'Erro ao enviar MDF-e')
+    else
+      Result := TJSONTools.SafeObjToJson(facbr.WebServices.Retorno, 'Erro ao enviar MDF-e');
+
+    SetJSONFieldBool(Result, 'sincrono', Sincrono);
+    if wsCStat <> 0 then
+      SetJSONFieldInt(Result, 'cStat', wsCStat);
+    if wsXMotivo <> '' then
+      SetJSONFieldStr(Result, 'xMotivo', wsXMotivo);
+    if wsProtocolo <> '' then
+    begin
+      SetJSONFieldStr(Result, 'Protocolo', wsProtocolo);
+      SetJSONFieldStr(Result, 'nProt', wsProtocolo);
+    end;
+    if wsRecibo <> '' then
+      SetJSONFieldStr(Result, 'Recibo', wsRecibo);
+    if chClean <> '' then
+    begin
+      SetJSONFieldStr(Result, 'chave', chClean);
+      SetJSONFieldStr(Result, 'chMDFe', chClean);
+      SetJSONFieldStr(Result, 'ChaveMDFe', chClean);
+    end;
+    if xmlFinal <> '' then
+    begin
+      SetJSONFieldStr(Result, 'xml_autorizado', EncodeStringBase64(xmlFinal));
+      SetJSONFieldStr(Result, 'XML', xmlFinal);
+    end;
+    if (sendExceptionMsg <> '') and (wsCStat = 0) then
+    begin
+      SetJSONFieldStr(Result, RSStatusField, RSStatusErro);
+      SetJSONFieldStr(Result, RSMessageField, sendExceptionMsg);
+      if erroVal <> '' then
+        SetJSONFieldStr(Result, RSErroValidacaoField, erroVal);
+    end;
+  finally
+    facbr.Manifestos.Clear;
+  end;
 end;
 
 function TACBRBridgeMDFe.Evento(const jEventos: TJSONArray): string;
@@ -547,9 +885,11 @@ var
   fileName: string;
   pdfDir: string;
   chClean: string;
+  tempLogoFile: string;
 begin
   CarregaConfig;
   Result := TJSONObject.Create;
+  tempLogoFile := '';
 
   try
     stringXml := ReadXMLFromJSON(xmlData);
@@ -561,91 +901,94 @@ begin
     end;
   end;
 
+  facbr.Manifestos.Clear;
   try
-    facbr.Manifestos.LoadFromString(stringXml);
-  except
-    on E: Exception do
-    begin
-      Result.Add(RSErrorField, RSXMLReadError + E.Message);
-      Exit;
-    end;
-  end;
-
-  stringXml := '';
-
-  if facbr.Manifestos.Count = 0 then
-  begin
-    Result.Add(RSErrorField, 'Nenhum MDF-e foi carregado a partir do XML.');
-    Exit;
-  end;
-
-  fdamdfe.Cancelada := (facbr.Manifestos.Items[0].MDFe.procMDFe.cStat = 101);
-
-  fdamdfe.MostraPreview := False;
-  fdamdfe.MostraStatus := False;
-  fdamdfe.MostraSetup := False;
-
-  pdfDir := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim;
-  if not DirectoryExists(pdfDir) then
-    CreateDir(pdfDir);
-
-  chClean := StringReplace(facbr.Manifestos.Items[0].MDFe.infMDFe.ID, 'MDFe', '', [rfIgnoreCase]);
-  fileName := pdfDir + chClean + '-mdfe.pdf';
-  if FileExists(fileName) then
-    SysUtils.DeleteFile(fileName);
-
-  try
-    fdamdfe.PathPDF := pdfDir;
-    facbr.DAMDFE := fdamdfe;
-    facbr.Manifestos.ImprimirPDF;
-
-    if not FileExists(fileName) then
-      fileName := fdamdfe.ArquivoPDF;
-    if (fileName = '') or (not FileExists(fileName)) then
-    begin
-      fileName := pdfDir + facbr.Manifestos.Items[0].MDFe.infMDFe.ID + '-mdfe.pdf';
-      if not FileExists(fileName) then
-        fileName := pdfDir + chClean + '-mdfe.pdf';
-    end;
-
-    if not FileExists(fileName) then
-    begin
-      Result.Add(RSErrorField, RSPDFGenerationError + ': Arquivo PDF nao foi gerado pelo ACBr.');
-      facbr.Manifestos.Clear;
-      Exit;
-    end;
-  except
-    on E: Exception do
-    begin
-      Result.Add(RSErrorField, RSPDFGenerationError + ': ' + E.Message);
-      facbr.Manifestos.Clear;
-      Exit;
-    end;
-  end;
-
-  if not OnlyURL then
-  begin
     try
-      arquivofinal := FileToStringBase64(fileName, False, tamanho);
-      Result.Add(RSPDFField, arquivofinal);
-      Result.Add(RSTamanhoField, tamanho.ToString);
+      facbr.Manifestos.LoadFromString(stringXml);
     except
       on E: Exception do
       begin
-        Result.Add(RSErrorField, E.Message);
-        facbr.Manifestos.Clear;
+        Result.Add(RSErrorField, RSXMLReadError + E.Message);
         Exit;
       end;
     end;
+
+    stringXml := '';
+
+    if facbr.Manifestos.Count = 0 then
+    begin
+      Result.Add(RSErrorField, 'Nenhum MDF-e foi carregado a partir do XML.');
+      Exit;
+    end;
+
+    fdamdfe.Cancelada := (facbr.Manifestos.Items[0].MDFe.procMDFe.cStat in [101, 151, 155]);
+
+    fdamdfe.MostraPreview := False;
+    fdamdfe.MostraStatus := False;
+    fdamdfe.MostraSetup := False;
+
+    pdfDir := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim;
+    if not DirectoryExists(pdfDir) then
+      CreateDir(pdfDir);
+
+    ApplyLogoFromJSON(xmlData, pdfDir, tempLogoFile);
+
+    chClean := StringReplace(facbr.Manifestos.Items[0].MDFe.infMDFe.ID, 'MDFe', '', [rfIgnoreCase]);
+    fileName := pdfDir + chClean + '-mdfe.pdf';
+    if FileExists(fileName) then
+      SysUtils.DeleteFile(fileName);
+
+    try
+      fdamdfe.PathPDF := pdfDir;
+      facbr.DAMDFE := fdamdfe;
+      facbr.Manifestos.ImprimirPDF;
+
+      if not FileExists(fileName) then
+        fileName := fdamdfe.ArquivoPDF;
+      if (fileName = '') or (not FileExists(fileName)) then
+      begin
+        fileName := pdfDir + facbr.Manifestos.Items[0].MDFe.infMDFe.ID + '-mdfe.pdf';
+        if not FileExists(fileName) then
+          fileName := pdfDir + chClean + '-mdfe.pdf';
+      end;
+
+      if not FileExists(fileName) then
+      begin
+        Result.Add(RSErrorField, RSPDFGenerationError + ': Arquivo PDF nao foi gerado pelo ACBr.');
+        Exit;
+      end;
+    except
+      on E: Exception do
+      begin
+        Result.Add(RSErrorField, RSPDFGenerationError + ': ' + E.Message);
+        Exit;
+      end;
+    end;
+
+    if not OnlyURL then
+    begin
+      try
+        arquivofinal := FileToStringBase64(fileName, False, tamanho);
+        Result.Add(RSPDFField, arquivofinal);
+        Result.Add(RSTamanhoField, tamanho.ToString);
+      except
+        on E: Exception do
+        begin
+          Result.Add(RSErrorField, E.Message);
+          Exit;
+        end;
+      end;
+    end;
+
+    Result.Add(RSChaveField, chClean);
+    Result.Add(RSURLField, '/mdfe/pdf/' + chClean);
+
+    if xmlData.Find(RSIDField, id) then
+      Result.Add(RSIDField, id.AsString);
+  finally
+    CleanupTempLogo(tempLogoFile);
+    facbr.Manifestos.Clear;
   end;
-
-  Result.Add(RSChaveField, chClean);
-  Result.Add(RSURLField, '/mdfe/pdf/' + chClean);
-
-  if xmlData.Find(RSIDField, id) then
-    Result.Add(RSIDField, id);
-
-  facbr.Manifestos.Clear;
 end;
 
 function TACBRBridgeMDFe.DamdfeEvento(const xmlEvento: TJSONObject): TJSONObject;
@@ -657,19 +1000,21 @@ var
   id: TJSONString;
   fileName: string;
   pdfDir: string;
+  tempLogoFile: string;
 begin
   CarregaConfig;
   Result := TJSONObject.Create;
+  tempLogoFile := '';
 
   try
     evtXmlNode := xmlEvento.Find('XMLEvento');
-    if not Assigned(evtXmlNode) then evtXmlNode := xmlEvento.Find('xml_evento');
+    if (not Assigned(evtXmlNode)) or (Trim(evtXmlNode.AsString) = '') then
+      evtXmlNode := xmlEvento.Find('xml_evento');
+    if (not Assigned(evtXmlNode)) or (Trim(evtXmlNode.AsString) = '') then
+      evtXmlNode := xmlEvento.Find('xmlEvento');
+
     if Assigned(evtXmlNode) and (Trim(evtXmlNode.AsString) <> '') then
-    begin
-      stringXml := Trim(evtXmlNode.AsString);
-      if stringXml[1] <> '<' then
-        stringXml := DecodeStringBase64(stringXml);
-    end
+      stringXml := DecodeXMLValue(evtXmlNode.AsString)
     else
       stringXml := ReadXMLFromJSON(xmlEvento);
   except
@@ -680,91 +1025,112 @@ begin
     end;
   end;
 
+  facbr.Manifestos.Clear;
+  facbr.EventoMDFe.Evento.Clear;
   try
-    facbr.Manifestos.Clear;
     mdfeXmlNode := xmlEvento.Find('XMLMDFe');
-    if not Assigned(mdfeXmlNode) then mdfeXmlNode := xmlEvento.Find('xml_mdfe');
-    if not Assigned(mdfeXmlNode) then mdfeXmlNode := xmlEvento.Find('MDFeXML');
-    if not Assigned(mdfeXmlNode) then mdfeXmlNode := xmlEvento.Find(RSXMLField);
-    if not Assigned(mdfeXmlNode) then mdfeXmlNode := xmlEvento.Find(RSXmlKey);
+    if (not Assigned(mdfeXmlNode)) or (Trim(mdfeXmlNode.AsString) = '') then
+      mdfeXmlNode := xmlEvento.Find('xmlMdfe');
+    if (not Assigned(mdfeXmlNode)) or (Trim(mdfeXmlNode.AsString) = '') then
+      mdfeXmlNode := xmlEvento.Find('xml_mdfe');
+    if (not Assigned(mdfeXmlNode)) or (Trim(mdfeXmlNode.AsString) = '') then
+      mdfeXmlNode := xmlEvento.Find('MDFeXML');
+    if (not Assigned(mdfeXmlNode)) or (Trim(mdfeXmlNode.AsString) = '') then
+      mdfeXmlNode := xmlEvento.Find(RSXMLField);
+    if (not Assigned(mdfeXmlNode)) or (Trim(mdfeXmlNode.AsString) = '') then
+      mdfeXmlNode := xmlEvento.Find(RSXmlKey);
+
     if Assigned(mdfeXmlNode) and (Trim(mdfeXmlNode.AsString) <> '') then
     begin
-      mdfeXmlStr := Trim(mdfeXmlNode.AsString);
-      if mdfeXmlStr[1] <> '<' then
-        mdfeXmlStr := DecodeStringBase64(mdfeXmlStr);
-      if mdfeXmlStr <> stringXml then
-        facbr.Manifestos.LoadFromString(mdfeXmlStr);
+      try
+        mdfeXmlStr := DecodeXMLValue(mdfeXmlNode.AsString);
+        if (mdfeXmlStr <> '') and (mdfeXmlStr <> stringXml) then
+          facbr.Manifestos.LoadFromString(mdfeXmlStr);
+      except
+        on E: Exception do
+        begin
+          Result.Add(RSErrorField, 'Erro ao carregar XML base do MDF-e para o evento: ' + E.Message);
+          Exit;
+        end;
+      end;
     end;
 
+    try
+      facbr.EventoMDFe.LerXMLFromString(stringXml);
+    except
+      on E: Exception do
+      begin
+        Result.Add(RSErrorField, 'Erro ao carregar XML de evento MDF-e: ' + E.Message);
+        Exit;
+      end;
+    end;
+
+    stringXml := '';
+
+    if facbr.EventoMDFe.Evento.Count = 0 then
+    begin
+      Result.Add(RSErrorField, 'Nenhum evento MDF-e foi carregado a partir do XML.');
+      Exit;
+    end;
+
+    if facbr.Manifestos.Count = 0 then
+      facbr.Manifestos.Add.MDFe.infMDFe.ID := 'MDFe' + facbr.EventoMDFe.Evento.Items[0].InfEvento.chMDFe;
+
+    fdamdfe.MostraPreview := False;
+    fdamdfe.MostraStatus := False;
+    fdamdfe.MostraSetup := False;
+
+    pdfDir := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim;
+    if not DirectoryExists(pdfDir) then
+      CreateDir(pdfDir);
+
+    ApplyLogoFromJSON(xmlEvento, pdfDir, tempLogoFile);
+
+    try
+      fdamdfe.PathPDF := pdfDir;
+      facbr.DAMDFE := fdamdfe;
+      facbr.ImprimirEventoPDF;
+
+      fileName := fdamdfe.ArquivoPDF;
+      if (fileName = '') or (not FileExists(fileName)) then
+      begin
+        fileName := pdfDir + facbr.EventoMDFe.Evento.Items[0].InfEvento.chMDFe + '-procEventoMDFe.pdf';
+      end;
+
+      if not FileExists(fileName) then
+      begin
+        Result.Add(RSErrorField, RSPDFGenerationError + ': Arquivo PDF de evento nao foi gerado.');
+        Exit;
+      end;
+    except
+      on E: Exception do
+      begin
+        Result.Add(RSErrorField, RSPDFGenerationError + ': ' + E.Message);
+        Exit;
+      end;
+    end;
+
+    try
+      arquivofinal := FileToStringBase64(fileName, False, tamanho);
+    except
+      on E: Exception do
+      begin
+        Result.Add(RSErrorField, E.Message);
+        Exit;
+      end;
+    end;
+
+    Result.Add(RSPDFField, arquivofinal);
+    Result.Add(RSChaveField, facbr.EventoMDFe.Evento.Items[0].InfEvento.chMDFe);
+    Result.Add(RSTamanhoField, tamanho.ToString);
+
+    if xmlEvento.Find(RSIDField, id) then
+      Result.Add(RSIDField, id.AsString);
+  finally
+    CleanupTempLogo(tempLogoFile);
     facbr.EventoMDFe.Evento.Clear;
-    facbr.EventoMDFe.LerXMLFromString(stringXml);
-  except
-    on E: Exception do
-    begin
-      Result.Add(RSErrorField, 'Erro ao carregar XML de evento MDF-e: ' + E.Message);
-      Exit;
-    end;
+    facbr.Manifestos.Clear;
   end;
-
-  stringXml := '';
-
-  if facbr.EventoMDFe.Evento.Count = 0 then
-  begin
-    Result.Add(RSErrorField, 'Nenhum evento MDF-e foi carregado a partir do XML.');
-    Exit;
-  end;
-
-  if facbr.Manifestos.Count = 0 then
-    facbr.Manifestos.Add.MDFe.infMDFe.Id := 'MDFe' + facbr.EventoMDFe.Evento.Items[0].InfEvento.chMDFe;
-
-  fdamdfe.MostraPreview := False;
-  fdamdfe.MostraStatus := False;
-  fdamdfe.MostraSetup := False;
-
-  pdfDir := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim;
-  if not DirectoryExists(pdfDir) then
-    CreateDir(pdfDir);
-
-  try
-    fdamdfe.PathPDF := pdfDir;
-    facbr.DAMDFE := fdamdfe;
-    facbr.ImprimirEventoPDF;
-
-    fileName := fdamdfe.ArquivoPDF;
-    if (fileName = '') or (not FileExists(fileName)) then
-    begin
-      fileName := pdfDir + facbr.EventoMDFe.Evento.Items[0].InfEvento.chMDFe + '-procEventoMDFe.pdf';
-    end;
-
-    if not FileExists(fileName) then
-    begin
-      Result.Add(RSErrorField, RSPDFGenerationError + ': Arquivo PDF de evento nao foi gerado.');
-      Exit;
-    end;
-  except
-    on E: Exception do
-    begin
-      Result.Add(RSErrorField, RSPDFGenerationError + ': ' + E.Message);
-      Exit;
-    end;
-  end;
-
-  try
-    arquivofinal := FileToStringBase64(fileName, False, tamanho);
-  except
-    on E: Exception do
-    begin
-      Result.Add(RSErrorField, E.Message);
-      Exit;
-    end;
-  end;
-
-  Result.Add(RSPDFField, arquivofinal);
-  Result.Add(RSChaveField, facbr.EventoMDFe.Evento.Items[0].InfEvento.chMDFe);
-  Result.Add(RSTamanhoField, tamanho.ToString);
-
-  if xmlEvento.Find(RSIDField, id) then
-    Result.Add(RSIDField, id);
 end;
 
 
@@ -1010,7 +1376,7 @@ end;
 
 function TACBRBridgeMDFe.Encerramento(const jEncerramento: TJSONObject): TJSONObject;
 var
-  chMDFe, nProt, cnpjCpf: string;
+  chMDFe, nProt, cnpjCpf, dtEncStr: string;
   cUF, cMun: Integer;
   EncObj: TJSONObject;
 begin
@@ -1032,6 +1398,9 @@ begin
       cUF := EncObj.Get('cUF', 0);
       if (cUF = 0) and (cMun > 0) then
         cUF := StrToIntDef(Copy(IntToStr(cMun), 1, 2), 0);
+      dtEncStr := EncObj.Get('dtEnc', '');
+      if dtEncStr = '' then dtEncStr := EncObj.Get('dtEncStr', '');
+      if dtEncStr = '' then dtEncStr := EncObj.Get('dhEnc', '');
 
       facbr.EventoMDFe.Evento.Clear;
       with facbr.EventoMDFe.Evento.New do
@@ -1043,7 +1412,13 @@ begin
         infEvento.tpEvento := teEncerramento;
         infEvento.nSeqEvento := 1;
         infEvento.detEvento.nProt := nProt;
-        infEvento.detEvento.dtEnc := Date;
+        if dtEncStr <> '' then
+        begin
+          if not TryISO8601ToDate(dtEncStr, infEvento.detEvento.dtEnc, False) then
+            infEvento.detEvento.dtEnc := StrToDateDef(dtEncStr, Date);
+        end
+        else
+          infEvento.detEvento.dtEnc := Date;
         infEvento.detEvento.cUF := cUF;
         infEvento.detEvento.cMun := cMun;
       end;
