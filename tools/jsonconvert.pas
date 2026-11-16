@@ -34,12 +34,17 @@ type
     class function ExtractCertificadoPFX(O: TJSONObject): AnsiString;
     class function ReadXMLFromJSON(const jsonData: TJSONObject; const ExtraKeys: array of string): string;
     class function JsonAndFree(AData: TJSONData): string;
+    class function VariantToJson(const V: Variant): TJSONData;
+    class function TryResolveSpedEnum(ATypeInfo: PTypeInfo; const AStr: string; out AOrd: Integer): Boolean;
   end;
 
 implementation
 
 uses
-  Contnrs, DateUtils, Base64, synacode;
+  Contnrs, DateUtils, Base64, synacode,
+  Variants,
+  ACBrEFDBlocos,
+  ACBrEPCBlocos;
 
 { TJSONTools }
 
@@ -221,8 +226,9 @@ begin
         Obj := Value.AsObject;
         Result := InternalObjToJson(Obj, Visited);
       end;
-  else
-    Result := TJSONNull.Create;
+    tkVariant:
+      Result := VariantToJson(Value.AsVariant);
+  else    Result := TJSONNull.Create;
   end;
 end;
 
@@ -299,8 +305,13 @@ begin
           if Prop.IsReadable and (Prop.Visibility in [mvPublic, mvPublished]) then
           begin
             try
-              Val := Prop.GetValue(Obj);
-              ObjJson.Add(Prop.Name, ValueToJson(Val, Visited));
+              if (Prop.PropertyType.TypeKind = tkVariant) and Assigned(Prop.Handle) then
+                ObjJson.Add(Prop.Name, VariantToJson(GetVariantProp(Obj, PPropInfo(Prop.Handle))))
+              else
+              begin
+                Val := Prop.GetValue(Obj);
+                ObjJson.Add(Prop.Name, ValueToJson(Val, Visited));
+              end;
             except
             end;
           end;
@@ -379,7 +390,8 @@ var
   LDate: TDateTime;
   LOk: Boolean;
   LTe: TpcnTpEvento;
-  LTypeData: PTypeData;
+  LTypeData: PTypeData;  LFloat: Double;
+  LValCode: Integer;
 begin
   if (Json = nil) or (Obj = nil) then Exit;
 
@@ -392,9 +404,14 @@ begin
     begin
       PropStr := Json.Names[i];
       JsonVal := Json.Items[i];
-      if JsonVal.IsNull then Continue;
-
       Prop := RttiType.GetProperty(PropStr);
+      if JsonVal.IsNull then
+      begin
+        if Assigned(Prop) and Prop.IsWritable and
+           (Prop.PropertyType.TypeKind = tkVariant) and Assigned(Prop.Handle) then
+          SetVariantProp(Obj, PPropInfo(Prop.Handle), Null);
+        Continue;
+      end;
       if Assigned(Prop) then
       begin
         if Prop.PropertyType.TypeKind = tkClass then
@@ -437,7 +454,14 @@ begin
                   else
                   begin
                     if JsonVal is TJSONString then
-                      Prop.SetValue(Obj, TValue.From<Extended>(StrToFloatDef(JsonVal.AsString, 0)))
+                    begin
+                      SVal := Trim(JsonVal.AsString);
+                      System.Val(StringReplace(SVal, ',', '.', [rfReplaceAll]), LFloat, LValCode);
+                      if LValCode = 0 then
+                        Prop.SetValue(Obj, TValue.From<Extended>(LFloat))
+                      else
+                        Prop.SetValue(Obj, TValue.From<Extended>(StrToFloatDef(SVal, 0)));
+                    end
                     else if JsonVal is TJSONNumber then
                       Prop.SetValue(Obj, TValue.From<Extended>(JsonVal.AsFloat));
                   end;
@@ -469,7 +493,11 @@ begin
                 else
                 begin
                   SVal := Trim(JsonVal.AsString);
-                  EnumVal := GetEnumValue(Prop.PropertyType.Handle, SVal);
+                  EnumVal := GetEnumValue(Prop.PropertyType.Handle, SVal);                  if (EnumVal < 0) and not (JsonVal is TJSONNumber) then
+                  begin
+                    if not TryResolveSpedEnum(Prop.PropertyType.Handle, SVal, EnumVal) then
+                      EnumVal := -1;
+                  end;
                   if (EnumVal < 0) and (Prop.PropertyType.Handle = TypeInfo(TpcnTpEvento)) and (SVal <> '') then
                   begin
                     LTe := StrToTpEventoNFe(LOk, SVal);
@@ -516,6 +544,27 @@ begin
                 begin
                   EnumVal := StringToSet(Prop.PropertyType.Handle, JsonVal.AsString);
                   Prop.SetValue(Obj, TValue.FromOrdinal(Prop.PropertyType.Handle, EnumVal));
+                end;              tkVariant:
+                if Assigned(Prop.Handle) then
+                begin
+                  if JsonVal is TJSONNumber then
+                    SetVariantProp(Obj, PPropInfo(Prop.Handle), Double(JsonVal.AsFloat))
+                  else if JsonVal is TJSONBoolean then
+                    SetVariantProp(Obj, PPropInfo(Prop.Handle), JsonVal.AsBoolean)
+                  else
+                  begin
+                    SVal := Trim(JsonVal.AsString);
+                    if SVal = '' then
+                      SetVariantProp(Obj, PPropInfo(Prop.Handle), Null)
+                    else
+                    begin
+                      System.Val(StringReplace(SVal, ',', '.', [rfReplaceAll]), LFloat, LValCode);
+                      if LValCode = 0 then
+                        SetVariantProp(Obj, PPropInfo(Prop.Handle), LFloat)
+                      else
+                        SetVariantProp(Obj, PPropInfo(Prop.Handle), JsonVal.AsString);
+                    end;
+                  end;
                 end;
             end;
           except
@@ -629,5 +678,184 @@ begin
     end;
   end;
 end;
+
+
+class function TJSONTools.VariantToJson(const V: Variant): TJSONData;
+begin
+  if VarIsNull(V) or VarIsEmpty(V) then
+    Result := TJSONNull.Create
+  else if VarIsType(V, varBoolean) then
+    Result := TJSONBoolean.Create(Boolean(V))
+  else if VarIsNumeric(V) then
+    Result := TJSONFloatNumber.Create(Double(V))
+  else
+    Result := TJSONString.Create(VarToStr(V));
+end;
+
+
+
+class function TJSONTools.TryResolveSpedEnum(ATypeInfo: PTypeInfo; const AStr: string; out AOrd: Integer): Boolean;
+begin
+  Result := True;
+  AOrd := -1;
+  try
+    if ATypeInfo = TypeInfo(ACBrEFDBlocos.TACBrVersaoLeiauteSPEDFiscal) then
+      AOrd := Ord(ACBrEFDBlocos.StrToCodVer(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEFDBlocos.TACBrCodFin) then
+      AOrd := Ord(ACBrEFDBlocos.StrToCodFin(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEFDBlocos.TACBrIndPerfil) then
+      AOrd := Ord(ACBrEFDBlocos.StrToIndPerfil(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEFDBlocos.TACBrIndAtiv) then
+      AOrd := Ord(ACBrEFDBlocos.StrToIndAtiv(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEFDBlocos.TACBrIndMov) then
+      AOrd := Ord(ACBrEFDBlocos.StrToIndMov(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEFDBlocos.TACBrTipoItem) then
+      AOrd := Ord(ACBrEFDBlocos.StrToTipoItem(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEFDBlocos.TACBrIndOper) then
+      AOrd := Ord(ACBrEFDBlocos.StrToIndOper(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEFDBlocos.TACBrIndEmit) then
+      AOrd := Ord(ACBrEFDBlocos.StrToIndEmit(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEFDBlocos.TACBrCodSit) then
+      AOrd := Ord(ACBrEFDBlocos.StrToCodSit(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEFDBlocos.TACBrIndPgto) then
+      AOrd := Ord(ACBrEFDBlocos.StrToIndPgto(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEFDBlocos.TACBrIndFrt) then
+      AOrd := Ord(ACBrEFDBlocos.StrToIndFrt(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEFDBlocos.TACBrIndMovFisica) then
+      AOrd := Ord(ACBrEFDBlocos.StrToIndMovFisica(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEFDBlocos.TACBrApuracaoIPI) then
+      AOrd := Ord(ACBrEFDBlocos.StrToApuracaoIPI(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEFDBlocos.TACBrMotInv) then
+      AOrd := Ord(ACBrEFDBlocos.StrToMotInv(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEFDBlocos.TACBrIndProp) then
+      AOrd := Ord(ACBrEFDBlocos.StrToIndProp(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEFDBlocos.TACBrIndEstoque) then
+      AOrd := Ord(ACBrEFDBlocos.StrToIndEst(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEFDBlocos.TACBrIndTipoLeiaute) then
+      AOrd := Ord(ACBrEFDBlocos.StrToIndTipoLeiaute(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEFDBlocos.TACBrTpLigacao) then
+      AOrd := Ord(ACBrEFDBlocos.StrToTpLigacao(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEFDBlocos.TACBrGrupoTensao) then
+      AOrd := Ord(ACBrEFDBlocos.StrToGrupoTensao(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEFDBlocos.TACBrTpAssinante) then
+      AOrd := Ord(ACBrEFDBlocos.StrToTpAssinante(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEFDBlocos.TACBrDispositivo) then
+      AOrd := Ord(ACBrEFDBlocos.StrToDispositivo(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEFDBlocos.TACBrOrigemProcesso) then
+      AOrd := Ord(ACBrEFDBlocos.StrToOrigemProcesso(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEFDBlocos.TACBrIndicadorObrigacao) then
+      AOrd := Ord(ACBrEFDBlocos.StrToIndicadorObrigacao(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEFDBlocos.TACBrIndicadorProcesso) then
+      AOrd := Ord(ACBrEFDBlocos.StrToIndicadorProcesso(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrCodVer) then
+      AOrd := Ord(ACBrEPCBlocos.StrToCodVer(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrTipoEscrit) then
+      AOrd := Ord(ACBrEPCBlocos.StrToTipoEscrit(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrIndSitEsp) then
+    begin
+      if AStr = '' then
+        AOrd := Ord(ACBrEPCBlocos.indNenhum)
+      else
+        AOrd := Ord(ACBrEPCBlocos.StrToIndSitEsp(AStr));
+    end
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrIndNatPJ) then
+    begin
+      if AStr = '' then
+        AOrd := Ord(ACBrEPCBlocos.indNatPJNenhum)
+      else
+        AOrd := Ord(ACBrEPCBlocos.StrToIndNatPJ(AStr));
+    end
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrIndAtiv) then
+      AOrd := Ord(ACBrEPCBlocos.StrToIndAtiv(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrIndMov) then
+      AOrd := Ord(ACBrEPCBlocos.StrToIndMov(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrCodIncTrib) then
+      AOrd := Ord(ACBrEPCBlocos.StrToCodIncTrib(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrIndAproCred) then
+    begin
+      if AStr = '' then
+        AOrd := Ord(ACBrEPCBlocos.indMetodoApropriacaoDireta)
+      else
+        AOrd := Ord(ACBrEPCBlocos.StrToIndAproCred(AStr));
+    end
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrCodTipoCont) then
+      AOrd := Ord(ACBrEPCBlocos.StrToCodTipoCont(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrIndRegCum) then
+    begin
+      if AStr = '' then
+        AOrd := Ord(ACBrEPCBlocos.codRegimeCaixa)
+      else
+        AOrd := Ord(ACBrEPCBlocos.StrToIndRegCum(AStr));
+    end
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrTipoItem) then
+      AOrd := Ord(ACBrEPCBlocos.StrToTipoItem(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrNaturezaConta) then
+      AOrd := Ord(ACBrEPCBlocos.StrToNaturezaConta(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrIndCTA) then
+      AOrd := Ord(ACBrEPCBlocos.StrToIndCTA(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrIndTipoOper) then
+      AOrd := Ord(ACBrEPCBlocos.StrToIndTipoOper(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrIndOper) then
+      AOrd := Ord(ACBrEPCBlocos.StrToIndOper(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrIndEmit) then
+      AOrd := Ord(ACBrEPCBlocos.StrToIndEmit(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrEmitente) then
+      AOrd := Ord(ACBrEPCBlocos.StrToEmitente(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrCodSit) then
+      AOrd := Ord(ACBrEPCBlocos.StrToCodSit(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrCodSitF) then
+      AOrd := Ord(ACBrEPCBlocos.StrToCodSitF(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrIndPgto) then
+      AOrd := Ord(ACBrEPCBlocos.StrToIndPgto(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrIndFrt) then
+      AOrd := Ord(ACBrEPCBlocos.StrToIndFrt(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrNaturezaFrtContratado) then
+      AOrd := Ord(ACBrEPCBlocos.StrToNaturezaFrtContratado(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrIndMovFisica) then
+      AOrd := Ord(ACBrEPCBlocos.StrToIndMovFisica(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrApuracaoIPI) then
+      AOrd := Ord(ACBrEPCBlocos.StrToApuracaoIPI(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrNatBcCred) then
+      AOrd := Ord(ACBrEPCBlocos.StrToNatBcCred(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrIndOrigCred) then
+      AOrd := Ord(ACBrEPCBlocos.StrToIndOrigCred(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrCstPis) then
+      AOrd := Ord(ACBrEPCBlocos.StrToCstPis(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrCstCofins) then
+      AOrd := Ord(ACBrEPCBlocos.StrToCstCofins(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrCstPisCofins) then
+      AOrd := Ord(ACBrEPCBlocos.StrToCstPisCofins(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrCstIcms) then
+      AOrd := Ord(ACBrEPCBlocos.StrToCstIcms(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrCstIpi) then
+      AOrd := Ord(ACBrEPCBlocos.StrToCstIpi(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrLocalExecServico) then
+      AOrd := Ord(ACBrEPCBlocos.StrToLocalExecServico(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrIndEscrituracao) then
+      AOrd := Ord(ACBrEPCBlocos.StrToIndEscrituracao(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrOrigemProcesso) then
+      AOrd := Ord(ACBrEPCBlocos.StrToOrigemProcesso(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrIndTpOperacaoReceita) then
+      AOrd := Ord(ACBrEPCBlocos.StrToIndTpOperacaoReceita(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrIndNatRetFonte) then
+      AOrd := Ord(ACBrEPCBlocos.StrToIndNatRetFonte(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrIndCredOri) then
+      AOrd := Ord(ACBrEPCBlocos.StrToIndCredOri(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrIndDescCred) then
+      AOrd := Ord(ACBrEPCBlocos.StrToIndDescCred(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrCodCont) then
+      AOrd := Ord(ACBrEPCBlocos.StrToCodCont(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrIndAJ) then
+      AOrd := Ord(ACBrEPCBlocos.StrToIndAJ(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrCodAj) then
+      AOrd := Ord(ACBrEPCBlocos.StrToCodAj(AStr))
+    else
+      Result := False;
+  except
+    Result := False;
+    AOrd := -1;
+  end;
+end;
+
 
 end.
