@@ -13,6 +13,7 @@ uses
   resource.strings.routes;
 
 procedure GetModeloConfigSintegra(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloGerarSintegra(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostSintegra(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostGerar(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
@@ -27,6 +28,18 @@ begin
   AcM := TACBRModelosJSONSintegra.Create('');
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(AcM.ModelConfig));
+  finally
+    AcM.Free;
+  end;
+end;
+
+procedure GetModeloGerarSintegra(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  AcM: TACBRModelosJSONSintegra;
+begin
+  AcM := TACBRModelosJSONSintegra.Create('');
+  try
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(AcM.ModelGerar));
   finally
     AcM.Free;
   end;
@@ -88,6 +101,7 @@ end;
 procedure regRouter;
 begin
   THorse.Get(RSModeloSintegraConfigRoute, GetModeloConfigSintegra);
+  THorse.Get(RSModeloSintegraGerarRoute, GetModeloGerarSintegra);
   THorse.Post(RSSintegraRoute, PostSintegra);
   THorse.Post(RSSintegraGerarRoute, PostGerar);
 end;

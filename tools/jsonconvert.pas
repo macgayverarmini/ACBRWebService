@@ -36,6 +36,7 @@ type
     class function JsonAndFree(AData: TJSONData): string;
     class function VariantToJson(const V: Variant): TJSONData;
     class function TryResolveSpedEnum(ATypeInfo: PTypeInfo; const AStr: string; out AOrd: Integer): Boolean;
+    class procedure PopulateModelDefaults(const Obj: TObject; MaxDepth: Integer = 5);
   end;
 
 implementation
@@ -747,6 +748,8 @@ begin
       AOrd := Ord(ACBrEFDBlocos.StrToIndicadorObrigacao(AStr))
     else if ATypeInfo = TypeInfo(ACBrEFDBlocos.TACBrIndicadorProcesso) then
       AOrd := Ord(ACBrEFDBlocos.StrToIndicadorProcesso(AStr))
+    else if ATypeInfo = TypeInfo(ACBrEFDBlocos.TACBrMovimentoST) then
+      AOrd := Ord(ACBrEFDBlocos.StrToMovimentoSt(AStr))
     else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrCodVer) then
       AOrd := Ord(ACBrEPCBlocos.StrToCodVer(AStr))
     else if ATypeInfo = TypeInfo(ACBrEPCBlocos.TACBrTipoEscrit) then
@@ -854,6 +857,82 @@ begin
   except
     Result := False;
     AOrd := -1;
+  end;
+end;
+
+
+
+class procedure TJSONTools.PopulateModelDefaults(const Obj: TObject; MaxDepth: Integer);
+var
+  Visited: TList;
+  DummyArr: TJSONArray;
+
+  procedure Walk(const Cur: TObject; CurDepth: Integer);
+  var
+    Ctx: TRttiContext;
+    RttiType: TRttiType;
+    Props: TRttiPropertyArray;
+    Prop: TRttiProperty;
+    I: Integer;
+    ChildObj: TObject;
+  begin
+    if (Cur = nil) or (CurDepth <= 0) or (Visited.IndexOf(Cur) >= 0) then
+      Exit;
+    Visited.Add(Cur);
+    Ctx := TRttiContext.Create(False);
+    try
+      RttiType := Ctx.GetType(Cur.ClassType);
+      if not Assigned(RttiType) then
+        Exit;
+      Props := RttiType.GetProperties;
+      for I := 0 to Length(Props) - 1 do
+      begin
+        Prop := Props[I];
+        if Prop.IsReadable and (Prop.Visibility in [mvPublic, mvPublished]) and
+           (Prop.PropertyType.TypeKind = tkClass) and
+           not SameText(Prop.Name, 'Owner') and
+           (Pos('Pai', Prop.Name) = 0) then
+        begin
+          try
+            ChildObj := Prop.GetValue(Cur).AsObject;
+            if Assigned(ChildObj) then
+            begin
+              if ChildObj is TObjectList then
+              begin
+                if TObjectList(ChildObj).Count = 0 then
+                  PopulateObjectList(ChildObj, DummyArr, Cur);
+                if TObjectList(ChildObj).Count > 0 then
+                  Walk(TObjectList(ChildObj).Items[0], CurDepth - 1);
+              end
+              else if ChildObj is TCollection then
+              begin
+                if TCollection(ChildObj).Count = 0 then
+                  TCollection(ChildObj).Add;
+                if TCollection(ChildObj).Count > 0 then
+                  Walk(TCollection(ChildObj).Items[0], CurDepth - 1);
+              end
+              else if not (ChildObj is TStrings) and not (ChildObj is TComponent) then
+                Walk(ChildObj, CurDepth - 1);
+            end;
+          except
+          end;
+        end;
+      end;
+    finally
+      Ctx.Free;
+    end;
+  end;
+
+begin
+  if Obj = nil then
+    Exit;
+  Visited := TList.Create;
+  DummyArr := TJSONArray.Create([TJSONObject.Create]);
+  try
+    Walk(Obj, MaxDepth);
+  finally
+    DummyArr.Free;
+    Visited.Free;
   end;
 end;
 

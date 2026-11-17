@@ -13,7 +13,9 @@ uses
   resource.strings.routes;
 
 procedure GetModeloConfigSPED(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloGerarSPED(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure GetModeloConfigSPEDPisCofins(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloGerarSPEDPisCofins(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure GetModeloImportarSPEDPisCofins(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostSPED(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostGerar(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
@@ -33,6 +35,18 @@ begin
   AcM := TACBRModelosJSONSPED.Create('');
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(AcM.ModelConfig));
+  finally
+    AcM.Free;
+  end;
+end;
+
+procedure GetModeloGerarSPED(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  AcM: TACBRModelosJSONSPED;
+begin
+  AcM := TACBRModelosJSONSPED.Create('');
+  try
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(AcM.ModelGerar));
   finally
     AcM.Free;
   end;
@@ -89,6 +103,18 @@ begin
   AcM := TACBRModelosJSONSPEDPisCofins.Create('');
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(AcM.ModelConfig));
+  finally
+    AcM.Free;
+  end;
+end;
+
+procedure GetModeloGerarSPEDPisCofins(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  AcM: TACBRModelosJSONSPEDPisCofins;
+begin
+  AcM := TACBRModelosJSONSPEDPisCofins.Create('');
+  try
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(AcM.ModelGerar));
   finally
     AcM.Free;
   end;
@@ -195,7 +221,9 @@ end;
 procedure regRouter;
 begin
   THorse.Get(RSModeloSPEDConfigRoute, GetModeloConfigSPED);
+  THorse.Get(RSModeloSPEDGerarRoute, GetModeloGerarSPED);
   THorse.Get(RSModeloSPEDPisCofinsConfigRoute, GetModeloConfigSPEDPisCofins);
+  THorse.Get(RSModeloSPEDPisCofinsGerarRoute, GetModeloGerarSPEDPisCofins);
   THorse.Get(RSModeloSPEDPisCofinsImportarRoute, GetModeloImportarSPEDPisCofins);
   THorse.Post(RSSPEDRoute, PostSPED);
   THorse.Post(RSSPEDGerarRoute, PostGerar);

@@ -139,12 +139,14 @@ resourcestring
 
   // Rotas - SPED
   RSModeloSPEDConfigRoute = '/modelo/sped/config';
+  RSModeloSPEDGerarRoute = '/modelo/sped/gerar';
   RSSPEDRoute = '/sped/sped';
   RSSPEDGerarRoute = '/sped/gerar';
   RSSPEDFiscalImportarRoute = '/sped/importar';
 
   // Rotas - Sintegra
   RSModeloSintegraConfigRoute = '/modelo/sintegra/config';
+  RSModeloSintegraGerarRoute = '/modelo/sintegra/gerar';
   RSSintegraRoute = '/sintegra/sintegra';
   RSSintegraGerarRoute = '/sintegra/gerar';
 
@@ -167,6 +169,7 @@ resourcestring
 
   // Rotas Adicionais - SPED PIS/COFINS
   RSModeloSPEDPisCofinsConfigRoute = '/modelo/sped/piscofins/config';
+  RSModeloSPEDPisCofinsGerarRoute = '/modelo/sped/piscofins/gerar';
   RSSPEDPisCofinsGerarRoute = '/sped/piscofins/gerar';
   RSSPEDPisCofinsImportarRoute = '/sped/piscofins/importar';
   RSSPEDPisCofinsConsolidarRoute = '/sped/piscofins/consolidar';

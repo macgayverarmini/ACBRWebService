@@ -33,7 +33,8 @@ type
     fErrosValidacao: TStringList;
     procedure CarregaConfig;
     procedure DoAcbrError(const MsnError: string);
-    procedure PopularBlocosEFD(const jRoot: TJSONObject; out AOmit0100: Boolean);
+    procedure PopularBlocosEFD(const jRoot: TJSONObject;
+      out AOmit0100: Boolean);
   public
       constructor Create(const Cfg: string);
     destructor Destroy;
@@ -43,9 +44,10 @@ type
     function Importar(const jSPED: TJSONObject): TJSONObject;
   end;
 
-  TACBRModelosJSONSPED = class (TACBRBridgeSPED)
-    public
-      function ModelConfig: TJSONObject;
+  TACBRModelosJSONSPED = class(TACBRBridgeSPED)
+  public
+    function ModelConfig: TJSONObject;
+    function ModelGerar: TJSONObject;
   end;
 
   TACBRBridgeSPEDPisCofins = class
@@ -59,10 +61,14 @@ type
       const ASped: TACBrSPEDPisCofins);
     procedure NormalizarTxtRegerado(const AFileName: string);
     procedure PopularBlocosEPC(const jRoot: TJSONObject);
-    procedure SomarRegistro0900(const AOrigem: ACBrEPCBloco_0.TRegistro0900; const ADestino: ACBrEPCBloco_0.TRegistro0900);
-    procedure MesclarEstabelecimento0140(const ASrc: ACBrEPCBloco_0.TRegistro0140; const ADestino: TACBrSPEDPisCofins);
-    procedure MesclarBlocoMConsolidado(const ALista: TList; const ADestino: TACBrSPEDPisCofins);
-    procedure MesclarBloco1Consolidado(const ALista: TList; const ADestino: TACBrSPEDPisCofins);
+    procedure SomarRegistro0900(const AOrigem: ACBrEPCBloco_0.TRegistro0900;
+      const ADestino: ACBrEPCBloco_0.TRegistro0900);
+    procedure MesclarEstabelecimento0140(const ASrc: ACBrEPCBloco_0.TRegistro0140;
+      const ADestino: TACBrSPEDPisCofins);
+    procedure MesclarBlocoMConsolidado(const ALista: TList;
+      const ADestino: TACBrSPEDPisCofins);
+    procedure MesclarBloco1Consolidado(const ALista: TList;
+      const ADestino: TACBrSPEDPisCofins);
   public
       constructor Create(const Cfg: string);
     destructor Destroy;
@@ -72,9 +78,10 @@ type
     function Consolidar(const jConsolidar: TJSONObject): TJSONObject;
   end;
 
-  TACBRModelosJSONSPEDPisCofins = class (TACBRBridgeSPEDPisCofins)
-    public
-      function ModelConfig: TJSONObject;
+  TACBRModelosJSONSPEDPisCofins = class(TACBRBridgeSPEDPisCofins)
+  public
+    function ModelConfig: TJSONObject;
+    function ModelGerar: TJSONObject;
     function ModelImportar: TJSONObject;
   end;
 
@@ -84,72 +91,72 @@ function UnicodeToCp1252Byte(const ACodePoint: Cardinal): Byte;
 begin
   case ACodePoint of
     0..$7F, $A0..$FF: Result := Byte(ACodePoint);
-    $20AC: Result := $80;
-    $201A: Result := $82;
-    $0192: Result := $83;
-    $201E: Result := $84;
-    $2026: Result := $85;
-    $2020: Result := $86;
-    $2021: Result := $87;
-    $02C6: Result := $88;
-    $2030: Result := $89;
-    $0160: Result := $8A;
-    $2039: Result := $8B;
-    $0152: Result := $8C;
-    $017D: Result := $8E;
-    $2018: Result := $91;
-    $2019: Result := $92;
-    $201C: Result := $93;
-    $201D: Result := $94;
-    $2022: Result := $95;
-    $2013: Result := $96;
-    $2014: Result := $97;
-    $02DC: Result := $98;
-    $2122: Result := $99;
-    $0161: Result := $9A;
-    $203A: Result := $9B;
-    $0153: Result := $9C;
-    $017E: Result := $9E;
-    $0178: Result := $9F;
-    $80..$9F: Result := Byte(ACodePoint);
+  $20AC: Result := $80;
+  $201A: Result := $82;
+  $0192: Result := $83;
+  $201E: Result := $84;
+  $2026: Result := $85;
+  $2020: Result := $86;
+  $2021: Result := $87;
+  $02C6: Result := $88;
+  $2030: Result := $89;
+  $0160: Result := $8A;
+  $2039: Result := $8B;
+  $0152: Result := $8C;
+  $017D: Result := $8E;
+  $2018: Result := $91;
+  $2019: Result := $92;
+  $201C: Result := $93;
+  $201D: Result := $94;
+  $2022: Result := $95;
+  $2013: Result := $96;
+  $2014: Result := $97;
+  $02DC: Result := $98;
+  $2122: Result := $99;
+  $0161: Result := $9A;
+  $203A: Result := $9B;
+  $0153: Result := $9C;
+  $017E: Result := $9E;
+  $0178: Result := $9F;
+  $80..$9F: Result := Byte(ACodePoint);
   else
     Result := Ord('?');
-  end;
+end;
 end;
 
 function Cp1252ByteToCodePoint(const B: Byte): Cardinal;
 begin
   case B of
     $80: Result := $20AC;
-    $82: Result := $201A;
-    $83: Result := $0192;
-    $84: Result := $201E;
-    $85: Result := $2026;
-    $86: Result := $2020;
-    $87: Result := $2021;
-    $88: Result := $02C6;
-    $89: Result := $2030;
-    $8A: Result := $0160;
-    $8B: Result := $2039;
-    $8C: Result := $0152;
-    $8E: Result := $017D;
-    $91: Result := $2018;
-    $92: Result := $2019;
-    $93: Result := $201C;
-    $94: Result := $201D;
-    $95: Result := $2022;
-    $96: Result := $2013;
-    $97: Result := $2014;
-    $98: Result := $02DC;
-    $99: Result := $2122;
-    $9A: Result := $0161;
-    $9B: Result := $203A;
-    $9C: Result := $0153;
-    $9E: Result := $017E;
-    $9F: Result := $0178;
+  $82: Result := $201A;
+  $83: Result := $0192;
+  $84: Result := $201E;
+  $85: Result := $2026;
+  $86: Result := $2020;
+  $87: Result := $2021;
+  $88: Result := $02C6;
+  $89: Result := $2030;
+  $8A: Result := $0160;
+  $8B: Result := $2039;
+  $8C: Result := $0152;
+  $8E: Result := $017D;
+  $91: Result := $2018;
+  $92: Result := $2019;
+  $93: Result := $201C;
+  $94: Result := $201D;
+  $95: Result := $2022;
+  $96: Result := $2013;
+  $97: Result := $2014;
+  $98: Result := $02DC;
+  $99: Result := $2122;
+  $9A: Result := $0161;
+  $9B: Result := $203A;
+  $9C: Result := $0153;
+  $9E: Result := $017E;
+  $9F: Result := $0178;
   else
     Result := B;
-  end;
+end;
 end;
 
 function CodePointToUtf8Seq(const CP: Cardinal): RawByteString;
@@ -159,18 +166,19 @@ begin
     SetLength(Result, 1);
     Result[1] := AnsiChar(CP);
   end
-  else if CP <= $7FF then
+  else
+    if CP <= $7FF then
   begin
     SetLength(Result, 2);
-    Result[1] := AnsiChar($C0 or ((CP shr 6) and $1F));
-    Result[2] := AnsiChar($80 or (CP and $3F));
+    Result[1] := AnsiChar($C0 or ((CP shr 6) and$1F));
+    Result[2] := AnsiChar($80 or (CP and$3F));
   end
   else
   begin
     SetLength(Result, 3);
-    Result[1] := AnsiChar($E0 or ((CP shr 12) and $0F));
-    Result[2] := AnsiChar($80 or ((CP shr 6) and $3F));
-    Result[3] := AnsiChar($80 or (CP and $3F));
+    Result[1] := AnsiChar($E0 or ((CP shr 12) and$0F));
+    Result[2] := AnsiChar($80 or ((CP shr 6) and$3F));
+    Result[3] := AnsiChar($80 or (CP and$3F));
   end;
 end;
 
@@ -187,29 +195,39 @@ begin
     B := Byte(ARaw[I]);
     if B <= $7F then
       Inc(I)
-    else if (B and $E0) = $C0 then
+    else
+        if (B and$E0) = $C0 then
     begin
-      if (B < $C2) or (I + 1 > Len) then Exit(False);
+      if (B<$C2) or (I + 1 > Len) then
+        Exit(False);
       B2 := Byte(ARaw[I + 1]);
-      if (B2 and $C0) <> $80 then Exit(False);
+      if (B2 and$C0) <> $80 then
+        Exit(False);
       Inc(I, 2);
     end
-    else if (B and $F0) = $E0 then
+    else
+      if (B and$F0) = $E0 then
     begin
-      if I + 2 > Len then Exit(False);
+      if I + 2 > Len then
+        Exit(False);
       B2 := Byte(ARaw[I + 1]);
       B3 := Byte(ARaw[I + 2]);
-      if ((B2 and $C0) <> $80) or ((B3 and $C0) <> $80) then Exit(False);
-      if (B = $E0) and (B2 < $A0) then Exit(False);
+      if ((B2 and$C0) <> $80) or ((B3 and$C0) <> $80) then
+        Exit(False);
+      if (B = $E0) and (B2<$A0) then
+        Exit(False);
       Inc(I, 3);
     end
-    else if (B and $F8) = $F0 then
+    else
+      if (B and$F8) = $F0 then
     begin
-      if I + 3 > Len then Exit(False);
+      if I + 3 > Len then
+        Exit(False);
       B2 := Byte(ARaw[I + 1]);
       B3 := Byte(ARaw[I + 2]);
       B4 := Byte(ARaw[I + 3]);
-      if ((B2 and $C0) <> $80) or ((B3 and $C0) <> $80) or ((B4 and $C0) <> $80) then Exit(False);
+      if ((B2 and$C0) <> $80) or ((B3 and$C0) <> $80) or ((B4 and$C0) <> $80) then
+        Exit(False);
       Inc(I, 4);
     end
     else
@@ -241,7 +259,8 @@ begin
   Result := OutS;
 end;
 
-procedure WriteUtf8TempFile(const AFileName: string; const AUtf8: UTF8String);
+procedure WriteUtf8TempFile(const AFileName: string;
+const AUtf8: UTF8String);
 var
   FS: TFileStream;
 begin
@@ -262,13 +281,13 @@ var
   B, B2, B3, B4: Byte;
   CP: Cardinal;
 
-  procedure AppendByte(const AB: Byte);
-  begin
-    if OutLen >= Length(OutBytes) then
-      SetLength(OutBytes, OutLen * 2 + 1024);
-    OutBytes[OutLen] := AB;
-    Inc(OutLen);
-  end;
+procedure AppendByte(const AB: Byte);
+begin
+  if OutLen >= Length(OutBytes) then
+    SetLength(OutBytes, OutLen * 2 + 1024);
+  OutBytes[OutLen] := AB;
+  Inc(OutLen);
+end;
 begin
   if (AFileName = '') or not FileExists(AFileName) then
     Exit;
@@ -288,7 +307,7 @@ begin
   if (InLen >= 3) and (InBytes[0] = $EF) and (InBytes[1] = $BB) and (InBytes[2] = $BF) then
     I := 3;
 
-  while I < InLen do
+  while I<InLen do
   begin
     B := InBytes[I];
     if B = 13 then
@@ -298,40 +317,45 @@ begin
       if (I + 1 < InLen) and (InBytes[I + 1] = 10) then
         Inc(I, 2)
       else
-        Inc(I);
+          Inc(I);
     end
-    else if B = 10 then
+    else
+      if B = 10 then
     begin
       AppendByte(13);
       AppendByte(10);
       Inc(I);
     end
-    else if B <= $7F then
+    else
+      if B <= $7F then
     begin
       AppendByte(B);
       Inc(I);
     end
-    else if ((B and $E0) = $C0) and (B >= $C2) and (I + 1 < InLen) and ((InBytes[I + 1] and $C0) = $80) then
+    else
+      if ((B and$E0) = $C0) and (B >= $C2) and (I + 1 < InLen) and ((InBytes[I + 1] and$C0) = $80) then
     begin
       B2 := InBytes[I + 1];
-      CP := ((Cardinal(B and $1F) shl 6) or Cardinal(B2 and $3F));
+      CP := ((Cardinal(B and$1F) shl 6) or Cardinal(B2 and$3F));
       AppendByte(UnicodeToCp1252Byte(CP));
       Inc(I, 2);
     end
-    else if ((B and $F0) = $E0) and (I + 2 < InLen) and ((InBytes[I + 1] and $C0) = $80) and ((InBytes[I + 2] and $C0) = $80) then
+    else
+      if ((B and$F0) = $E0) and (I + 2 < InLen) and ((InBytes[I + 1] and$C0) = $80) and ((InBytes[I + 2] and$C0) = $80) then
     begin
       B2 := InBytes[I + 1];
       B3 := InBytes[I + 2];
-      CP := (Cardinal(B and $0F) shl 12) or (Cardinal(B2 and $3F) shl 6) or Cardinal(B3 and $3F);
+      CP := (Cardinal(B and$0F) shl 12) or (Cardinal(B2 and$3F) shl 6) or Cardinal(B3 and$3F);
       AppendByte(UnicodeToCp1252Byte(CP));
       Inc(I, 3);
     end
-    else if ((B and $F8) = $F0) and (I + 3 < InLen) and ((InBytes[I + 1] and $C0) = $80) and ((InBytes[I + 2] and $C0) = $80) and ((InBytes[I + 3] and $C0) = $80) then
+    else
+      if ((B and$F8) = $F0) and (I + 3 < InLen) and ((InBytes[I + 1] and$C0) = $80) and ((InBytes[I + 2] and$C0) = $80) and ((InBytes[I + 3] and$C0) = $80) then
     begin
       B2 := InBytes[I + 1];
       B3 := InBytes[I + 2];
       B4 := InBytes[I + 3];
-      CP := (Cardinal(B and $07) shl 18) or (Cardinal(B2 and $3F) shl 12) or (Cardinal(B3 and $3F) shl 6) or Cardinal(B4 and $3F);
+      CP := (Cardinal(B and$07) shl 18) or (Cardinal(B2 and$3F) shl 12) or (Cardinal(B3 and$3F) shl 6) or Cardinal(B4 and$3F);
       AppendByte(UnicodeToCp1252Byte(CP));
       Inc(I, 4);
     end
@@ -357,7 +381,8 @@ begin
   end;
 end;
 
-function GetJsonObj(const AParent: TJSONObject; const AKey: string): TJSONObject;
+function GetJsonObj(const AParent: TJSONObject;
+const AKey: string): TJSONObject;
 var
   D: TJSONData;
 begin
@@ -369,7 +394,8 @@ begin
     Result := TJSONObject(D);
 end;
 
-function HasNonNullKey(const AParent: TJSONObject; const AKey: string): Boolean;
+function HasNonNullKey(const AParent: TJSONObject;
+const AKey: string): Boolean;
 var
   D: TJSONData;
 begin
@@ -380,7 +406,8 @@ begin
   Result := Assigned(D) and not D.IsNull;
 end;
 
-function TryParseSpedDateStr(const AStr: string; out ADate: TDateTime): Boolean;
+function TryParseSpedDateStr(const AStr: string;
+  out ADate: TDateTime): Boolean;
 var
   S: string;
   Y, M, D: Integer;
@@ -400,7 +427,9 @@ begin
   Result := ADate > 0;
 end;
 
-function TryExtractSpedDate(const ARoot: TJSONObject; const AProp: string; out ADate: TDateTime): Boolean;
+function TryExtractSpedDate(const ARoot: TJSONObject;
+const AProp: string;
+  out ADate: TDateTime): Boolean;
 var
   D: TJSONData;
   JB0, JR0: TJSONObject;
@@ -465,21 +494,23 @@ begin
         Line := SL[I];
         if Pos('|9900|9900|', Line) = 1 then
         begin
-          Inner := Copy(Line, 12, Length(Line) - 12);
+          Inner := Copy(Line, 12, Length(Line)-12);
           if TryStrToInt(Inner, N) and (N > 1) then
-            SL[I] := '|9900|9900|' + IntToStr(N - 1) + '|';
+            SL[I] := '|9900|9900|' + IntToStr(N - 1)+'|';
         end
-        else if Pos('|9990|', Line) = 1 then
+        else
+          if Pos('|9990|', Line) = 1 then
         begin
-          Inner := Copy(Line, 7, Length(Line) - 7);
+          Inner := Copy(Line, 7, Length(Line)-7);
           if TryStrToInt(Inner, N) and (N > 1) then
-            SL[I] := '|9990|' + IntToStr(N - 1) + '|';
+            SL[I] := '|9990|' + IntToStr(N - 1)+'|';
         end
-        else if Pos('|9999|', Line) = 1 then
+        else
+          if Pos('|9999|', Line) = 1 then
         begin
-          Inner := Copy(Line, 7, Length(Line) - 7);
+          Inner := Copy(Line, 7, Length(Line)-7);
           if TryStrToInt(Inner, N) and (N > 1) then
-            SL[I] := '|9999|' + IntToStr(N - 1) + '|';
+            SL[I] := '|9999|' + IntToStr(N - 1)+'|';
         end;
       end;
       SL.SaveToFile(AFileName);
@@ -540,18 +571,18 @@ end;
 
 function TACBRBridgeSPED.Gerar(const jSPED: TJSONObject): TJSONObject;
 var
-  fullFile, reqArq, rawTxt, rawB64, tmpImportFile: string;
+  fullFile, reqArq: string;
   tamanho, I: Integer;
   jRoot: TJSONObject;
   dtIni, dtFin: TDateTime;
   isTempFile, omit0100: Boolean;
   arrAvisos: TJSONArray;
-  jLinhasData: TJSONData;
-  slIn: TStringList;
-  impFiscal: TACBrSpedFiscalImportar;
 begin
   CarregaConfig;
   Result := TJSONObject.Create;
+  fullFile := '';
+  isTempFile := False;
+  omit0100 := False;
   try
     fErrosValidacao.Clear;
     jRoot := GetJsonObj(jSPED, 'sped');
@@ -569,80 +600,19 @@ begin
 
     isTempFile := (reqArq = '');
     if isTempFile then
-      facbr.Arquivo := 'sped_fiscal_' + IntToStr(GetTickCount64) + '_' + IntToStr(Random(1000000)) + '.txt'
+      facbr.Arquivo := 'sped_fiscal_' + IntToStr(GetTickCount64)+'_' + IntToStr(Random(1000000))+'.txt'
     else
-      facbr.Arquivo := reqArq;
+        facbr.Arquivo := reqArq;
 
     if TryExtractSpedDate(jRoot, 'DT_INI', dtIni) then
       facbr.DT_INI := dtIni;
     if TryExtractSpedDate(jRoot, 'DT_FIN', dtFin) then
       facbr.DT_FIN := dtFin;
 
-    TJSONTools.JsonToObj(jRoot, facbr);
-    if not isTempFile then
-      facbr.Arquivo := reqArq;
-
-    jLinhasData := nil;
-    if Assigned(jRoot) then
-      jLinhasData := jRoot.Find('linhas');
-    if not Assigned(jLinhasData) and Assigned(jSPED) then
-      jLinhasData := jSPED.Find('linhas');
-
-    rawTxt := '';
-    if Assigned(jRoot) then
-      rawTxt := jRoot.Get('conteudo_txt', jRoot.Get('conteudo', ''));
-    if (rawTxt = '') and Assigned(jSPED) then
-      rawTxt := jSPED.Get('conteudo_txt', jSPED.Get('conteudo', ''));
-
-    rawB64 := '';
-    if Assigned(jRoot) then
-      rawB64 := jRoot.Get('arquivo_base64', '');
-    if (rawB64 = '') and Assigned(jSPED) then
-      rawB64 := jSPED.Get('arquivo_base64', '');
-
-    if (Assigned(jLinhasData) and (jLinhasData is TJSONArray)) or (rawTxt <> '') or (rawB64 <> '') then
-    begin
-      tmpImportFile := ExtractFilePath(ParamStr(0)) + 'sped_efd_in_' + IntToStr(GetTickCount64) + '_' + IntToStr(Random(1000000)) + '.txt';
-      slIn := TStringList.Create;
-      impFiscal := TACBrSpedFiscalImportar.Create(nil);
-      try
-        if Assigned(jLinhasData) and (jLinhasData is TJSONArray) then
-        begin
-          for I := 0 to TJSONArray(jLinhasData).Count - 1 do
-            slIn.Add(TJSONArray(jLinhasData).Strings[I]);
-          slIn.SaveToFile(tmpImportFile);
-        end
-        else if rawTxt <> '' then
-        begin
-          slIn.Text := rawTxt;
-          slIn.SaveToFile(tmpImportFile);
-        end
-        else if rawB64 <> '' then
-        begin
-          WriteUtf8TempFile(tmpImportFile, EnsureUtf8FromBytes(DecodeStringBase64(rawB64)));
-        end;
-
-        impFiscal.ACBrSpedFiscal := facbr;
-        impFiscal.Arquivo := tmpImportFile;
-        impFiscal.Importar;
-      finally
-        slIn.Free;
-        impFiscal.Free;
-        if FileExists(tmpImportFile) then
-          DeleteFile(tmpImportFile);
-      end;
-      if (facbr.DT_INI = 0) and (facbr.Bloco_0.Registro0000.DT_INI > 0) then
-        facbr.DT_INI := facbr.Bloco_0.Registro0000.DT_INI;
-      if (facbr.DT_FIN = 0) and (facbr.Bloco_0.Registro0000.DT_FIN > 0) then
-        facbr.DT_FIN := facbr.Bloco_0.Registro0000.DT_FIN;
-    end
-    else
-    begin
-      PopularBlocosEFD(jRoot, omit0100);
-    end;
+    PopularBlocosEFD(jRoot, omit0100);
     facbr.SaveFileTXT;
 
-    fullFile := IncludeTrailingPathDelimiter(facbr.Path) + facbr.Arquivo;
+    fullFile := IncludeTrailingPathDelimiter(facbr.Path)+facbr.Arquivo;
     if omit0100 then
       RemoveOrphanEfd0100Counter(fullFile);
     ConvertFileUtf8ToCp1252(fullFile);
@@ -728,15 +698,12 @@ end;
 
 function TACBRBridgeSPEDPisCofins.Gerar(const jSPED: TJSONObject): TJSONObject;
 var
-  fullFile, reqArq, rawTxt, rawB64, tmpImportFile: string;
+  fullFile, reqArq: string;
   tamanho, I: Integer;
   jRoot: TJSONObject;
   dtIni, dtFin: TDateTime;
   isTempFile: Boolean;
   arrAvisos: TJSONArray;
-  jLinhasData: TJSONData;
-  slIn: TStringList;
-  impPC: TACBrSpedPCImportar;
 begin
   CarregaConfig;
   Result := TJSONObject.Create;
@@ -759,80 +726,19 @@ begin
 
     isTempFile := (reqArq = '');
     if isTempFile then
-      facbr.Arquivo := 'sped_piscofins_' + IntToStr(GetTickCount64) + '_' + IntToStr(Random(1000000)) + '.txt'
+      facbr.Arquivo := 'sped_piscofins_' + IntToStr(GetTickCount64)+'_' + IntToStr(Random(1000000))+'.txt'
     else
-      facbr.Arquivo := reqArq;
+        facbr.Arquivo := reqArq;
 
     if TryExtractSpedDate(jRoot, 'DT_INI', dtIni) then
       facbr.DT_INI := dtIni;
     if TryExtractSpedDate(jRoot, 'DT_FIN', dtFin) then
       facbr.DT_FIN := dtFin;
 
-    TJSONTools.JsonToObj(jRoot, facbr);
-    if not isTempFile then
-      facbr.Arquivo := reqArq;
-
-    jLinhasData := nil;
-    if Assigned(jRoot) then
-      jLinhasData := jRoot.Find('linhas');
-    if not Assigned(jLinhasData) and Assigned(jSPED) then
-      jLinhasData := jSPED.Find('linhas');
-
-    rawTxt := '';
-    if Assigned(jRoot) then
-      rawTxt := jRoot.Get('conteudo_txt', jRoot.Get('conteudo', ''));
-    if (rawTxt = '') and Assigned(jSPED) then
-      rawTxt := jSPED.Get('conteudo_txt', jSPED.Get('conteudo', ''));
-
-    rawB64 := '';
-    if Assigned(jRoot) then
-      rawB64 := jRoot.Get('arquivo_base64', '');
-    if (rawB64 = '') and Assigned(jSPED) then
-      rawB64 := jSPED.Get('arquivo_base64', '');
-
-    if (Assigned(jLinhasData) and (jLinhasData is TJSONArray)) or (rawTxt <> '') or (rawB64 <> '') then
-    begin
-      tmpImportFile := ExtractFilePath(ParamStr(0)) + 'sped_epc_in_' + IntToStr(GetTickCount64) + '_' + IntToStr(Random(1000000)) + '.txt';
-      slIn := TStringList.Create;
-      impPC := TACBrSpedPCImportar.Create(nil);
-      try
-        if Assigned(jLinhasData) and (jLinhasData is TJSONArray) then
-        begin
-          for I := 0 to TJSONArray(jLinhasData).Count - 1 do
-            slIn.Add(TJSONArray(jLinhasData).Strings[I]);
-          slIn.SaveToFile(tmpImportFile);
-        end
-        else if rawTxt <> '' then
-        begin
-          slIn.Text := rawTxt;
-          slIn.SaveToFile(tmpImportFile);
-        end
-        else if rawB64 <> '' then
-        begin
-          WriteUtf8TempFile(tmpImportFile, EnsureUtf8FromBytes(DecodeStringBase64(rawB64)));
-        end;
-
-        impPC.ACBrSpedPisCofins := facbr;
-        impPC.Arquivo := tmpImportFile;
-        impPC.Importar;
-      finally
-        slIn.Free;
-        impPC.Free;
-        if FileExists(tmpImportFile) then
-          DeleteFile(tmpImportFile);
-      end;
-      if (facbr.DT_INI = 0) and (facbr.Bloco_0.Registro0000.DT_INI > 0) then
-        facbr.DT_INI := facbr.Bloco_0.Registro0000.DT_INI;
-      if (facbr.DT_FIN = 0) and (facbr.Bloco_0.Registro0000.DT_FIN > 0) then
-        facbr.DT_FIN := facbr.Bloco_0.Registro0000.DT_FIN;
-    end
-    else
-    begin
-      PopularBlocosEPC(jRoot);
-    end;
+    PopularBlocosEPC(jRoot);
     facbr.SaveFileTXT;
 
-    fullFile := IncludeTrailingPathDelimiter(facbr.Path) + facbr.Arquivo;
+    fullFile := IncludeTrailingPathDelimiter(facbr.Path)+facbr.Arquivo;
     NormalizarTxtRegerado(fullFile);
     ConvertFileUtf8ToCp1252(fullFile);
 
@@ -1123,11 +1029,11 @@ begin
           Found0500 := False;
           for Z := 0 to Destino.Bloco_0.Registro0001.Registro0500.Count - 1 do
             if SameText(Destino.Bloco_0.Registro0001.Registro0500.Items[Z].COD_CTA,
-                        ItemSped.Bloco_0.Registro0001.Registro0500.Items[Y].COD_CTA) then
-            begin
-              Found0500 := True;
-              Break;
-            end;
+              ItemSped.Bloco_0.Registro0001.Registro0500.Items[Y].COD_CTA) then
+          begin
+            Found0500 := True;
+            Break;
+          end;
           if not Found0500 then
             CopySpedObjProperties(
               ItemSped.Bloco_0.Registro0001.Registro0500.Items[Y],
@@ -1235,23 +1141,23 @@ var
   HasM200, HasM600: Boolean;
   R0900: ACBrEPCBloco_0.TRegistro0900;
 
-  function Parse0900Var(const idx: Integer): Variant;
-  var
-    S: string;
-    FVal: Double;
-    VCode: Integer;
-  begin
-    if idx >= Fields.Count then
-      Exit(Null);
-    S := Trim(Fields[idx]);
-    if S = '' then
-      Exit(Null);
-    System.Val(StringReplace(S, ',', '.', [rfReplaceAll]), FVal, VCode);
-    if VCode = 0 then
-      Result := FVal
-    else
+function Parse0900Var(const idx: Integer): Variant;
+var
+  S: string;
+  FVal: Double;
+  VCode: Integer;
+begin
+  if idx >= Fields.Count then
+    Exit(Null);
+  S := Trim(Fields[idx]);
+  if S = '' then
+    Exit(Null);
+  System.Val(StringReplace(S, ',', '.', [rfReplaceAll]), FVal, VCode);
+  if VCode = 0 then
+    Result := FVal
+  else
       Result := Null;
-  end;
+end;
 begin
   if not Assigned(ASL) or not Assigned(ASped) or (ASL.Count = 0) then
     Exit;
@@ -1291,10 +1197,12 @@ begin
         R0900.REC_TOTAL_PERIODO := Parse0900Var(14);
         R0900.REC_TOTAL_NRB_PERIODO := Parse0900Var(15);
       end
-      else if Pos('|M200|', ASL[I]) = 1 then
-        HasM200 := True
-      else if Pos('|M600|', ASL[I]) = 1 then
-        HasM600 := True;
+      else
+        if Pos('|M200|', ASL[I]) = 1 then
+          HasM200 := True
+      else
+          if Pos('|M600|', ASL[I]) = 1 then
+          HasM600 := True;
     end;
 
     if ASped.Bloco_M.RegistroM001.IND_MOV = ACBrEPCBlocos.imComDados then
@@ -1373,8 +1281,8 @@ begin
 end;
 
 
-
-procedure TACBRBridgeSPED.PopularBlocosEFD(const jRoot: TJSONObject; out AOmit0100: Boolean);
+procedure TACBRBridgeSPED.PopularBlocosEFD(const jRoot: TJSONObject;
+  out AOmit0100: Boolean);
 var
   jB, jR: TJSONObject;
 begin
@@ -1402,8 +1310,20 @@ begin
     jR := GetJsonObj(jB, 'Registro0001');
     if Assigned(jR) then
     begin
+      if not HasNonNullKey(jR, 'Registro0005') and Assigned(facbr.Bloco_0.Registro0001.Registro0005) then
+      begin
+        facbr.Bloco_0.Registro0001.Registro0005.Free;
+        facbr.Bloco_0.Registro0001.Registro0005 := nil;
+      end;
       if not HasNonNullKey(jR, 'Registro0100') then
+      begin
         AOmit0100 := True;
+        if Assigned(facbr.Bloco_0.Registro0001.Registro0100) then
+        begin
+          facbr.Bloco_0.Registro0001.Registro0100.Free;
+          facbr.Bloco_0.Registro0001.Registro0100 := nil;
+        end;
+      end;
       TJSONTools.JsonToObj(jR, facbr.Bloco_0.Registro0001);
       if facbr.Bloco_0.Registro0001.IND_MOV <> ACBrEFDBlocos.imComDados then
         AOmit0100 := False;
@@ -1466,9 +1386,9 @@ begin
     begin
       TJSONTools.JsonToObj(jR, facbr.Bloco_K.RegistroK001);
       if (facbr.Bloco_K.RegistroK001.IND_MOV = ACBrEFDBlocos.imComDados) and
-         (facbr.Bloco_0.Registro0000.COD_VER > ACBrEFDBlocos.vlVersao116) and
-         not HasNonNullKey(jR, 'RegistroK010') and
-         Assigned(facbr.Bloco_K.RegistroK001.RegistroK010) then
+        (facbr.Bloco_0.Registro0000.COD_VER > ACBrEFDBlocos.vlVersao116) and
+        not HasNonNullKey(jR, 'RegistroK010') and
+        Assigned(facbr.Bloco_K.RegistroK001.RegistroK010) then
         facbr.Bloco_K.RegistroK001.RegistroK010.IND_TIPO_LEIAUTE := ACBrEFDBlocos.itlCompleto;
     end;
   end;
@@ -1481,7 +1401,6 @@ begin
       TJSONTools.JsonToObj(jR, facbr.Bloco_1.Registro1001);
   end;
 end;
-
 
 
 procedure TACBRBridgeSPEDPisCofins.PopularBlocosEPC(const jRoot: TJSONObject);
@@ -1507,6 +1426,11 @@ begin
     jR := GetJsonObj(jB, 'Registro0001');
     if Assigned(jR) then
     begin
+      if not HasNonNullKey(jR, 'Registro0110') and Assigned(facbr.Bloco_0.Registro0001.Registro0110) then
+      begin
+        facbr.Bloco_0.Registro0001.Registro0110.Free;
+        facbr.Bloco_0.Registro0001.Registro0110 := nil;
+      end;
       if HasNonNullKey(jR, 'Registro0900') and not Assigned(facbr.Bloco_0.Registro0001.Registro0900) then
         facbr.Bloco_0.Registro0900New;
       TJSONTools.JsonToObj(jR, facbr.Bloco_0.Registro0001);
@@ -1559,6 +1483,16 @@ begin
     jR := GetJsonObj(jB, 'RegistroM001');
     if Assigned(jR) then
     begin
+      if not HasNonNullKey(jR, 'RegistroM200') and Assigned(facbr.Bloco_M.RegistroM001.RegistroM200) then
+      begin
+        facbr.Bloco_M.RegistroM001.RegistroM200.Free;
+        facbr.Bloco_M.RegistroM001.RegistroM200 := nil;
+      end;
+      if not HasNonNullKey(jR, 'RegistroM600') and Assigned(facbr.Bloco_M.RegistroM001.RegistroM600) then
+      begin
+        facbr.Bloco_M.RegistroM001.RegistroM600.Free;
+        facbr.Bloco_M.RegistroM001.RegistroM600 := nil;
+      end;
       TJSONTools.JsonToObj(jR, facbr.Bloco_M.RegistroM001);
     end;
   end;
@@ -1581,34 +1515,35 @@ begin
 end;
 
 
+procedure TACBRBridgeSPEDPisCofins.SomarRegistro0900(const AOrigem: ACBrEPCBloco_0.TRegistro0900;
+const ADestino: ACBrEPCBloco_0.TRegistro0900);
 
-procedure TACBRBridgeSPEDPisCofins.SomarRegistro0900(const AOrigem: ACBrEPCBloco_0.TRegistro0900; const ADestino: ACBrEPCBloco_0.TRegistro0900);
-
-  function AddVarField(const VDest, VOrig: Variant; const ForceZeroWhenEmpty: Boolean): Variant;
-  var
-    HasD, HasO: Boolean;
-    SumVal: Double;
+function AddVarField(const VDest, VOrig: Variant;
+const ForceZeroWhenEmpty: Boolean): Variant;
+var
+  HasD, HasO: Boolean;
+  SumVal: Double;
+begin
+  HasD := not (VarIsNull(VDest) or VarIsEmpty(VDest));
+  HasO := not (VarIsNull(VOrig) or VarIsEmpty(VOrig));
+  if not HasD and not HasO then
   begin
-    HasD := not (VarIsNull(VDest) or VarIsEmpty(VDest));
-    HasO := not (VarIsNull(VOrig) or VarIsEmpty(VOrig));
-    if not HasD and not HasO then
-    begin
-      if ForceZeroWhenEmpty then
-        Result := Double(0)
-      else
-        Result := Null;
-      Exit;
-    end;
-    SumVal := 0;
-    if HasD and VarIsNumeric(VDest) then
-      SumVal := SumVal + Double(VDest);
-    if HasO and VarIsNumeric(VOrig) then
-      SumVal := SumVal + Double(VOrig);
-    if (not ForceZeroWhenEmpty) and (SumVal = 0) then
-      Result := Null
+    if ForceZeroWhenEmpty then
+      Result := Double(0)
     else
-      Result := SumVal;
+        Result := Null;
+    Exit;
   end;
+  SumVal := 0;
+  if HasD and VarIsNumeric(VDest) then
+    SumVal := SumVal + Double(VDest);
+  if HasO and VarIsNumeric(VOrig) then
+    SumVal := SumVal + Double(VOrig);
+  if (not ForceZeroWhenEmpty) and (SumVal = 0) then
+    Result := Null
+  else
+      Result := SumVal;
+end;
 begin
   if not Assigned(AOrigem) or not Assigned(ADestino) then
     Exit;
@@ -1629,8 +1564,8 @@ begin
 end;
 
 
-
-procedure TACBRBridgeSPEDPisCofins.MesclarBlocoMConsolidado(const ALista: TList; const ADestino: TACBrSPEDPisCofins);
+procedure TACBRBridgeSPEDPisCofins.MesclarBlocoMConsolidado(const ALista: TList;
+const ADestino: TACBrSPEDPisCofins);
 var
   I, Y, ActiveCount: Integer;
   ItemSped, SingleActive: TACBrSPEDPisCofins;
@@ -1749,8 +1684,8 @@ begin
 end;
 
 
-
-procedure TACBRBridgeSPEDPisCofins.MesclarBloco1Consolidado(const ALista: TList; const ADestino: TACBrSPEDPisCofins);
+procedure TACBRBridgeSPEDPisCofins.MesclarBloco1Consolidado(const ALista: TList;
+const ADestino: TACBrSPEDPisCofins);
 var
   I, Y: Integer;
   ItemSped: TACBrSPEDPisCofins;
@@ -1788,8 +1723,8 @@ begin
 end;
 
 
-
-procedure TACBRBridgeSPEDPisCofins.MesclarEstabelecimento0140(const ASrc: ACBrEPCBloco_0.TRegistro0140; const ADestino: TACBrSPEDPisCofins);
+procedure TACBRBridgeSPEDPisCofins.MesclarEstabelecimento0140(const ASrc: ACBrEPCBloco_0.TRegistro0140;
+const ADestino: TACBrSPEDPisCofins);
 var
   I, J: Integer;
   Target0140: ACBrEPCBloco_0.TRegistro0140;
@@ -1802,7 +1737,7 @@ begin
   for I := 0 to ADestino.Bloco_0.Registro0001.Registro0140.Count - 1 do
   begin
     if ((ASrc.CNPJ <> '') and SameText(ADestino.Bloco_0.Registro0001.Registro0140.Items[I].CNPJ, ASrc.CNPJ)) or
-       ((ASrc.CNPJ = '') and SameText(ADestino.Bloco_0.Registro0001.Registro0140.Items[I].COD_EST, ASrc.COD_EST)) then
+      ((ASrc.CNPJ = '') and SameText(ADestino.Bloco_0.Registro0001.Registro0140.Items[I].COD_EST, ASrc.COD_EST)) then
     begin
       Target0140 := ADestino.Bloco_0.Registro0001.Registro0140.Items[I];
       Break;
@@ -1816,7 +1751,7 @@ begin
   end;
 
   if Assigned(ASrc.Registro0145) and (ASrc.Registro0145.COD_INC_TRIB <> '') and
-     Assigned(Target0140.Registro0145) and (Target0140.Registro0145.COD_INC_TRIB = '') then
+    Assigned(Target0140.Registro0145) and (Target0140.Registro0145.COD_INC_TRIB = '') then
     CopySpedObjProperties(ASrc.Registro0145, Target0140.Registro0145);
 
   for I := 0 to ASrc.Registro0150.Count - 1 do
@@ -1824,10 +1759,10 @@ begin
     Found := False;
     for J := 0 to Target0140.Registro0150.Count - 1 do
       if SameText(Target0140.Registro0150.Items[J].COD_PART, ASrc.Registro0150.Items[I].COD_PART) then
-      begin
-        Found := True;
-        Break;
-      end;
+    begin
+      Found := True;
+      Break;
+    end;
     if not Found then
       CopySpedObjProperties(ASrc.Registro0150.Items[I], Target0140.Registro0150.New);
   end;
@@ -1837,10 +1772,10 @@ begin
     Found := False;
     for J := 0 to Target0140.Registro0190.Count - 1 do
       if SameText(Target0140.Registro0190.Items[J].UNID, ASrc.Registro0190.Items[I].UNID) then
-      begin
-        Found := True;
-        Break;
-      end;
+    begin
+      Found := True;
+      Break;
+    end;
     if not Found then
       CopySpedObjProperties(ASrc.Registro0190.Items[I], Target0140.Registro0190.New);
   end;
@@ -1850,10 +1785,10 @@ begin
     Found := False;
     for J := 0 to Target0140.Registro0200.Count - 1 do
       if SameText(Target0140.Registro0200.Items[J].COD_ITEM, ASrc.Registro0200.Items[I].COD_ITEM) then
-      begin
-        Found := True;
-        Break;
-      end;
+    begin
+      Found := True;
+      Break;
+    end;
     if not Found then
       CopySpedObjProperties(ASrc.Registro0200.Items[I], Target0140.Registro0200.New);
   end;
@@ -1863,10 +1798,10 @@ begin
     Found := False;
     for J := 0 to Target0140.Registro0400.Count - 1 do
       if SameText(Target0140.Registro0400.Items[J].COD_NAT, ASrc.Registro0400.Items[I].COD_NAT) then
-      begin
-        Found := True;
-        Break;
-      end;
+    begin
+      Found := True;
+      Break;
+    end;
     if not Found then
       CopySpedObjProperties(ASrc.Registro0400.Items[I], Target0140.Registro0400.New);
   end;
@@ -1876,13 +1811,60 @@ begin
     Found := False;
     for J := 0 to Target0140.Registro0450.Count - 1 do
       if SameText(Target0140.Registro0450.Items[J].COD_INF, ASrc.Registro0450.Items[I].COD_INF) then
-      begin
-        Found := True;
-        Break;
-      end;
+    begin
+      Found := True;
+      Break;
+    end;
     if not Found then
       CopySpedObjProperties(ASrc.Registro0450.Items[I], Target0140.Registro0450.New);
   end;
+end;
+
+function TACBRModelosJSONSPED.ModelGerar: TJSONObject;
+var
+  jSped: TJSONObject;
+begin
+  facbr.DT_INI := Date;
+  facbr.DT_FIN := Date;
+  TJSONTools.PopulateModelDefaults(facbr.Bloco_0, 5);
+  TJSONTools.PopulateModelDefaults(facbr.Bloco_B, 5);
+  TJSONTools.PopulateModelDefaults(facbr.Bloco_C, 5);
+  TJSONTools.PopulateModelDefaults(facbr.Bloco_D, 5);
+  TJSONTools.PopulateModelDefaults(facbr.Bloco_E, 5);
+  TJSONTools.PopulateModelDefaults(facbr.Bloco_G, 5);
+  TJSONTools.PopulateModelDefaults(facbr.Bloco_H, 5);
+  TJSONTools.PopulateModelDefaults(facbr.Bloco_K, 5);
+  TJSONTools.PopulateModelDefaults(facbr.Bloco_1, 5);
+  jSped := TJSONTools.ObjToJson(facbr);
+  if Assigned(jSped) then
+    jSped.Delete('Bloco_9');
+  Result := TJSONObject.Create;
+  Result.Add('sped', jSped);
+end;
+
+
+
+function TACBRModelosJSONSPEDPisCofins.ModelGerar: TJSONObject;
+var
+  jSped: TJSONObject;
+begin
+  facbr.DT_INI := Date;
+  facbr.DT_FIN := Date;
+  facbr.Bloco_0.Registro0900New;
+  TJSONTools.PopulateModelDefaults(facbr.Bloco_0, 5);
+  TJSONTools.PopulateModelDefaults(facbr.Bloco_A, 5);
+  TJSONTools.PopulateModelDefaults(facbr.Bloco_C, 5);
+  TJSONTools.PopulateModelDefaults(facbr.Bloco_D, 5);
+  TJSONTools.PopulateModelDefaults(facbr.Bloco_F, 5);
+  TJSONTools.PopulateModelDefaults(facbr.Bloco_I, 5);
+  TJSONTools.PopulateModelDefaults(facbr.Bloco_M, 5);
+  TJSONTools.PopulateModelDefaults(facbr.Bloco_P, 5);
+  TJSONTools.PopulateModelDefaults(facbr.Bloco_1, 5);
+  jSped := TJSONTools.ObjToJson(facbr);
+  if Assigned(jSped) then
+    jSped.Delete('Bloco_9');
+  Result := TJSONObject.Create;
+  Result.Add('sped', jSped);
 end;
 
 

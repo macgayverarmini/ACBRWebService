@@ -658,8 +658,9 @@ End;
 Function TACBRBridgeNFe.Distribuicao(Const jDistribuicao: TJSONObject): TJSONObject;
 Var 
   objDistribuicao: TDistribuicaoDFe;
-  UF: TJSONString;
-  CNPJCPF, ultNSU, NSU, chNFe: TJSONString;
+  UF: TJSONData;
+  CNPJCPF, ultNSU, NSU, chNFe: TJSONData;
+  sUF: string;
 Begin
   CarregaConfig;
   Result := nil;
@@ -668,26 +669,27 @@ Begin
 
   If jDistribuicao.Find(RSUFField, UF) Then
     Begin
-      If Not MatchStr(UF.ToString, CodigosIBGE) Then
+      sUF := Trim(UF.AsString);
+      If Not MatchStr(sUF, CodigosIBGE) Then
         Begin
           Result := TJSONObject.Create;
           Result.Add(RSErrorField, RSInvalidUFCode);
           Exit;
         End;
-      objDistribuicao.cUFAutor := StrToInt(UF.ToString);
+      objDistribuicao.cUFAutor := StrToInt(sUF);
     End;
 
   If jDistribuicao.Find(RSCNPJCPFField, CNPJCPF) Then
-    objDistribuicao.CNPJCPF := CNPJCPF.ToString;
+    objDistribuicao.CNPJCPF := Trim(CNPJCPF.AsString);
 
   If jDistribuicao.Find(RSUltNSUField, ultNSU) Then
-    objDistribuicao.ultNSU := ultNSU.ToString;
+    objDistribuicao.ultNSU := Trim(ultNSU.AsString);
 
   If jDistribuicao.Find(RSNSUField, NSU) Then
-    objDistribuicao.NSU := NSU.ToString;
+    objDistribuicao.NSU := Trim(NSU.AsString);
 
   If jDistribuicao.Find(RSChNFeField, chNFe) Then
-    objDistribuicao.chNFe := chNFe.ToString;
+    objDistribuicao.chNFe := Trim(chNFe.AsString);
 
   Try
     objDistribuicao.Executar;

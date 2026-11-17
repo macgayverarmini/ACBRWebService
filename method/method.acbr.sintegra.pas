@@ -30,9 +30,10 @@ type
     function Gerar(const jSintegra: TJSONObject): TJSONObject;
   end;
 
-  TACBRModelosJSONSintegra = class (TACBRBridgeSintegra)
-    public
-      function ModelConfig: TJSONObject;
+  TACBRModelosJSONSintegra = class(TACBRBridgeSintegra)
+  public
+    function ModelConfig: TJSONObject;
+    function ModelGerar: TJSONObject;
   end;
 
 implementation
@@ -600,4 +601,36 @@ begin
   finally
   end;
 end;
+
+function TACBRModelosJSONSintegra.ModelGerar: TJSONObject;
+begin
+  facbr.LimparRegistros;
+  facbr.Registros50.Add(TRegistro50.Create);
+  facbr.Registros51.Add(TRegistro51.Create);
+  facbr.Registros53.Add(TRegistro53.Create);
+  facbr.Registros54.Add(TRegistro54.Create);
+  facbr.Registros55.Add(TRegistro55.Create);
+  facbr.Registros56.Add(TRegistro56.Create);
+  facbr.Registros60M.Add(TRegistro60M.Create);
+  facbr.Registros60A.Add(TRegistro60A.Create);
+  facbr.Registros60D.Add(TRegistro60D.Create);
+  facbr.Registros60I.Add(TRegistro60I.Create);
+  facbr.Registros60R.Add(TRegistro60R.Create);
+  facbr.Registros61.Add(TRegistro61.Create);
+  facbr.Registros61R.Add(TRegistro61R.Create);
+  facbr.Registros70.Add(TRegistro70.Create);
+  facbr.Registros71.Add(TRegistro71.Create);
+  facbr.Registros74.Add(TRegistro74.Create);
+  facbr.Registros75.Add(TRegistro75.Create);
+  facbr.Registros76.Add(TRegistro76.Create);
+  facbr.Registros77.Add(TRegistro77.Create);
+  facbr.Registros85.Add(TRegistro85.Create);
+  facbr.Registros86.Add(TRegistro86.Create);
+  facbr.Registros88Ean.Add(TRegistro88Ean.Create);
+  Result := TJSONObject.Create;
+  Result.Add('sintegra', TJSONTools.ObjToJson(facbr));
+  facbr.LimparRegistros;
+end;
+
+
 end.

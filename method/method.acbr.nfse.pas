@@ -939,18 +939,42 @@ Function TACBRBridgeNFSe.Distribuicao(Const jDistribuicao: TJSONObject): TJSONOb
 Var
   CNPJ, Chave: TJSONData;
   NSU: TJSONData;
+  LNSU: Int64;
+  LNSUInt: Integer;
+  LSchemaFile: string;
 Begin
   CarregaConfig;
   Result := nil;
+
+  if facbr.Configuracoes.Geral.Provedor <> proPadraoNacional then
+  begin
+    facbr.Configuracoes.Geral.LayoutNFSe := lnfsPadraoNacionalv101;
+    facbr.SetProvedor(proPadraoNacional, ve101, False);
+    if Assigned(facbr.Provider) then
+    begin
+      LSchemaFile := IncludeTrailingPathDelimiter(facbr.Provider.GetSchemaPath) + facbr.Provider.ConfigSchemas.GerarNFSe;
+      if not FileExists(LSchemaFile) then
+        facbr.Provider.ConfigSchemas.Validar := False;
+    end;
+  end;
+
   Try
-    If jDistribuicao.Find('Chave', Chave) Then
-      facbr.ConsultarDFe(Chave.AsString)
+    If jDistribuicao.Find('Chave', Chave) and (Trim(Chave.AsString) <> '') Then
+      facbr.ConsultarDFe(Trim(Chave.AsString))
     Else If jDistribuicao.Find('NSU', NSU) Then
     Begin
-      If jDistribuicao.Find('CNPJ', CNPJ) Then
-        facbr.ConsultarDFe(CNPJ.AsString, NSU.AsInteger)
+      LNSU := StrToInt64Def(Trim(NSU.AsString), 0);
+      if LNSU > High(Integer) then
+        LNSUInt := High(Integer)
+      else if LNSU < 0 then
+        LNSUInt := 0
+      else
+        LNSUInt := Integer(LNSU);
+
+      If jDistribuicao.Find('CNPJ', CNPJ) and (Trim(CNPJ.AsString) <> '') Then
+        facbr.ConsultarDFe(Trim(CNPJ.AsString), LNSUInt)
       Else
-        facbr.ConsultarDFe(NSU.AsInteger);
+        facbr.ConsultarDFe(LNSUInt);
     End
     Else
     Begin
@@ -959,14 +983,29 @@ Begin
       Result.Add(RSMessageField, 'Parametros insuficientes para consultar DFe. Informe Chave ou NSU.');
       Exit;
     End;
-    
+
     Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebService.ConsultarDFe));
+    if Assigned(Result) then
+    begin
+      if Result.Find('ArquivoRetorno') = nil then
+        Result.Add('ArquivoRetorno', facbr.WebService.ConsultarDFe.ArquivoRetorno);
+      if Result.Find('XmlRetorno') = nil then
+        Result.Add('XmlRetorno', facbr.WebService.ConsultarDFe.XmlRetorno);
+    end;
   Except
     on E: Exception Do
     Begin
-      Result := TJSONObject.Create;
-      Result.Add(RSStatusField, RSStatusErro);
-      Result.Add(RSMessageField, 'Erro na consulta de distribuicao (DFe): ' + E.Message);
+      Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebService.ConsultarDFe));
+      if not Assigned(Result) then
+        Result := TJSONObject.Create;
+      if Result.Find(RSStatusField) = nil then
+        Result.Add(RSStatusField, RSStatusErro);
+      if Result.Find(RSMessageField) = nil then
+        Result.Add(RSMessageField, 'Erro na consulta de distribuicao (DFe): ' + E.Message);
+      if Result.Find('ArquivoRetorno') = nil then
+        Result.Add('ArquivoRetorno', facbr.WebService.ConsultarDFe.ArquivoRetorno);
+      if Result.Find('XmlRetorno') = nil then
+        Result.Add('XmlRetorno', facbr.WebService.ConsultarDFe.XmlRetorno);
     End;
   End;
 End;
@@ -1262,11 +1301,33 @@ Begin
           else if tpEventoStr = 'e202201' then
             Evento.pedRegEvento.tpEvento := ACBrNFSeXConversao.teConfirmacaoPrestador
           else if tpEventoStr = 'e202205' then
-            Evento.pedRegEvento.tpEvento := ACBrNFSeXConversao.teRejeicaoPrestador;
+            Evento.pedRegEvento.tpEvento := ACBrNFSeXConversao.teRejeicaoPrestador
+          else if SameText(tpEventoStr, 'e203202') or SameText(tpEventoStr, '203202') or SameText(tpEventoStr, 'teConfirmacaoTomador') then
+            Evento.pedRegEvento.tpEvento := ACBrNFSeXConversao.teConfirmacaoTomador
+          else if SameText(tpEventoStr, 'e203206') or SameText(tpEventoStr, '203206') or SameText(tpEventoStr, 'teRejeicaoTomador') then
+            Evento.pedRegEvento.tpEvento := ACBrNFSeXConversao.teRejeicaoTomador
+          else if SameText(tpEventoStr, 'e205208') or SameText(tpEventoStr, '205208') or SameText(tpEventoStr, 'teAnulacaoRejeicao') then
+            Evento.pedRegEvento.tpEvento := ACBrNFSeXConversao.teAnulacaoRejeicao;
         end;
       end;
 
-      if (Length(Evento.pedRegEvento.chNFSe) >= 50) or (Evento.pedRegEvento.tpEvento <> ACBrNFSeXConversao.teNenhum) then
+      if Evento.pedRegEvento.tpEvento in [
+        ACBrNFSeXConversao.teConfirmacaoTomador,
+        ACBrNFSeXConversao.teRejeicaoTomador,
+        ACBrNFSeXConversao.teConfirmacaoIntermediario,
+        ACBrNFSeXConversao.teRejeicaoIntermediario,
+        ACBrNFSeXConversao.teAnulacaoRejeicao
+      ] then
+      begin
+        if facbr.Configuracoes.Geral.Provedor <> proPadraoNacional then
+        begin
+          facbr.Configuracoes.Geral.LayoutNFSe := lnfsPadraoNacionalv101;
+          facbr.SetProvedor(proPadraoNacional, ve101, False);
+          if Assigned(facbr.Provider) and (not FileExists(IncludeTrailingPathDelimiter(facbr.Provider.GetSchemaPath) + facbr.Provider.ConfigSchemas.GerarNFSe)) then
+            facbr.Provider.ConfigSchemas.Validar := False;
+        end;
+      end
+      else if (Length(Evento.pedRegEvento.chNFSe) >= 50) or (Evento.pedRegEvento.tpEvento <> ACBrNFSeXConversao.teNenhum) then
       begin
         if (facbr.Configuracoes.Geral.LayoutNFSe = lnfsProvedor) and (not facbr.Configuracoes.Geral.APIPropria) and (facbr.Configuracoes.Geral.Provedor <> proEL) then
         begin
