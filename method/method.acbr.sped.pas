@@ -60,7 +60,7 @@ type
     procedure AjustarRegistrosImportados(const ASL: TStringList;
       const ASped: TACBrSPEDPisCofins);
     procedure NormalizarTxtRegerado(const AFileName: string);
-    procedure PopularBlocosEPC(const jRoot: TJSONObject);
+    procedure PopularBlocosEPC(const jRoot: TJSONObject; out AOmitBlocoP: Boolean);
     procedure SomarRegistro0900(const AOrigem: ACBrEPCBloco_0.TRegistro0900;
       const ADestino: ACBrEPCBloco_0.TRegistro0900);
     procedure MesclarEstabelecimento0140(const ASrc: ACBrEPCBloco_0.TRegistro0140;
@@ -702,7 +702,7 @@ var
   tamanho, I: Integer;
   jRoot: TJSONObject;
   dtIni, dtFin: TDateTime;
-  isTempFile: Boolean;
+  isTempFile, omitBlocoP: Boolean;
   arrAvisos: TJSONArray;
 begin
   CarregaConfig;
@@ -735,7 +735,21 @@ begin
     if TryExtractSpedDate(jRoot, 'DT_FIN', dtFin) then
       facbr.DT_FIN := dtFin;
 
-    PopularBlocosEPC(jRoot);
+    PopularBlocosEPC(jRoot, omitBlocoP);
+    if Assigned(jSPED) and jSPED.Get('omitirBlocoP', False) then
+      omitBlocoP := True;
+    if Assigned(jRoot) and jRoot.Get('omitirBlocoP', False) then
+      omitBlocoP := True;
+    if omitBlocoP then
+    begin
+      facbr.Bloco_P.RegistroP001.IND_MOV := ACBrEPCBlocos.imComDados;
+      facbr.IniciaGeracao;
+      facbr.WriteBloco_0;
+      if facbr.Bloco_I.RegistroI001.IND_MOV = ACBrEPCBlocos.imComDados then
+        facbr.WriteBloco_I;
+      facbr.WriteBloco_M;
+      facbr.Bloco_P.Gravado := True;
+    end;
     facbr.SaveFileTXT;
 
     fullFile := IncludeTrailingPathDelimiter(facbr.Path)+facbr.Arquivo;
@@ -1403,10 +1417,11 @@ begin
 end;
 
 
-procedure TACBRBridgeSPEDPisCofins.PopularBlocosEPC(const jRoot: TJSONObject);
+procedure TACBRBridgeSPEDPisCofins.PopularBlocosEPC(const jRoot: TJSONObject; out AOmitBlocoP: Boolean);
 var
   jB, jR: TJSONObject;
 begin
+  AOmitBlocoP := True;
   if not Assigned(jRoot) then
     Exit;
 
@@ -1502,7 +1517,10 @@ begin
   begin
     jR := GetJsonObj(jB, 'RegistroP001');
     if Assigned(jR) then
+    begin
       TJSONTools.JsonToObj(jR, facbr.Bloco_P.RegistroP001);
+      AOmitBlocoP := False;
+    end;
   end;
 
   jB := GetJsonObj(jRoot, 'Bloco_1');

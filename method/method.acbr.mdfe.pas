@@ -1378,6 +1378,7 @@ function TACBRBridgeMDFe.Encerramento(const jEncerramento: TJSONObject): TJSONOb
 var
   chMDFe, nProt, cnpjCpf, dtEncStr: string;
   cUF, cMun: Integer;
+  dtEncTmp: TDateTime;
   EncObj: TJSONObject;
 begin
   CarregaConfig;
@@ -1414,7 +1415,9 @@ begin
         infEvento.detEvento.nProt := nProt;
         if dtEncStr <> '' then
         begin
-          if not TryISO8601ToDate(dtEncStr, infEvento.detEvento.dtEnc, False) then
+          if TryISO8601ToDate(dtEncStr, dtEncTmp, False) then
+            infEvento.detEvento.dtEnc := dtEncTmp
+          else
             infEvento.detEvento.dtEnc := StrToDateDef(dtEncStr, Date);
         end
         else
