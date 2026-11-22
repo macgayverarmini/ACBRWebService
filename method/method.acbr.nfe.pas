@@ -359,40 +359,42 @@ Procedure TACBRBridgeNFe.CarregaConfig;
 Var 
   O: TJSONObject;
   LPfx: AnsiString;
+  LDefaultRootSchemas, LCurSchemas: string;
 Begin
-  if Trim(fcfg) = '' then
-    raise Exception.Create(RSConfigEmptyError);
+  LDefaultRootSchemas := ExcludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)) + RSSchemasDir);
 
-  try
-    O := GetJSON(fcfg) as TJSONObject;
-    Try
-      TJSONTools.JsonToObj(O, facbr.Configuracoes);
+  if Trim(fcfg) <> '' then
+  begin
+    try
+      O := GetJSON(fcfg) as TJSONObject;
+      Try
+        TJSONTools.JsonToObj(O, facbr.Configuracoes);
 
-      LPfx := TJSONTools.ExtractCertificadoPFX(O);
-      if LPfx <> '' then
-        facbr.Configuracoes.Certificados.DadosPFX := LPfx;
-
-      with facbr.Configuracoes.Geral do
-      begin
-        SSLLib := libOpenSSL;
-        SSLCryptLib := cryOpenSSL;
-        SSLHttpLib := httpOpenSSL;
-        SSLXmlSignLib := xsLibXml2;
-      end;
-
-    Finally
-      O.Free;
-    End;
-  except
-    on E: Exception do
-      raise Exception.Create(RSConfigReadError + E.Message);
+        LPfx := TJSONTools.ExtractCertificadoPFX(O);
+        if LPfx <> '' then
+          facbr.Configuracoes.Certificados.DadosPFX := LPfx;
+      Finally
+        O.Free;
+      End;
+    except
+      on E: Exception do
+        raise Exception.Create(RSConfigReadError + E.Message);
+    end;
+    fcfg := '';
   end;
 
-  // Garante PathSchemas padrão para NFe se não foi informado
-  if facbr.Configuracoes.Arquivos.PathSchemas = '' then
-    facbr.Configuracoes.Arquivos.PathSchemas := ExtractFilePath(ParamStr(0)) + RSSchemasDir + PathDelim + 'NFe';
+  with facbr.Configuracoes.Geral do
+  begin
+    SSLLib := libOpenSSL;
+    SSLCryptLib := cryOpenSSL;
+    SSLHttpLib := httpOpenSSL;
+    SSLXmlSignLib := xsLibXml2;
+  end;
 
-  fcfg := '';
+  // Garante PathSchemas padrao para NFe quando vazio ou apontando para a raiz Schemas\
+  LCurSchemas := ExcludeTrailingPathDelimiter(Trim(facbr.Configuracoes.Arquivos.PathSchemas));
+  if (LCurSchemas = '') or SameText(LCurSchemas, LDefaultRootSchemas) then
+    facbr.Configuracoes.Arquivos.PathSchemas := LDefaultRootSchemas + PathDelim + 'NFe' + PathDelim;
 End;
 
 Function TACBRBridgeNFe.ReadXMLFromJSON(Const jsonData: TJSONObject): string;
@@ -1004,7 +1006,7 @@ Begin
       if (detEvento.cOrgaoAutor = 0) and (Length(chNFe) >= 2) then
         detEvento.cOrgaoAutor := StrToIntDef(Copy(chNFe, 1, 2), 0);
       if detEvento.verAplic = '' then
-        detEvento.verAplic := 'DataLider2.0';
+        detEvento.verAplic := 'ACBRWebService';
     end;
 
     if dhEvento = 0 then dhEvento := Now;
@@ -1097,37 +1099,77 @@ End;
 Function TACBRBridgeNFe.ValidarRegras(Const jNFe: TJSONObject): TJSONObject;
 Var
   Nota: NotaFiscal;
+  xmlInput, errosRegras: string;
+  hasCert: Boolean;
 Begin
   CarregaConfig;
   Result := nil;
 
   Try
     facbr.NotasFiscais.Clear;
-    Nota := facbr.NotasFiscais.Add;
+    xmlInput := '';
+    Try
+      xmlInput := ReadXMLFromJSON(jNFe);
+    Except
+      xmlInput := '';
+    End;
 
     Try
-      if Assigned(jNFe.Find('NFe')) then
-        TJSONTools.JsonToObj(jNFe, Nota)
-      else
-        TJSONTools.JsonToObj(jNFe, Nota.NFe);
-      Nota.NFe.infNFe.Versao := pcnConversaoNFe.VersaoDFToDbl(facbr.Configuracoes.Geral.VersaoDF);
+      If xmlInput <> '' Then
+      Begin
+        facbr.NotasFiscais.LoadFromString(xmlInput);
+      End
+      Else
+      Begin
+        Nota := facbr.NotasFiscais.Add;
+        if Assigned(jNFe.Find('NFe')) then
+          TJSONTools.JsonToObj(jNFe, Nota)
+        else
+          TJSONTools.JsonToObj(jNFe, Nota.NFe);
+        Nota.NFe.infNFe.Versao := pcnConversaoNFe.VersaoDFToDbl(facbr.Configuracoes.Geral.VersaoDF);
+      End;
     Except
       on E: Exception Do
       Begin
         Result := TJSONObject.Create;
         Result.Add(RSStatusField, 'erro_parse');
-        Result.Add(RSMessageField, 'Erro na conversao JSON para Objeto: ' + E.Message);
+        Result.Add(RSMessageField, 'Erro na conversao JSON/XML para Objeto: ' + E.Message);
         Exit;
       End;
     End;
 
     Try
-      facbr.NotasFiscais.Items[0].Assinar;
-      facbr.NotasFiscais.Items[0].Validar;
+      hasCert := (Trim(facbr.Configuracoes.Certificados.ArquivoPFX) <> '') or
+                 (Length(facbr.Configuracoes.Certificados.DadosPFX) > 0) or
+                 (Trim(facbr.Configuracoes.Certificados.NumeroSerie) <> '');
+      if hasCert or (Pos('<Signature', facbr.NotasFiscais.Items[0].XMLOriginal) = 0) then
+      begin
+        if hasCert then
+          facbr.NotasFiscais.Items[0].Assinar
+        else if facbr.NotasFiscais.Items[0].XMLOriginal = '' then
+          facbr.NotasFiscais.GerarNFe;
+      end;
+
+      if hasCert or (Pos('<Signature', facbr.NotasFiscais.Items[0].XML) > 0) then
+        facbr.NotasFiscais.Items[0].Validar;
+
+      errosRegras := '';
+      facbr.NotasFiscais.ValidarRegrasdeNegocios(errosRegras);
 
       Result := TJSONObject.Create;
-      Result.Add(RSStatusField, RSStatusSucesso);
-      Result.Add(RSMessageField, 'XML Valido e Assinado');
+      if Trim(errosRegras) <> '' then
+      begin
+        Result.Add(RSStatusField, 'erro_validacao');
+        Result.Add('sucesso', False);
+        Result.Add(RSMessageField, Trim(errosRegras));
+        Result.Add('erros_regras_negocio', Trim(errosRegras));
+      end
+      else
+      begin
+        Result.Add(RSStatusField, RSStatusSucesso);
+        Result.Add('sucesso', True);
+        Result.Add(RSMessageField, 'XML Valido');
+      end;
       Result.Add('xml_assinado', EncodeStringBase64(facbr.NotasFiscais.Items[0].XML));
       Result.Add(RSChaveField, StringReplace(facbr.NotasFiscais.Items[0].NFe.infNFe.ID, 'NFe', '', [rfIgnoreCase]));
     Except
@@ -1136,7 +1178,8 @@ Begin
         Result := TJSONTools.SafeObjToJson(nil, E.Message);
         Result.Delete(RSStatusField);
         Result.Add(RSStatusField, 'erro_validacao');
-        If facbr.NotasFiscais.Items[0].ErroValidacao <> '' Then
+        Result.Add('sucesso', False);
+        If (facbr.NotasFiscais.Count > 0) and (facbr.NotasFiscais.Items[0].ErroValidacao <> '') Then
           Result.Add('detalhes', facbr.NotasFiscais.Items[0].ErroValidacao);
       End;
     End;

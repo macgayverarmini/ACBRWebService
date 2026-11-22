@@ -167,7 +167,9 @@ begin
       end;
 
       AssertTrue('Response should contain error message: ' + Response,
-        (Pos('out of bounds', Response) > 0) or (Pos('Internal Application Error', Response) > 0));
+        (Pos('Nenhum CT-e', Response) > 0) or
+        (Pos('out of bounds', Response) > 0) or
+        (Pos('Internal Application Error', Response) > 0));
     finally
       Json.Free;
     end;

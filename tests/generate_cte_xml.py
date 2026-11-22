@@ -4,9 +4,10 @@ import requests
 import os
 
 # Configuration
-API_URL = "http://localhost:9001"
-RESOURCE_FILE = r"c:\NFMonitor\src\resources\cteTestData.xml"
-OUTPUT_FILE = r"c:\NFMonitor\src\tests\generated_cte.xml"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+API_URL = os.environ.get("ACBR_WEBSERVICE_URL", "http://localhost:9002")
+RESOURCE_FILE = os.path.join(BASE_DIR, "..", "resources", "cteTestData.xml")
+OUTPUT_FILE = os.path.join(BASE_DIR, "generated_cte.xml")
 
 def main():
     print(f"Reading {RESOURCE_FILE}...")

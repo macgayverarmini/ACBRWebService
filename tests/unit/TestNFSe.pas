@@ -20,6 +20,7 @@ type
     procedure TestGetModeloConsultarNFSe;
     procedure TestGetModeloCancelar;
     procedure TestGetModeloSubstituir;
+    procedure TestGetModeloConsultarEventos;
 
     // POST
     procedure TestPostEmitir;
@@ -77,6 +78,11 @@ end;
 procedure TTestNFSe.TestGetModeloSubstituir;
 begin
   ExecuteGetTest('/modelo/nfse/substituir');
+end;
+
+procedure TTestNFSe.TestGetModeloConsultarEventos;
+begin
+  ExecuteGetTest('/modelo/nfse/consultar-eventos');
 end;
 
 // --- POST Tests ---

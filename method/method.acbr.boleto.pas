@@ -10,6 +10,7 @@ uses
   ACBrBoleto,
   ACBrBoletoFPDF,
   ACBrBoletoConversao,
+  ACBrUtil.Strings,
   Variants,
   fpjson,
   jsonconvert,
@@ -30,6 +31,7 @@ type
     fcfg: string;
     facbr: TACBrBoleto;
     fpdf: TACBrBoletoFPDF;
+    fBancoNumeroJson: Integer;
     procedure CarregaConfig;
     procedure ConfigurarPixTitulo(Titulo: TACBrTitulo; const jTitulo: TJSONObject);
     procedure PopularTitulos(const jPayload: TJSONObject);
@@ -81,17 +83,95 @@ end;
 
 procedure TACBRBridgeBoleto.CarregaConfig;
 var
-  O: TJSONObject;
+  O, jBancoObj: TJSONObject;
+  jBancoNode, jNumNode: TJSONData;
+  hasTipoCobranca: Boolean;
+  vNumBanco: Integer;
+  vCarteira: string;
 begin
-  if fcfg = '' then
+  if Trim(fcfg) = '' then
     Exit;
   O := GetJSON(fcfg) as TJSONObject;
   try
+    hasTipoCobranca := False;
+    vNumBanco := 0;
+    jBancoObj := nil;
+    jBancoNode := O.Find('Banco');
+    if not Assigned(jBancoNode) then
+      jBancoNode := O.Find('banco');
+    if Assigned(jBancoNode) and (jBancoNode.JSONType = jtObject) then
+    begin
+      jBancoObj := TJSONObject(jBancoNode);
+      hasTipoCobranca := Assigned(jBancoObj.Find('TipoCobranca')) or Assigned(jBancoObj.Find('tipoCobranca'));
+      jNumNode := jBancoObj.Find('Numero');
+      if not Assigned(jNumNode) then
+        jNumNode := jBancoObj.Find('numero');
+      if Assigned(jNumNode) then
+      begin
+        if jNumNode.JSONType = jtNumber then
+          vNumBanco := jNumNode.AsInteger
+        else
+          vNumBanco := StrToIntDef(Trim(jNumNode.AsString), 0);
+      end;
+    end;
+    if vNumBanco = 0 then
+      vNumBanco := O.Get('BancoNumero', O.Get('bancoNumero', 0));
+    if vNumBanco > 0 then
+      fBancoNumeroJson := vNumBanco;
+
     TJSONTools.JsonToObj(O, facbr);
+
+    if (not hasTipoCobranca) and (facbr.Banco.TipoCobranca = cobNenhum) and (fBancoNumeroJson > 0) then
+    begin
+      vCarteira := O.Get('Carteira', O.Get('carteira', ''));
+      facbr.Banco.TipoCobranca := facbr.GetTipoCobranca(fBancoNumeroJson, vCarteira);
+      if Assigned(jBancoObj) then
+        TJSONTools.JsonToObj(jBancoObj, facbr.Banco);
+    end;
   finally
     O.Free;
   end;
   fcfg := '';
+end;
+
+procedure SanitizarStringsCNAB(const facbr: TACBrBoleto);
+var
+  I, J: Integer;
+  T: TACBrTitulo;
+begin
+  if not Assigned(facbr) then
+    Exit;
+  facbr.Cedente.Nome := TiraAcentos(facbr.Cedente.Nome);
+  facbr.Cedente.FantasiaCedente := TiraAcentos(facbr.Cedente.FantasiaCedente);
+  facbr.Cedente.Logradouro := TiraAcentos(facbr.Cedente.Logradouro);
+  facbr.Cedente.NumeroRes := TiraAcentos(facbr.Cedente.NumeroRes);
+  facbr.Cedente.Complemento := TiraAcentos(facbr.Cedente.Complemento);
+  facbr.Cedente.Bairro := TiraAcentos(facbr.Cedente.Bairro);
+  facbr.Cedente.Cidade := TiraAcentos(facbr.Cedente.Cidade);
+  facbr.Banco.LocalPagamento := TiraAcentos(facbr.Banco.LocalPagamento);
+  for J := 0 to facbr.Banco.OrientacoesBanco.Count - 1 do
+    facbr.Banco.OrientacoesBanco[J] := TiraAcentos(facbr.Banco.OrientacoesBanco[J]);
+
+  for I := 0 to facbr.ListadeBoletos.Count - 1 do
+  begin
+    T := facbr.ListadeBoletos[I];
+    T.LocalPagamento := TiraAcentos(T.LocalPagamento);
+    T.SeuNumero := TiraAcentos(T.SeuNumero);
+    T.NumeroDocumento := TiraAcentos(T.NumeroDocumento);
+    T.EspecieDoc := TiraAcentos(T.EspecieDoc);
+    T.Instrucao1 := TiraAcentos(T.Instrucao1);
+    T.Instrucao2 := TiraAcentos(T.Instrucao2);
+    T.Instrucao3 := TiraAcentos(T.Instrucao3);
+    T.Sacado.NomeSacado := TiraAcentos(T.Sacado.NomeSacado);
+    T.Sacado.Logradouro := TiraAcentos(T.Sacado.Logradouro);
+    T.Sacado.Numero := TiraAcentos(T.Sacado.Numero);
+    T.Sacado.Complemento := TiraAcentos(T.Sacado.Complemento);
+    T.Sacado.Bairro := TiraAcentos(T.Sacado.Bairro);
+    T.Sacado.Cidade := TiraAcentos(T.Sacado.Cidade);
+    T.Sacado.SacadoAvalista.NomeAvalista := TiraAcentos(T.Sacado.SacadoAvalista.NomeAvalista);
+    for J := 0 to T.Mensagem.Count - 1 do
+      T.Mensagem[J] := TiraAcentos(T.Mensagem[J]);
+  end;
 end;
 
 procedure TACBRBridgeBoleto.PopularTitulos(const jPayload: TJSONObject);
@@ -235,8 +315,11 @@ end;
 function TACBRBridgeBoleto.GerarRemessa(const jRemessa: TJSONObject): TJSONObject;
 var
   Stream: TMemoryStream;
-  numRemessa, layoutInt: Integer;
-  nomeArq: string;
+  numRemessa, layoutInt, I, vNumBanco: Integer;
+  nomeArq, codBarras, linhaDig, nossoNum, vCart: string;
+  arrOut: TJSONArray;
+  itemOut: TJSONObject;
+  T: TACBrTitulo;
 begin
   CarregaConfig;
   Result := TJSONObject.Create;
@@ -244,6 +327,17 @@ begin
   try
     try
       PopularTitulos(jRemessa);
+
+      if (facbr.Banco.TipoCobranca = cobNenhum) and (fBancoNumeroJson > 0) then
+      begin
+        vCart := '';
+        if facbr.ListadeBoletos.Count > 0 then
+          vCart := facbr.ListadeBoletos[0].Carteira;
+        facbr.Banco.TipoCobranca := facbr.GetTipoCobranca(fBancoNumeroJson, vCart);
+      end;
+
+      if jRemessa.Get('RetirarAcentos', True) then
+        SanitizarStringsCNAB(facbr);
 
       layoutInt := jRemessa.Get('LayoutRemessa', -1);
       if layoutInt = 240 then
@@ -255,13 +349,34 @@ begin
       nomeArq := facbr.GerarRemessaStream(numRemessa, Stream);
 
       Result.Add('status', 'sucesso');
+      Result.Add('sucesso', True);
+      Result.Add('banco_numero', facbr.Banco.Numero);
+      Result.Add('tipo_cobranca', Integer(facbr.Banco.TipoCobranca));
       Result.Add('nome_arquivo', ExtractFileName(nomeArq));
       Result.Add('remessa_base64', StreamToBase64String(Stream));
       Result.Add('total_titulos', facbr.ListadeBoletos.Count);
+
+      arrOut := TJSONArray.Create;
+      for I := 0 to facbr.ListadeBoletos.Count - 1 do
+      begin
+        T := facbr.ListadeBoletos[I];
+        codBarras := facbr.Banco.MontarCodigoBarras(T);
+        linhaDig := facbr.Banco.MontarLinhaDigitavel(codBarras, T);
+        nossoNum := facbr.Banco.MontarCampoNossoNumero(T);
+        itemOut := TJSONObject.Create;
+        itemOut.Add('nosso_numero', nossoNum);
+        itemOut.Add('nosso_numero_puro', T.NossoNumero);
+        itemOut.Add('codigo_barras', codBarras);
+        itemOut.Add('linha_digitavel', linhaDig);
+        itemOut.Add('numero_documento', T.NumeroDocumento);
+        arrOut.Add(itemOut);
+      end;
+      Result.Add('titulos', arrOut);
     except
       on E: Exception do
       begin
         Result.Add('status', 'erro');
+        Result.Add('sucesso', False);
         Result.Add(RSErrorField, 'Erro ao gerar remessa CNAB: ' + E.Message);
       end;
     end;
@@ -272,10 +387,11 @@ end;
 
 function TACBRBridgeBoleto.LerRetorno(const jRetorno: TJSONObject): TJSONObject;
 var
-  b64Retorno, rawRetorno: string;
+  b64Retorno, rawRetorno, firstLine: string;
   Stream: TStringStream;
+  SL: TStringList;
   arrTitulos: TJSONArray;
-  I: Integer;
+  I, layoutInt, codBancoHeader: Integer;
 begin
   CarregaConfig;
   Result := TJSONObject.Create;
@@ -287,11 +403,49 @@ begin
   if b64Retorno = '' then
   begin
     Result.Add('status', 'erro');
+    Result.Add('sucesso', False);
     Result.Add(RSErrorField, 'Parametro "arquivo_base64" nao informado para leitura de retorno CNAB.');
     Exit;
   end;
 
   rawRetorno := DecodeStringBase64(b64Retorno);
+
+  layoutInt := jRetorno.Get('LayoutRemessa', -1);
+  if layoutInt = 240 then
+    facbr.LayoutRemessa := c240
+  else if layoutInt = 400 then
+    facbr.LayoutRemessa := c400
+  else
+  begin
+    SL := TStringList.Create;
+    try
+      SL.Text := rawRetorno;
+      firstLine := '';
+      for I := 0 to SL.Count - 1 do
+        if Trim(SL[I]) <> '' then
+        begin
+          firstLine := SL[I];
+          Break;
+        end;
+      if Length(firstLine) >= 380 then
+        facbr.LayoutRemessa := c400
+      else if Length(firstLine) >= 200 then
+        facbr.LayoutRemessa := c240;
+
+      if (facbr.Banco.TipoCobranca = cobNenhum) and (firstLine <> '') then
+      begin
+        if facbr.LayoutRemessa = c240 then
+          codBancoHeader := StrToIntDef(Copy(firstLine, 1, 3), 0)
+        else
+          codBancoHeader := StrToIntDef(Copy(firstLine, 77, 3), 0);
+        if codBancoHeader > 0 then
+          facbr.Banco.TipoCobranca := facbr.GetTipoCobranca(codBancoHeader);
+      end;
+    finally
+      SL.Free;
+    end;
+  end;
+
   Stream := TStringStream.Create(rawRetorno);
   try
     try
@@ -305,6 +459,8 @@ begin
       end;
 
       Result.Add('status', 'sucesso');
+      Result.Add('sucesso', True);
+      Result.Add('banco_numero', facbr.Banco.Numero);
       Result.Add('total_titulos', facbr.ListadeBoletos.Count);
       Result.Add('cedente', TJSONTools.SafeObjToJson(facbr.Cedente, 'Erro ao serializar cedente'));
       Result.Add('titulos', arrTitulos);
@@ -312,6 +468,7 @@ begin
       on E: Exception do
       begin
         Result.Add('status', 'erro');
+        Result.Add('sucesso', False);
         Result.Add(RSErrorField, 'Erro ao ler retorno CNAB: ' + E.Message);
       end;
     end;

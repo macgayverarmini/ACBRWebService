@@ -11,6 +11,7 @@ uses
   ACBrInStore,
   ACBrCargaBal,
   ACBrIBPTax,
+  ACBrUtil.Strings,
   Variants,
   fpjson,
   jsonconvert,
@@ -189,13 +190,104 @@ begin
   end;
 end;
 
+function ParseCargaBalModelo(const AData: TJSONData): TACBrCargaBalModelo;
+var
+  LVal: string;
+  LInt: Integer;
+begin
+  Result := modFilizola;
+  if not Assigned(AData) then
+    Exit;
+  if AData.JSONType = jtNumber then
+  begin
+    LInt := AData.AsInteger;
+    if (LInt >= Ord(Low(TACBrCargaBalModelo))) and (LInt <= Ord(High(TACBrCargaBalModelo))) then
+      Result := TACBrCargaBalModelo(LInt);
+    Exit;
+  end;
+  LVal := LowerCase(Trim(AData.AsString));
+  LInt := StrToIntDef(LVal, -1);
+  if (LInt >= Ord(Low(TACBrCargaBalModelo))) and (LInt <= Ord(High(TACBrCargaBalModelo))) then
+  begin
+    Result := TACBrCargaBalModelo(LInt);
+    Exit;
+  end;
+  if (LVal = 'modfilizola') or (LVal = 'filizola') then
+    Result := modFilizola
+  else if (LVal = 'modtoledo') or (LVal = 'toledo') then
+    Result := modToledo
+  else if (LVal = 'modurano') or (LVal = 'urano') then
+    Result := modUrano
+  else if (LVal = 'moduranos') or (LVal = 'uranos') or (LVal = 'urano s') then
+    Result := modUranoS
+  else if (LVal = 'modtoledomgv5') or (LVal = 'toledo mgv5') or (LVal = 'toledomgv5') or (LVal = 'mgv5') then
+    Result := modToledoMGV5
+  else if (LVal = 'modtoledomgv6') or (LVal = 'toledo mgv6') or (LVal = 'toledomgv6') or (LVal = 'mgv6') then
+    Result := modToledoMGV6
+  else if (LVal = 'modtoledomgv7') or (LVal = 'toledo mgv7') or (LVal = 'toledomgv7') or (LVal = 'mgv7') then
+    Result := modToledoMGV7
+  else if (LVal = 'moduranourf32') or (LVal = 'uranourf32') or (LVal = 'urano urf32') then
+    Result := modUranoURF32
+  else if (LVal = 'modramuza') or (LVal = 'ramuza') then
+    Result := modRamuza
+  else if (LVal = 'modtoledomgv5ver1') or (LVal = 'toledo mgv5 ver1') or (LVal = 'mgv5ver1') then
+    Result := modToledoMGV5Ver1
+  else if (LVal = 'modtriunfordc429') or (LVal = 'triunfordc429') or (LVal = 'triunfo') then
+    Result := modTriunfoRdc429;
+end;
+
+procedure SanitizarStringsCargaJSON(const AData: TJSONData);
+var
+  I: Integer;
+  LObj: TJSONObject;
+  LArr: TJSONArray;
+  LChild: TJSONData;
+begin
+  if not Assigned(AData) then
+    Exit;
+  case AData.JSONType of
+    jtObject:
+      begin
+        LObj := TJSONObject(AData);
+        for I := 0 to LObj.Count - 1 do
+        begin
+          LChild := LObj.Items[I];
+          if Assigned(LChild) then
+          begin
+            if LChild.JSONType = jtString then
+              LChild.AsString := TiraAcentos(LChild.AsString)
+            else if LChild.JSONType in [jtObject, jtArray] then
+              SanitizarStringsCargaJSON(LChild);
+          end;
+        end;
+      end;
+    jtArray:
+      begin
+        LArr := TJSONArray(AData);
+        for I := 0 to LArr.Count - 1 do
+        begin
+          LChild := LArr.Items[I];
+          if Assigned(LChild) then
+          begin
+            if LChild.JSONType = jtString then
+              LChild.AsString := TiraAcentos(LChild.AsString)
+            else if LChild.JSONType in [jtObject, jtArray] then
+              SanitizarStringsCargaJSON(LChild);
+          end;
+        end;
+      end;
+  end;
+end;
+
 function TACBRBridgeDiversosLegado.GerarCargaBalanca(const jCarga: TJSONObject): TJSONObject;
 var
   acbr: TACBrCargaBal;
-  arrProd: TJSONData;
+  arrProd, modNode: TJSONData;
   arr: TJSONArray;
   I, tamanho: Integer;
   item: TACBrCargaBalItem;
+  itemClone: TJSONObject;
+  retirarAcentos: Boolean;
   outDir: string;
   SR: TSearchRec;
   arrArquivos: TJSONArray;
@@ -205,7 +297,12 @@ begin
   acbr := TACBrCargaBal.Create(nil);
   try
     try
-      acbr.Modelo := TACBrCargaBalModelo(jCarga.Get('Modelo', 0));
+      modNode := jCarga.Find('Modelo');
+      if not Assigned(modNode) then
+        modNode := jCarga.Find('modelo');
+      acbr.Modelo := ParseCargaBalModelo(modNode);
+      retirarAcentos := jCarga.Get('RetirarAcentos', True);
+
       arrProd := jCarga.Find('Produtos');
       if not Assigned(arrProd) then
         arrProd := jCarga.Find('produtos');
@@ -218,12 +315,19 @@ begin
           if arr.Items[I].JSONType = jtObject then
           begin
             item := acbr.Produtos.New;
-            TJSONTools.JsonToObj(TJSONObject(arr.Items[I]), item);
+            itemClone := TJSONObject(arr.Items[I].Clone);
+            try
+              if retirarAcentos then
+                SanitizarStringsCargaJSON(itemClone);
+              TJSONTools.JsonToObj(itemClone, item);
+            finally
+              itemClone.Free;
+            end;
           end;
         end;
       end;
 
-      outDir := ExtractFilePath(ParamStr(0)) + 'balanca_' + IntToStr(GetTickCount64) + PathDelim;
+      outDir := ExtractFilePath(ParamStr(0)) + 'balanca_' + IntToStr(GetTickCount64) + '_' + IntToStr(Random(1000000)) + PathDelim;
       ForceDirectories(outDir);
 
       acbr.GerarArquivos(outDir);
@@ -243,12 +347,15 @@ begin
       RemoveDir(outDir);
 
       Result.Add('status', 'sucesso');
+      Result.Add('sucesso', True);
+      Result.Add('modelo', Integer(acbr.Modelo));
       Result.Add('modelo_str', acbr.ModeloStr);
       Result.Add('arquivos', arrArquivos);
     except
       on E: Exception do
       begin
         Result.Add('status', 'erro');
+        Result.Add('sucesso', False);
         Result.Add('error', E.Message);
       end;
     end;

@@ -1,7 +1,7 @@
 import os
 import re
 
-root = r'C:\NFMonitor\acbr\Fontes'
+root = os.environ.get('ACBR_FONTES_DIR', r'C:\BuildWebService\acbr\Fontes')
 pattern = re.compile(r'(?s)published([\s\r\n]+(?!(?:\s*property FormatSettings:)).*?)^\s*property FormatSettings:\s*TFormatSettings\s*read\s*FFormatSettings\s*write\s*FFormatSettings;', re.MULTILINE)
 count = 0
 

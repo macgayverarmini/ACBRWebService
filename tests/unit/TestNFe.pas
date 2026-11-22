@@ -130,7 +130,7 @@ end;
 
 procedure TTestNFe.TestPostNFe;
 begin
-  ExecutePostTest('/nfe/nfe', nil, 500);
+  ExecutePostTest('/nfe/nfe', nil, 400);
 end;
 
 procedure TTestNFe.TestPostStatusServicoNFe;

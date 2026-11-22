@@ -1,6 +1,7 @@
 #!/bin/bash
 # Quick test: check response from the CTE API by dumping directly to console
-cd /home/datalider/workspace/src/resources
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR/../resources"
 
 # Read the XML and base64 encode it
 XML_B64=$(base64 -w0 cteTestData.xml)

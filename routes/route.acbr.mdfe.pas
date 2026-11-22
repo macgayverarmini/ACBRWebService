@@ -42,6 +42,12 @@ procedure PostConsultaMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextP
 procedure PostCancelamentoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostEncerramentoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostNaoEncerradosMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloValidarRegrasMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostValidarRegrasMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloEventoToXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostEventoToXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloEmailMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostEmailMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
 // Procedure para registrar todas as rotas no Horse
 procedure regRouter;
@@ -635,6 +641,154 @@ begin
   end;
 end;
 
+procedure GetModeloValidarRegrasMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  AcM: TACBRModelosJSONMDFe;
+  LJson: TJSONObject;
+begin
+  AcM := TACBRModelosJSONMDFe.Create('');
+  try
+    LJson := AcM.ModelValidarRegras;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    AcM.Free;
+  end;
+end;
+
+procedure PostValidarRegrasMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O, LJson: TJSONObject;
+  Ac: TACBRBridgeMDFe;
+begin
+  try
+    O := GetJSON(Req.Body) as TJSONObject;
+  except
+    on E: Exception do
+    begin
+      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
+      Exit;
+    end;
+  end;
+  Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
+  try
+    LJson := Ac.ValidarRegras(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
+procedure GetModeloEventoToXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  AcM: TACBRModelosJSONMDFe;
+  LJson: TJSONObject;
+begin
+  AcM := TACBRModelosJSONMDFe.Create('');
+  try
+    LJson := AcM.ModelEncerramento;
+    LJson.Add('tpEvento', '110112');
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    AcM.Free;
+  end;
+end;
+
+procedure PostEventoToXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O, LJson: TJSONObject;
+  Ac: TACBRBridgeMDFe;
+begin
+  try
+    O := GetJSON(Req.Body) as TJSONObject;
+  except
+    on E: Exception do
+    begin
+      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
+      Exit;
+    end;
+  end;
+  Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
+  try
+    LJson := Ac.EventoToXML(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
+procedure GetModeloEmailMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  LJson, LMail: TJSONObject;
+begin
+  LJson := TJSONObject.Create;
+  try
+    LJson.Add(RSXMLField, 'XML do MDF-e em Base64 ou XML puro');
+    LJson.Add('para', 'cliente@empresa.com.br');
+    LJson.Add('assunto', 'Manifesto Eletronico de Documentos Fiscais');
+    LJson.Add('mensagem', 'Segue em anexo o MDF-e.');
+    LJson.Add('enviaPDF', True);
+    LMail := TJSONObject.Create;
+    LMail.Add('Host', 'smtp.empresa.com.br');
+    LMail.Add('Port', '587');
+    LMail.Add('Username', 'mdfe@empresa.com.br');
+    LMail.Add('Password', 'senha');
+    LMail.Add('From', 'mdfe@empresa.com.br');
+    LMail.Add('FromName', 'Emitente LTDA');
+    LMail.Add('SetSSL', False);
+    LMail.Add('SetTLS', True);
+    LJson.Add('mail', LMail);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+  finally
+    LJson.Free;
+  end;
+end;
+
+procedure PostEmailMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O, LJson: TJSONObject;
+  Ac: TACBRBridgeMDFe;
+begin
+  try
+    O := GetJSON(Req.Body) as TJSONObject;
+  except
+    on E: Exception do
+    begin
+      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
+      Exit;
+    end;
+  end;
+  Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
+  try
+    LJson := Ac.EnviarEmail(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
 procedure regRouter;
 begin
   // Endpoints de Modelos (GET)
@@ -650,6 +804,9 @@ begin
   THorse.Get(RSModeloMDFeCancelamentoRoute, GetModeloCancelamentoMDFe);
   THorse.Get(RSModeloMDFeEncerramentoRoute, GetModeloEncerramentoMDFe);
   THorse.Get(RSModeloMDFeNaoEncerradosRoute, GetModeloNaoEncerradosMDFe);
+  THorse.Get(RSModeloMDFeValidarRegrasRoute, GetModeloValidarRegrasMDFe);
+  THorse.Get(RSModeloMDFeEventoToXMLRoute, GetModeloEventoToXMLMDFe);
+  THorse.Get(RSModeloMDFeEmailRoute, GetModeloEmailMDFe);
 
   // Endpoints de Operações (POST)
   THorse.Post(RSMDFeMDFeRoute, PostEnviarMDFe);
@@ -665,6 +822,9 @@ begin
   THorse.Post(RSMDFeCancelamentoRoute, PostCancelamentoMDFe);
   THorse.Post(RSMDFeEncerramentoRoute, PostEncerramentoMDFe);
   THorse.Post(RSMDFeNaoEncerradosRoute, PostNaoEncerradosMDFe);
+  THorse.Post(RSMDFeValidarRegrasRoute, PostValidarRegrasMDFe);
+  THorse.Post(RSMDFeEventoToXMLRoute, PostEventoToXMLMDFe);
+  THorse.Post(RSMDFeEmailRoute, PostEmailMDFe);
 end;
 
 end.

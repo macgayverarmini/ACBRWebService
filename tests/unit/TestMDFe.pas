@@ -17,8 +17,12 @@ type
     procedure TestGetModeloMDFe;
     procedure TestGetModeloDistribuicao;    procedure TestGetModeloMDFeFromXML;
     procedure TestGetModeloMDFeToXML;
+    procedure TestGetModeloValidarRegras;
+    procedure TestGetModeloEventoToXML;
+    procedure TestGetModeloEmail;
     procedure TestPostMDFeFromXML;
     procedure TestPostMDFeToXML;
+    procedure TestPostEventoToXML;
 
     // POST
     procedure TestPostEnviar;
@@ -63,6 +67,21 @@ begin
   ExecuteGetTest('/modelo/mdfe/mdfe-to-xml');
 end;
 
+procedure TTestMDFe.TestGetModeloValidarRegras;
+begin
+  ExecuteGetTest('/modelo/mdfe/validar-regras');
+end;
+
+procedure TTestMDFe.TestGetModeloEventoToXML;
+begin
+  ExecuteGetTest('/modelo/mdfe/evento-to-xml');
+end;
+
+procedure TTestMDFe.TestGetModeloEmail;
+begin
+  ExecuteGetTest('/modelo/mdfe/email');
+end;
+
 procedure TTestMDFe.TestPostMDFeFromXML;
 begin
   ExecutePostTest('/mdfe/mdfe-from-xml');
@@ -71,6 +90,52 @@ end;
 procedure TTestMDFe.TestPostMDFeToXML;
 begin
   ExecutePostTest('/mdfe/mdfe-to-xml');
+end;
+
+procedure TTestMDFe.TestPostEventoToXML;
+var
+  Client: TFPHTTPClient;
+  Response: String;
+  Payload, DetObj, RespJson: TJSONObject;
+begin
+  Client := TFPHTTPClient.Create(nil);
+  try
+    Client.AddHeader('Content-Type', 'application/json');
+    Payload := TJSONObject.Create;
+    try
+      Payload.Add('config', CreateConfigJSON);
+      Payload.Add('chMDFe', '35260112345678000195580010000000011000000018');
+      Payload.Add('CNPJCPF', '12345678000195');
+      Payload.Add('tpEvento', '110112');
+      Payload.Add('nSeqEvento', 1);
+      DetObj := TJSONObject.Create;
+      DetObj.Add('nProt', '935260000000001');
+      DetObj.Add('dtEnc', '2026-01-31');
+      DetObj.Add('cUF', 35);
+      DetObj.Add('cMun', 3550308);
+      Payload.Add('detEvento', DetObj);
+
+      Client.RequestBody := TStringStream.Create(Payload.AsJSON);
+      try
+        Response := Client.Post(FBaseUrl + '/mdfe/evento-to-xml');
+      finally
+        Client.RequestBody.Free;
+      end;
+
+      CheckResponse(Response, 200, Client.ResponseStatusCode);
+      RespJson := GetJSON(Response) as TJSONObject;
+      try
+        AssertTrue('Expected sucesso = true', RespJson.Get('sucesso', False));
+        AssertTrue('Expected eventoMDFe XML', Pos('eventoMDFe', RespJson.Get('xml_raw', '')) > 0);
+      finally
+        RespJson.Free;
+      end;
+    finally
+      Payload.Free;
+    end;
+  finally
+    Client.Free;
+  end;
 end;
 
 // --- POST Tests ---

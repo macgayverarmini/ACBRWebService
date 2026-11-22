@@ -1,15 +1,50 @@
-# === Diretórios de build e saída ===
+# === Diretórios de build, saída e execução ===
 bin/
 exe/
 out/
 lib/
+**/lib/
+**/lib/**
 backup/
+**/backup/
+**/backup/**
 modules/
 deps/
+Docs/
 docs/
+**/Docs/**
+**/docs/**
 tmp/
-tests/__pycache__
+**/tmp/
+**/tmp/**
+**/pdf/
+**/pdf/**
+**/logs/
+**/logs/**
+**/spool/
+**/spool/**
+balanca_*/
+escpos_spool_*
+acbr_local_copy/
+release/
+release-assets/
+tests/__pycache__/
+**/__pycache__/
 
+# === Certificados digitais, chaves privadas e configurações sensíveis ===
+*.pfx
+*.p12
+*.pem
+*.key
+*.crt
+*.cer
+*.der
+**/certificados/
+**/certificados/**
+*.ini
+!*.example.ini
+
+# === Artefatos de compilação Object Pascal / Lazarus / FPC ===
 *.compiled
 *.bak
 *.o
@@ -19,14 +54,23 @@ tests/__pycache__
 *.rsj
 *.dbg
 *.res
+*.exe
+*.dll
+*.so
+*.dylib
+*.bin
+*.pot
 
-# === Ferramentas e IDE ===
+# === Ferramentas, IDE e logs temporários ===
 .aider*
 *.vscode
+.vscode/
+.qodo/
 *.deps
-*.bin
-*.exe
-*.pot
-cteValidoDemo.xml
 *.svn-base
-acbr_local_copy/
+cteValidoDemo.xml
+**/out.txt
+test_results*.txt
+build_log*.txt
+build_output*.txt
+scan_results.json

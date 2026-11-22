@@ -57,25 +57,30 @@ begin
 end.
 EOF
 
-cd /home/datalider/workspace/src
-/home/datalider/development/fpc/bin/x86_64-linux/fpc \
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_SRC="$(cd "$SCRIPT_DIR/.." && pwd)"
+ACBR_FONTES="${ACBR_FONTES_DIR:-$REPO_SRC/../acbr/Fontes}"
+FPC_BIN="${FPC_COMPILER:-$HOME/development/fpc/bin/x86_64-linux/fpc}"
+
+cd "$REPO_SRC"
+"$FPC_BIN" \
   -MObjFPC -Sh \
-  -Fu/home/datalider/workspace/acbr/Fontes/ACBrDFe/ACBrCTe/Base/ \
-  -Fu/home/datalider/workspace/acbr/Fontes/ACBrDFe/ACBrCTe/Base/Servicos/ \
-  -Fu/home/datalider/workspace/acbr/Fontes/ACBrDFe/ACBrCTe/ \
-  -Fu/home/datalider/workspace/acbr/Fontes/ACBrDFe/ACBrCTe/DACTE/ \
-  -Fu/home/datalider/workspace/acbr/Fontes/ACBrDFe/ \
-  -Fu/home/datalider/workspace/acbr/Fontes/ACBrDFe/ACBrDFeXs/ \
-  -Fu/home/datalider/workspace/acbr/Fontes/ACBrComum/ \
-  -Fu/home/datalider/workspace/acbr/Fontes/ACBrDFe/ACBrNFe/PCNNFe/ \
-  -Fu/home/datalider/workspace/acbr/Fontes/ACBrDFe/ACBrCTe/PCNCTe/ \
-  -Fu/home/datalider/workspace/acbr/Fontes/ACBrDFe/ACBrNFSeX/ \
-  -Fu/home/datalider/workspace/acbr/Fontes/ACBrTXT/ \
-  -Fu/home/datalider/workspace/acbr/Fontes/ACBrSerial/ \
-  -Fu/home/datalider/workspace/acbr/Fontes/ACBrTCP/ \
-  -Fu/home/datalider/workspace/acbr/Fontes/ACBrOpenSSL/ \
-  -Fu/home/datalider/workspace/acbr/Fontes/ACBrDFe/ACBrBPe/PCNBPe/ \
-  -Fu/home/datalider/workspace/acbr/Fontes/ACBrDFe/ACBrMDFe/PCNMDFe/ \
+  -Fu"$ACBR_FONTES/ACBrDFe/ACBrCTe/Base/" \
+  -Fu"$ACBR_FONTES/ACBrDFe/ACBrCTe/Base/Servicos/" \
+  -Fu"$ACBR_FONTES/ACBrDFe/ACBrCTe/" \
+  -Fu"$ACBR_FONTES/ACBrDFe/ACBrCTe/DACTE/" \
+  -Fu"$ACBR_FONTES/ACBrDFe/" \
+  -Fu"$ACBR_FONTES/ACBrDFe/ACBrDFeXs/" \
+  -Fu"$ACBR_FONTES/ACBrComum/" \
+  -Fu"$ACBR_FONTES/ACBrDFe/ACBrNFe/PCNNFe/" \
+  -Fu"$ACBR_FONTES/ACBrDFe/ACBrCTe/PCNCTe/" \
+  -Fu"$ACBR_FONTES/ACBrDFe/ACBrNFSeX/" \
+  -Fu"$ACBR_FONTES/ACBrTXT/" \
+  -Fu"$ACBR_FONTES/ACBrSerial/" \
+  -Fu"$ACBR_FONTES/ACBrTCP/" \
+  -Fu"$ACBR_FONTES/ACBrOpenSSL/" \
+  -Fu"$ACBR_FONTES/ACBrDFe/ACBrBPe/PCNBPe/" \
+  -Fu"$ACBR_FONTES/ACBrDFe/ACBrMDFe/PCNMDFe/" \
   -FE/tmp \
   /tmp/test_rtti_cte.pas 2>&1 | tail -10
 

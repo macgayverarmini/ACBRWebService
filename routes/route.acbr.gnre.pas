@@ -16,6 +16,7 @@ procedure GetModeloConfigGNRE(Req: THorseRequest; Res: THorseResponse; Next: TNe
 procedure GetModeloGuiaGNRE(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostEnviarGNRE(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostConsultarGNRE(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostGNREToXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
 procedure regRouter;
 
@@ -54,6 +55,35 @@ begin
     end;
   finally
     AcM.Free;
+  end;
+end;
+
+procedure PostGNREToXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O, LJson: TJSONObject;
+  Ac: TACBRBridgeGNRE;
+begin
+  try
+    O := GetJSON(Req.Body) as TJSONObject;
+  except
+    on E: Exception do
+    begin
+      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSInvalidJSONBodyError + ' ' + E.Message])));
+      Exit;
+    end;
+  end;
+
+  Ac := TACBRBridgeGNRE.Create(TJSONTools.ExtractConfig(O));
+  try
+    LJson := Ac.GNREToXML(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    O.Free;
+    Ac.Free;
   end;
 end;
 
@@ -119,8 +149,11 @@ procedure regRouter;
 begin
   THorse.Get(RSModeloGNREConfigRoute, GetModeloConfigGNRE);
   THorse.Get(RSModeloGNREGuiaRoute, GetModeloGuiaGNRE);
+  THorse.Get(RSModeloGNREToXMLRoute, GetModeloGuiaGNRE);
   THorse.Post(RSGNREEnviarRoute, PostEnviarGNRE);
   THorse.Post(RSGNREConsultarRoute, PostConsultarGNRE);
+  THorse.Post(RSGNREToXMLRoute, PostGNREToXML);
+  THorse.Post(RSGNREGerarXMLRoute, PostGNREToXML);
 end;
 
 end.

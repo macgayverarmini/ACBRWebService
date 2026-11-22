@@ -1,13 +1,13 @@
-# Gemini CLI - Configurações do Projeto NFMonitor
+# Gemini CLI - Configurações do Projeto ACBRWebService
 
 ## Caminhos de Build
 - **Lazbuild:** `C:\fpcupdeluxe\lazarus\lazbuild.exe`
-- **Projeto Principal:** `C:\NFMonitor\src\ACBRWebService.lpi`
-- **Projeto de Testes:** `C:\NFMonitor\src\tests\unit\TestRunner.lpi`
+- **Projeto Principal:** `C:\BuildWebService\src\ACBRWebService.lpi`
+- **Projeto de Testes:** `C:\BuildWebService\src\tests\unit\TestRunner.lpi`
 
 ## Binários
-- **Serviço:** `C:\NFMonitor\src\bin\ACBRWebService-x86_64-win64.exe` (Porta: 9000)
-- **Runner de Testes:** `C:\NFMonitor\src\tests\unit\TestRunner.exe`
+- **Serviço:** `C:\BuildWebService\src\bin\ACBRWebService-x86_64-win64.exe` (Porta: 9002)
+- **Runner de Testes:** `C:\BuildWebService\src\tests\unit\TestRunner.exe`
 
 ## Comandos Úteis (PowerShell)
 - **Build Completo:** `& "C:\fpcupdeluxe\lazarus\lazbuild.exe" -B ACBRWebService.lpi`

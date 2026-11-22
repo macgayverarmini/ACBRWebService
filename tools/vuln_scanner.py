@@ -2,7 +2,7 @@ import os
 import re
 import json
 
-TARGET_DIR = r"c:\Users\macga\Documents\issabel_auditoria"
+TARGET_DIR = os.environ.get("TARGET_DIR", ".")
 
 VULN_PATTERNS = [
     # Command injection where variable is concatenated without escapeshellarg
@@ -61,7 +61,7 @@ for r in results:
        # Let's write to a file to analyze
     filtered_results.append(r)
 
-with open(r"c:\NFMonitor\src\scan_results.json", "w") as f:
+with open(os.path.join(os.getcwd(), "scan_results.json"), "w") as f:
     json.dump(filtered_results, f, indent=2)
 
 print(f"Found {len(filtered_results)} potential vulnerabilities.")

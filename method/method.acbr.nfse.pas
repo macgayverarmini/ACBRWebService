@@ -68,6 +68,8 @@ Type
       Function Substituir(Const jSubstituir: TJSONObject): TJSONObject;
       // Distribuicao DFe (Nacional)
       Function Distribuicao(Const jDistribuicao: TJSONObject): TJSONObject;
+      // Consultar Eventos por Chave (Nacional)
+      Function ConsultarEventos(Const jConsulta: TJSONObject): TJSONObject;
       // XML para JSON
       Function NFSeFromXML(Const jXML: TJSONObject): TJSONObject;
       // JSON para XML
@@ -259,11 +261,26 @@ Begin
       vNaoAssinarXml := O.Get('NaoAssinarXml', O.Get('naoAssinarXml', vNaoAssinarXml));
       if vUrlHom = '' then vUrlHom := O.Get('UrlNacionalHom', O.Get('urlNacionalHom', ''));
       if vUrlPro = '' then vUrlPro := O.Get('UrlNacionalPro', O.Get('urlNacionalPro', ''));
+      vUrlHom := Trim(vUrlHom);
+      while (vUrlHom <> '') and (vUrlHom[Length(vUrlHom)] = '/') do
+        Delete(vUrlHom, Length(vUrlHom), 1);
+      vUrlPro := Trim(vUrlPro);
+      while (vUrlPro <> '') and (vUrlPro[Length(vUrlPro)] = '/') do
+        Delete(vUrlPro, Length(vUrlPro), 1);
       if vVersaoNtHom = '' then vVersaoNtHom := O.Get('VersaoNtHom', O.Get('versaoNtHom', ''));
       if vVersaoNtPro = '' then vVersaoNtPro := O.Get('VersaoNtPro', O.Get('versaoNtPro', ''));
       if vSubversaoSmarApd = '' then vSubversaoSmarApd := O.Get('SubversaoSmarApd', O.Get('subversaoSmarApd', ''));
 
       TJSONTools.JsonToObj(O, facbr.Configuracoes);
+
+      // Normaliza PathSchemas antes de LerParamsMunicipio e Provider.GetSchemaPath
+      if (Trim(facbr.Configuracoes.Arquivos.PathSchemas) = '') or
+         SameText(
+           ExcludeTrailingPathDelimiter(Trim(facbr.Configuracoes.Arquivos.PathSchemas)),
+           ExcludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)) + RSSchemasDir)
+         ) then
+        facbr.Configuracoes.Arquivos.PathSchemas :=
+          ExcludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)) + RSSchemasDir) + PathDelim + 'NFSe' + PathDelim;
 
       if vCodMun = 0 then
         vCodMun := facbr.Configuracoes.Geral.CodigoMunicipio;
@@ -484,9 +501,14 @@ Begin
       raise Exception.Create(RSConfigReadError + E.Message);
   end;
 
-  // Garante PathSchemas padrão para NFSe se não foi informado
-  if facbr.Configuracoes.Arquivos.PathSchemas = '' then
-    facbr.Configuracoes.Arquivos.PathSchemas := ExtractFilePath(ParamStr(0)) + RSSchemasDir + PathDelim + 'NFSe';
+  // Garante PathSchemas padrao para NFSe quando vazio ou apontando para a raiz Schemas\
+  if (Trim(facbr.Configuracoes.Arquivos.PathSchemas) = '') or
+     SameText(
+       ExcludeTrailingPathDelimiter(Trim(facbr.Configuracoes.Arquivos.PathSchemas)),
+       ExcludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)) + RSSchemasDir)
+     ) then
+    facbr.Configuracoes.Arquivos.PathSchemas :=
+      ExcludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)) + RSSchemasDir) + PathDelim + 'NFSe' + PathDelim;
 
   fcfg := '';
 End;
@@ -1010,6 +1032,124 @@ Begin
   End;
 End;
 
+Function TACBRBridgeNFSe.ConsultarEventos(Const jConsulta: TJSONObject): TJSONObject;
+Var
+  ChaveNode, TipoEvNode, SeqNode: TJSONData;
+  LChave, LTipoEvStr, LSchemaFile: string;
+  LTpEv: TtpEvento;
+  LNSeq: Integer;
+  ok: Boolean;
+  LResArr: TJSONArray;
+  LResObj: TJSONObject;
+  I: Integer;
+Begin
+  CarregaConfig;
+  Result := nil;
+
+  if facbr.Configuracoes.Geral.Provedor <> proPadraoNacional then
+  begin
+    facbr.Configuracoes.Geral.LayoutNFSe := lnfsPadraoNacionalv101;
+    facbr.SetProvedor(proPadraoNacional, ve101, False);
+    if Assigned(facbr.Provider) then
+    begin
+      LSchemaFile := IncludeTrailingPathDelimiter(facbr.Provider.GetSchemaPath) + facbr.Provider.ConfigSchemas.GerarNFSe;
+      if not FileExists(LSchemaFile) then
+        facbr.Provider.ConfigSchemas.Validar := False;
+    end;
+  end;
+
+  LChave := '';
+  If jConsulta.Find('Chave', ChaveNode) and (Trim(ChaveNode.AsString) <> '') Then
+    LChave := Trim(ChaveNode.AsString)
+  Else If jConsulta.Find('ChaveNFSe', ChaveNode) and (Trim(ChaveNode.AsString) <> '') Then
+    LChave := Trim(ChaveNode.AsString)
+  Else If jConsulta.Find('chNFSe', ChaveNode) and (Trim(ChaveNode.AsString) <> '') Then
+    LChave := Trim(ChaveNode.AsString)
+  Else If jConsulta.Find('chave', ChaveNode) and (Trim(ChaveNode.AsString) <> '') Then
+    LChave := Trim(ChaveNode.AsString);
+
+  if (Length(LChave) >= 47) and SameText(Copy(LChave, 1, 3), 'NFS') then
+    LChave := Trim(Copy(LChave, 4, MaxInt));
+
+  if LChave = '' then
+  begin
+    Result := TJSONObject.Create;
+    Result.Add(RSStatusField, RSStatusErro);
+    Result.Add(RSMessageField, 'Parametro Chave obrigatorio para consultar eventos da NFS-e.');
+    Exit;
+  end;
+
+  LTipoEvStr := '';
+  if jConsulta.Find('TipoEvento', TipoEvNode) then
+    LTipoEvStr := Trim(TipoEvNode.AsString)
+  else if jConsulta.Find('tpEvento', TipoEvNode) then
+    LTipoEvStr := Trim(TipoEvNode.AsString);
+
+  LNSeq := 0;
+  if jConsulta.Find('nSeqEvento', SeqNode) then
+    LNSeq := StrToIntDef(Trim(SeqNode.AsString), 0);
+
+  Try
+    if LTipoEvStr <> '' then
+    begin
+      LTpEv := ACBrNFSeXConversao.StrTotpEvento(ok, LTipoEvStr);
+      if ok and (LTpEv <> teNenhum) then
+      begin
+        if LNSeq > 0 then
+          facbr.ConsultarEvento(LChave, LTpEv, LNSeq)
+        else
+          facbr.ConsultarEvento(LChave, LTpEv);
+      end
+      else
+        facbr.ConsultarEvento(LChave);
+    end
+    else
+      facbr.ConsultarEvento(LChave);
+
+    Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebService.ConsultarEvento));
+    if not Assigned(Result) then
+      Result := TJSONObject.Create;
+    if Result.Find('ArquivoRetorno') = nil then
+      Result.Add('ArquivoRetorno', facbr.WebService.ConsultarEvento.ArquivoRetorno);
+    if Result.Find('XmlRetorno') = nil then
+      Result.Add('XmlRetorno', facbr.WebService.ConsultarEvento.XmlRetorno);
+    if Assigned(facbr.WebService.ConsultarEvento.Resumos) and
+       (facbr.WebService.ConsultarEvento.Resumos.Count > 0) and
+       (Result.Find('Resumos') = nil) then
+    begin
+      LResArr := TJSONArray.Create;
+      for I := 0 to facbr.WebService.ConsultarEvento.Resumos.Count - 1 do
+      begin
+        if Assigned(facbr.WebService.ConsultarEvento.Resumos[I]) then
+        begin
+          LResObj := TJSONObject.Create;
+          LResObj.Add('ChaveDFe', facbr.WebService.ConsultarEvento.Resumos[I].ChaveDFe);
+          LResObj.Add('idNota', facbr.WebService.ConsultarEvento.Resumos[I].idNota);
+          LResObj.Add('TipoEvento', facbr.WebService.ConsultarEvento.Resumos[I].TipoEvento);
+          LResObj.Add('XmlRetorno', facbr.WebService.ConsultarEvento.Resumos[I].XmlRetorno);
+          LResArr.Add(LResObj);
+        end;
+      end;
+      Result.Add('Resumos', LResArr);
+    end;
+  Except
+    on E: Exception Do
+    Begin
+      Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebService.ConsultarEvento));
+      if not Assigned(Result) then
+        Result := TJSONObject.Create;
+      if Result.Find(RSStatusField) = nil then
+        Result.Add(RSStatusField, RSStatusErro);
+      if Result.Find(RSMessageField) = nil then
+        Result.Add(RSMessageField, 'Erro ao consultar eventos da NFS-e: ' + E.Message);
+      if Result.Find('ArquivoRetorno') = nil then
+        Result.Add('ArquivoRetorno', facbr.WebService.ConsultarEvento.ArquivoRetorno);
+      if Result.Find('XmlRetorno') = nil then
+        Result.Add('XmlRetorno', facbr.WebService.ConsultarEvento.XmlRetorno);
+    End;
+  End;
+End;
+
 Function TACBRBridgeNFSe.Danfse(Const xmlData: TJSONObject): TJSONObject;
 Var 
   arquivofinal: string;
@@ -1341,7 +1481,7 @@ Begin
       if Evento.pedRegEvento.nPedRegEvento = 0 then
         Evento.pedRegEvento.nPedRegEvento := 1;
       if Evento.pedRegEvento.verAplic = '' then
-        Evento.pedRegEvento.verAplic := 'DataLiderERP';
+        Evento.pedRegEvento.verAplic := 'ACBRWebService';
       if Evento.pedRegEvento.tpAmb = 0 then
       begin
         if facbr.Configuracoes.WebServices.Ambiente = taProducao then

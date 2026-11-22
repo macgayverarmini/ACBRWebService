@@ -729,6 +729,7 @@ begin
   // Debug temporário
   THorse.Post(RSNFeDebugConfigRoute, PostDebugConfig);
   THorse.Post(RSNFeLoteRoute, PostNFeLote);
+  THorse.Post(RSNFeLoteShortRoute, PostNFeLote);
 end;
 
 end.

@@ -1,6 +1,6 @@
 import os
 
-root = r'C:\NFMonitor\acbr\Pacotes\Lazarus'
+root = os.environ.get('ACBR_LPK_DIR', r'C:\BuildWebService\acbr\Pacotes\Lazarus')
 count = 0
 
 for d, _, files in os.walk(root):

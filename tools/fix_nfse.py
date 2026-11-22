@@ -1,3 +1,4 @@
+import os
 import re
 
 def fix_file(filepath):
@@ -82,4 +83,4 @@ end;'''
         f.write(content)
 
 if __name__ == '__main__':
-    fix_file(r'c:\NFMonitor\src\routes\route.acbr.nfse.pas')
+    fix_file(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'routes', 'route.acbr.nfse.pas'))

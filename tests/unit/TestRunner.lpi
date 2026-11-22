@@ -68,6 +68,9 @@
       <Item>
         <PackageName Value="ACBrTCP"/>
       </Item>
+      <Item>
+        <PackageName Value="ACBr_SPED"/>
+      </Item>
     </RequiredPackages>
     <Units>
       <Unit>

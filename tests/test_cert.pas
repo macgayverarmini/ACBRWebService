@@ -17,8 +17,10 @@ begin
     ACBrNFe1.Configuracoes.Geral.SSLHttpLib := httpWinHttp;
     ACBrNFe1.Configuracoes.Geral.SSLXmlSignLib := xsLibXml2;
     
-    ACBrNFe1.Configuracoes.Certificados.ArquivoPFX := 'C:\NFMonitor\src\bin\certificados\PADARIA_SOMENTE_HOMOLOGACAO_2EEC09AEAD750C11_{53F15970-516F-490E-878E-43BB8B5A2419}.pfx';
-    ACBrNFe1.Configuracoes.Certificados.Senha := '1234';
+    ACBrNFe1.Configuracoes.Certificados.ArquivoPFX := GetEnvironmentVariable('ACBR_DEFAULT_CERT_PATH');
+    if ACBrNFe1.Configuracoes.Certificados.ArquivoPFX = '' then
+      ACBrNFe1.Configuracoes.Certificados.ArquivoPFX := 'c:\caminho\para\certificado.pfx';
+    ACBrNFe1.Configuracoes.Certificados.Senha := GetEnvironmentVariable('ACBR_DEFAULT_CERT_PASSWORD');
     
     WriteLn('Carregando certificado...');
     try

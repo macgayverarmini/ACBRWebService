@@ -1,6 +1,6 @@
-# Testes de Integração - NFMonitor
+# Testes de Integração - ACBRWebService
 
-Este diretório contém testes de integração para a API do NFMonitor.
+Este diretório contém testes de integração para a API do ACBRWebService.
 Recomendamos o uso da extensão **REST Client** para VS Code para executar estes testes diretamente do editor.
 
 ## 🚀 Como Executar

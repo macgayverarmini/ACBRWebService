@@ -289,44 +289,46 @@ procedure TACBRBridgeCTe.CarregaConfig;
 var
   O: TJSONObject;
   LPfx: AnsiString;
+  LDefaultRootSchemas, LCurSchemas: string;
 begin
-  if Trim(fcfg) = '' then
-    raise Exception.Create(RSConfigEmptyError);
+  LDefaultRootSchemas := ExcludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)) + RSSchemasDir);
 
-  try
-    O := GetJSON(fcfg) as TJSONObject;
+  if Trim(fcfg) <> '' then
+  begin
     try
-      TJSONTools.JsonToObj(O, facbr.Configuracoes);
+      O := GetJSON(fcfg) as TJSONObject;
+      try
+        TJSONTools.JsonToObj(O, facbr.Configuracoes);
 
-      LPfx := TJSONTools.ExtractCertificadoPFX(O);
-      if LPfx <> '' then
-        facbr.Configuracoes.Certificados.DadosPFX := LPfx;
-
-      // Força configurações de SSL para OpenSSL e ModeloDF para moCTe
-      with facbr.Configuracoes.Geral do
-      begin
-        ModeloDF := moCTe;
-        SSLLib := libOpenSSL;
-        SSLCryptLib := cryOpenSSL;
-        SSLHttpLib := httpOpenSSL;
-        SSLXmlSignLib := xsLibXml2;
+        LPfx := TJSONTools.ExtractCertificadoPFX(O);
+        if LPfx <> '' then
+          facbr.Configuracoes.Certificados.DadosPFX := LPfx;
+      finally
+        O.Free;
       end;
-    finally
-      O.Free;
+    except
+      on E: Exception do
+        raise Exception.Create(RSConfigReadError + E.Message);
     end;
-  except
-    on E: Exception do
-      raise Exception.Create(RSConfigReadError + E.Message);
+    fcfg := '';
+  end;
+
+  with facbr.Configuracoes.Geral do
+  begin
+    ModeloDF := moCTe;
+    SSLLib := libOpenSSL;
+    SSLCryptLib := cryOpenSSL;
+    SSLHttpLib := httpOpenSSL;
+    SSLXmlSignLib := xsLibXml2;
   end;
 
   if facbr.Configuracoes.WebServices.UF = '' then
     facbr.Configuracoes.WebServices.UF := RSDefaultUF;
 
-  // Garante PathSchemas padrão para CTe se não foi informado
-  if facbr.Configuracoes.Arquivos.PathSchemas = '' then
-    facbr.Configuracoes.Arquivos.PathSchemas := ExtractFilePath(ParamStr(0)) + RSSchemasDir + PathDelim + 'CTe';
-
-  fcfg := '';
+  // Garante PathSchemas padrao para CTe quando vazio ou apontando para a raiz Schemas\
+  LCurSchemas := ExcludeTrailingPathDelimiter(Trim(facbr.Configuracoes.Arquivos.PathSchemas));
+  if (LCurSchemas = '') or SameText(LCurSchemas, LDefaultRootSchemas) then
+    facbr.Configuracoes.Arquivos.PathSchemas := LDefaultRootSchemas + PathDelim + 'CTe' + PathDelim;
 end;
 
 function TACBRBridgeCTe.ReadXMLFromJSON(const jsonData: TJSONObject): string;
@@ -784,12 +786,26 @@ begin
 
   try
     facbr.Conhecimentos.GerarCTe;
-    xmlString := facbr.Conhecimentos.Items[0].XMLOriginal;
+    if (Trim(facbr.Configuracoes.Certificados.ArquivoPFX) <> '') or
+       (Length(facbr.Configuracoes.Certificados.DadosPFX) > 0) or
+       (Trim(facbr.Configuracoes.Certificados.NumeroSerie) <> '') then
+    begin
+      try
+        facbr.Conhecimentos.Items[0].Assinar;
+      except
+      end;
+    end;
+    xmlString := facbr.Conhecimentos.Items[0].XML;
     if xmlString = '' then
-      xmlString := facbr.Conhecimentos.Items[0].XML;
+      xmlString := facbr.Conhecimentos.Items[0].XMLOriginal;
 
     Result := TJSONObject.Create;
+    Result.Add(RSStatusField, RSStatusSucesso);
+    Result.Add('sucesso', True);
     Result.Add(RSXmlKey, EncodeStringBase64(xmlString));
+    Result.Add('xml_raw', xmlString);
+    Result.Add(RSXMLField, xmlString);
+    Result.Add(RSChaveField, StringReplace(facbr.Conhecimentos.Items[0].CTe.infCTe.ID, 'CTe', '', [rfIgnoreCase]));
   except
     on E: Exception do
       Result := TJSONTools.SafeObjToJson(nil, 'Erro ao gerar XML do CTe: ' + E.Message);
@@ -903,74 +919,108 @@ begin
   end;
 end;
 
-{ Valida o XML contra o Schema sem enviar para a SEFAZ }
+{ Valida o XML contra o Schema e regras de negocio sem enviar para a SEFAZ }
 function TACBRBridgeCTe.ValidarRegras(const jCTe: TJSONObject): TJSONObject;
 var
   ConhecimentoCTe: TCTe;
   jTarget, jEmit: TJSONData;
+  xmlInput, errosRegras: string;
+  hasCert: Boolean;
 begin
   CarregaConfig;
   Result := nil;
 
   try
-    // Limpa conhecimentos anteriores
     facbr.Conhecimentos.Clear;
-    ConhecimentoCTe := facbr.Conhecimentos.Add.CTe;
-
-    // Converte JSON para CTe
+    xmlInput := '';
     try
-      jTarget := nil;
-      if Assigned(jCTe) then
+      xmlInput := ReadXMLFromJSON(jCTe);
+    except
+      xmlInput := '';
+    end;
+
+    try
+      if xmlInput <> '' then
       begin
-        jTarget := jCTe.Find('CTe');
-        if not Assigned(jTarget) then
-          jTarget := jCTe.Find('cte');
-      end;
-      if Assigned(jTarget) and (jTarget.JSONType = jtObject) then
-        TJSONTools.JsonToObj(TJSONObject(jTarget), ConhecimentoCTe)
+        facbr.Conhecimentos.LoadFromString(xmlInput);
+      end
       else
       begin
-        jTarget := jCTe;
-        TJSONTools.JsonToObj(jCTe, ConhecimentoCTe);
-      end;
+        ConhecimentoCTe := facbr.Conhecimentos.Add.CTe;
+        jTarget := nil;
+        if Assigned(jCTe) then
+        begin
+          jTarget := jCTe.Find('CTe');
+          if not Assigned(jTarget) then
+            jTarget := jCTe.Find('cte');
+        end;
+        if Assigned(jTarget) and (jTarget.JSONType = jtObject) then
+          TJSONTools.JsonToObj(TJSONObject(jTarget), ConhecimentoCTe)
+        else
+        begin
+          jTarget := jCTe;
+          TJSONTools.JsonToObj(jCTe, ConhecimentoCTe);
+        end;
 
-      if (ConhecimentoCTe.Emit.CNPJ = '') and Assigned(jTarget) and (jTarget.JSONType = jtObject) then
-      begin
-        jEmit := TJSONObject(jTarget).Find('emit');
-        if not Assigned(jEmit) then
-          jEmit := TJSONObject(jTarget).Find('Emit');
-        if Assigned(jEmit) and (jEmit.JSONType = jtObject) then
-          ConhecimentoCTe.Emit.CNPJ := TJSONObject(jEmit).Get('CNPJCPF', TJSONObject(jEmit).Get('CNPJ', ''));
+        if (ConhecimentoCTe.Emit.CNPJ = '') and Assigned(jTarget) and (jTarget.JSONType = jtObject) then
+        begin
+          jEmit := TJSONObject(jTarget).Find('emit');
+          if not Assigned(jEmit) then
+            jEmit := TJSONObject(jTarget).Find('Emit');
+          if Assigned(jEmit) and (jEmit.JSONType = jtObject) then
+            ConhecimentoCTe.Emit.CNPJ := TJSONObject(jEmit).Get('CNPJCPF', TJSONObject(jEmit).Get('CNPJ', ''));
+        end;
       end;
     except
       on E: Exception do
       begin
         Result := TJSONObject.Create;
         Result.Add(RSStatusField, 'erro_parse');
-        Result.Add(RSMessageField, 'Erro na conversao JSON para Objeto: ' + E.Message);
+        Result.Add(RSMessageField, 'Erro na conversao JSON/XML para Objeto: ' + E.Message);
         Exit;
       end;
     end;
 
-    // Tenta Validar (Assina automaticamente se necessário para validar digest value)
     try
-      facbr.Conhecimentos.Items[0].Assinar;
-      facbr.Conhecimentos.Items[0].Validar;
+      hasCert := (Trim(facbr.Configuracoes.Certificados.ArquivoPFX) <> '') or
+                 (Length(facbr.Configuracoes.Certificados.DadosPFX) > 0) or
+                 (Trim(facbr.Configuracoes.Certificados.NumeroSerie) <> '');
+      if hasCert then
+        facbr.Conhecimentos.Items[0].Assinar
+      else if facbr.Conhecimentos.Items[0].XMLOriginal = '' then
+        facbr.Conhecimentos.GerarCTe;
+
+      if hasCert or (Pos('<Signature', facbr.Conhecimentos.Items[0].XML) > 0) then
+        facbr.Conhecimentos.Items[0].Validar;
+
+      errosRegras := '';
+      facbr.Conhecimentos.ValidarRegrasdeNegocios(errosRegras);
 
       Result := TJSONObject.Create;
-      Result.Add(RSStatusField, RSStatusSucesso);
-      Result.Add(RSMessageField, 'XML Valido e Assinado');
-      // Retorna o XML assinado caso o cliente queira salvar
+      if Trim(errosRegras) <> '' then
+      begin
+        Result.Add(RSStatusField, 'erro_validacao');
+        Result.Add('sucesso', False);
+        Result.Add(RSMessageField, Trim(errosRegras));
+        Result.Add('erros_regras_negocio', Trim(errosRegras));
+      end
+      else
+      begin
+        Result.Add(RSStatusField, RSStatusSucesso);
+        Result.Add('sucesso', True);
+        Result.Add(RSMessageField, 'XML Valido');
+      end;
       Result.Add('xml_assinado', EncodeStringBase64(facbr.Conhecimentos.Items[0].XML));
+      Result.Add(RSChaveField, StringReplace(facbr.Conhecimentos.Items[0].CTe.infCTe.ID, 'CTe', '', [rfIgnoreCase]));
     except
       on E: Exception do
       begin
         Result := TJSONTools.SafeObjToJson(nil, E.Message);
         Result.Delete(RSStatusField);
         Result.Add(RSStatusField, 'erro_validacao');
-        // O ACBr costuma popular a lista de erros de validação
-        if facbr.Conhecimentos.Items[0].ErroValidacao <> '' then
-           Result.Add('detalhes', facbr.Conhecimentos.Items[0].ErroValidacao);
+        Result.Add('sucesso', False);
+        if (facbr.Conhecimentos.Count > 0) and (facbr.Conhecimentos.Items[0].ErroValidacao <> '') then
+          Result.Add('detalhes', facbr.Conhecimentos.Items[0].ErroValidacao);
       end;
     end;
 
@@ -1029,13 +1079,15 @@ begin
           facbr.Conhecimentos.LoadFromString(cteXmlStr);
       end;
 
-      facbr.EventoCTe.LerXMLFromString(stringXml);
+      if Pos('<', Trim(stringXml)) > 0 then
+        facbr.EventoCTe.LerXMLFromString(stringXml);
 
-      if facbr.EventoCTe.Evento.Count = 0 then
+      if (facbr.EventoCTe.Evento.Count = 0) or
+         (Trim(facbr.EventoCTe.Evento.Items[0].InfEvento.chCTe) = '') then
       begin
         Result.Add(RSStatusField, RSStatusErro);
-        Result.Add(RSErrorField, 'Nenhum evento CT-e foi carregado a partir do XML.');
-        Result.Add(RSMessageField, 'Nenhum evento CT-e foi carregado a partir do XML.');
+        Result.Add(RSErrorField, 'Erro ao gerar PDF do Evento: nenhum evento CT-e valido carregado a partir do XML.');
+        Result.Add(RSMessageField, 'Erro ao gerar PDF do Evento: nenhum evento CT-e valido carregado a partir do XML.');
         Exit;
       end;
 

@@ -1,232 +1,242 @@
 # 🌐 ACBRWebService
 
-**API REST para integração com a biblioteca ACBR via HTTP.**
+**Microserviço HTTP REST/JSON open-source em Object Pascal (Lazarus + Free Pascal + Horse) para integração universal com a suíte [Projeto ACBr](https://www.projetoacbr.com.br/).**
 
-> Transforme qualquer microservice em uma central poderosa de documentos fiscais, validações e impressão — tudo via endpoints simples.
-
----
-
-## 💡 Sobre o Projeto
-
-O ACBRWebService expõe o poder da [ACBR](https://www.projetoacbr.com.br/) através de uma API REST. Com ele você pode:
-
-- ✅ **Validar documentos nacionais** (CPF, CNPJ, etc.) direto de qualquer backend
-- 📄 **Gerar DANFE / DACTE / DAMDFE / DANFSe** a partir de XML, recebendo o PDF em Base64 ou URL
-- 🖨️ **Enviar comandos ESCPOS** para impressoras, transformando qualquer estação (até um Raspberry Pi) em central de impressão
-- ⚖️ **Ler peso de balanças** conectadas
-- 📦 **Emitir e consultar** NFe, NFCe, CTe, MDFe, NFSe, BPe, GNRE, CIOT, eSocial, EFD-Reinf, SPED, Sintegra e Boletos
-
-> **💡 Sem autenticação por padrão.** A ideia é usar junto a outro backend ou serviços de automação como o [N8N](https://n8n.io/) — imagine integrar dentro de um container Docker do N8N!
-
-> **⚠️ Lazarus + FPC 3.3.1 (Extended RTTI) only.** Este projeto utiliza o **Extended RTTI** (`TRttiContext`) do Free Pascal 3.3.1 (`trunk`) para serializar e desserializar dinamicamente JSON $\leftrightarrow$ `TObject` (incluindo propriedades `public` e métodos `.New` das classes do ACBr).
+> Exponha emissões fiscais (DF-e), geração determinística de XML, validação de XSD e regras de negócio, pré-visualização de PDF (FPDF nativo sem dependências gráficas), obrigações acessórias (SPED e Sintegra), boletos bancários híbridos (CNAB 240/400 + PIX EMV), carga de balanças e impressão térmica EscPos para qualquer stack (Node.js, Python, Go, Java, C#, PHP, Rust ou automações low-code) via requisições JSON simples na porta **`9002`**.
 
 ---
 
-## 🚛 Documento Auxiliar do CT-e (DACTE)
+## 📚 Documentação Rápida
 
-O **ACBRWebService** oferece suporte completo para a geração e download do **DACTE (Documento Auxiliar do Conhecimento de Transporte Eletrônico)** em formato PDF, integrado à biblioteca ACBr.
-
-### 📍 Endpoints da API DACTE
-
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| `POST` | `/cte/dacte` | Gera o PDF do DACTE a partir do XML e retorna a chave, tamanho, URL de download e o PDF codificado em **Base64**. |
-| `POST` | `/cte/dacte-url` | **Versão otimizada**: Gera o PDF no servidor e retorna apenas a chave e a URL de download `/cte/pdf/:chave` (sem o payload pesado de Base64). |
-| `GET`  | `/cte/pdf/:chave` | Download direto do arquivo PDF (`dacte.pdf`) pela chave de 44 dígitos do CT-e. |
-| `POST` | `/cte/dacte-evento` | Gera o PDF do DACTE para eventos de CT-e (ex: Cancelamento, Carta de Correção - CC-e). |
-| `GET`  | `/modelo/cte/dacte-evento` | Retorna o modelo JSON de exemplo para a requisição de evento DACTE. |
+| Documento | Conteúdo |
+| :--- | :--- |
+| **[API_ROUTES.md](API_ROUTES.md)** | Catálogo completo de endpoints HTTP (`GET /modelo/...` e `POST /...`), tabela de Enums RTTI e exemplos práticos de payloads JSON e `curl`. |
+| **[BUILD_GUIDE.md](BUILD_GUIDE.md)** | Guia passo a passo de compilação nativa em **Windows (`win64`)** e **Linux (`x86_64`)** com Free Pascal `3.3.1` (`Extended RTTI`) + `lazbuild` e execução da suíte de testes (`TestRunner`). |
 
 ---
 
-### 📥 Exemplo de Requisição (`POST /cte/dacte` ou `/cte/dacte-url`)
+## ✨ Principais Capacidades
 
-```json
-{
-  "id": "req-12345",
-  "xml": "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48Y1RlUHJvYy...==",
-  "config": {
-    "SSLLib": 4,
-    "Arquivos": {
-      "PathSalvar": "C:\\BuildWebService\\src\\bin\\Docs"
-    }
-  }
-}
+- **Documentos Fiscais Eletrônicos (DF-e):**
+  - **NF-e (Modelo 55) e NFC-e (Modelo 65):** emissão síncrona/lote, consulta de protocolo e recibo, cancelamento (normal `110111` e por substituição `110112`), Carta de Correção (`CC-e`), Manifestação do Destinatário, eventos da Reforma Tributária (`IBS/CBS/IS`), inutilização, Distribuição DF-e, DANFE A4 / NFC-e 80mm em PDF (FPDF) e bobina EscPos, consulta de cadastro e envio por e-mail.
+  - **CT-e (Modelo 57 — 4.00 e Simplificado):** emissão, consulta, cancelamento, eventos (CC-e, desacordo, insucesso de entrega), inutilização, Distribuição DF-e, DACTE e DACTE de Evento em PDF.
+  - **MDF-e (Modelo 58):** emissão (incluindo modo síncrono SVRS), consulta, cancelamento, encerramento (com conversão resiliente ISO-8601 para `dtEnc`), consulta de não encerrados, inclusão de condutor/DF-e, Distribuição DF-e, DAMDFE / DAMDFE de Evento (com suporte a logotipo) e envio por e-mail SMTP (`POST /mdfe/email`).
+  - **NFS-e (`TACBrNFSeX`):** suporte unificado ao **Padrão Nacional (`<DPS>` / ADN)** (emissão, eventos `e101101`..`e105102`, consulta de eventos por chave via `POST /nfse/consultar-eventos` e Distribuição DF-e Nacional) e a **centenas de provedores municipais** (ABRASF, ISSNet, Ginfes, Betha, SmarAPD, EL, WebISS, Tecnos, entre outros), além de DANFSe em PDF.
+  - **GNRE (1.00 e 2.00):** geração determinística de XML (`POST /gnre/gnre-to-xml`), transmissão de lote e consulta de resultado (`TACBrGNRE`).
+  - **EFD-Reinf, BP-e, CIOT e eSocial:** transmissão, consulta e geração de payloads via pontes dedicadas.
+- **Geração Determinística de XML, Validação Offline e PDF sem Transmissão SOAP:**
+  - Gere e assine XMLs localmente, valide Schemas XSD + regras de negócio SEFAZ e renderize PDFs antes (ou independentemente) de qualquer comunicação externa com webservices governamentais:
+    - NF-e/NFC-e: `POST /nfe/nfe-to-xml`, `POST /nfe/nfe-from-xml`, `POST /nfe/validar-regras`, `POST /nfe/danfe`
+    - CT-e: `POST /cte/cte-to-xml`, `POST /cte/cte-from-xml`, `POST /cte/validar-regras`, `POST /cte/dacte`
+    - MDF-e: `POST /mdfe/mdfe-to-xml`, `POST /mdfe/evento-to-xml`, `POST /mdfe/mdfe-from-xml`, `POST /mdfe/validar-regras`, `POST /mdfe/damdfe`
+    - GNRE: `POST /gnre/gnre-to-xml` (ou `POST /gnre/gerar-xml`)
+    - NFS-e: `POST /nfse/nfse-to-xml`, `POST /nfse/nfse-from-xml`, `POST /nfse/danfse`
+- **Obrigações Acessórias (SPED e Sintegra):**
+  - **SPED Fiscal (`EFD ICMS/IPI`) e EFD Contribuições (`PIS/COFINS`):** geração completa via `TACBrSPEDFiscal` e `TACBrSPEDPisCofins` com cálculo oficial do Bloco 9, omissão configurável do Bloco P quando não aplicável, importação estruturada de TXT e consolidação de matriz/filiais.
+  - **Sintegra (`POST /sintegra/gerar`):** geração magnética via `TACBrSintegra` com sanitização segura para codificação monobyte (`ASCII` / `Windows-1252` `CP1252`), prevenindo estouro de bytes UTF-8 em descrições acentuadas e garantindo **exatamente `126` colunas (`CRLF`)** em todos os registros (incluindo totalização automática dos Registros `90` e `99`).
+- **Cobrança Bancária, CNAB 240/400 e PIX Híbrido (`TACBrBoleto`):**
+  - Impressão de boletos em PDF (FPDF), geração de arquivos de **Remessa CNAB 240 e 400** (com sanitização de acentos, inferência automática de `TipoCobranca` pelo código FEBRABAN do banco e retorno da linha digitável/código de barras/nosso número de cada título), **Leitura de Retorno CNAB 240/400** (com detecção automática de layout `240`/`400` e banco pelo header do arquivo), integração com APIs bancárias e geração de payload **PIX EMV (`BRCode`)** para boletos híbridos (`POST /boleto/pix-emv`).
+- **Automação Comercial e Utilitários (`Hardware & Diversos`):**
+  - **Carga de Balanças (`TACBrCargaBal`):** geração de arquivos de carga (`POST /diversos/balanca/carga`) para **Toledo (`MGV5`, `MGV6`, `MGV7`)**, **Filizola**, **Urano**, **Ramuza** e **Triunfo**, além de decodificação de códigos EAN-13 de balança (`TACBrInStore` em `POST /diversos/balanca/instore`).
+  - **Impressão Térmica EscPos (`TACBrPosPrinter`):** envio direto para portas seriais/USB/TCP/RAW ou geração de **spool binário em memória (`Base64`)** (`GerarSpool: true` ou `Porta: "BUFFER"`) para transporte ao terminal de caixa (`POST /escpos/escpos` e `GET /escpos/portas`).
+  - **Utilitários Fiscais:** certificados digitais A1 (`POST /certificados/upload`, `POST /certificados/ler-dados`), validação de CPF/CNPJ/IE/GTIN/CEP (`POST /diversos/validador`), cheque CMC7 (`POST /diversos/cmc7`), assinatura EAD/MD5 (`POST /diversos/ead`), dígito verificador (`POST /diversos/calc-digito`), valor por extenso (`POST /diversos/extenso`), tabela IBPTax (`POST /diversos/ibpt/ler-tabela`) e envio SMTP (`POST /diversos/mail`).
+
+---
+
+## 🏗️ Arquitetura: Horse + Extended RTTI (`TJSONTools`)
+
+Diferente de wrappers manuais que exigem manutenção de centenas de DTOs intermediários a cada Nota Técnica da SEFAZ, o **ACBRWebService** combina o microframework HTTP **[Horse](https://github.com/HashLoad/horse)** (escutando por padrão na porta **`9002`**) com o **Extended RTTI (`TRttiContext`)** do **Free Pascal `3.3.1` (`-dENABLE_DELPHI_RTTI`)**.
+
+```mermaid
+flowchart LR
+    Client["Cliente HTTP (REST/JSON)"] -->|POST /modulo/operacao| Horse["Servidor Horse (:9002)"]
+    Horse --> Bridge["Bridge Object Pascal (method.acbr.*.pas)"]
+    Bridge <-->|TJSONTools JsonToObj / ObjToJson| RTTI["Extended RTTI (FPC 3.3.1)"]
+    RTTI <--> ACBr["Componentes Nativos ACBr + FPDF + OpenSSL/LibXml2"]
+    ACBr -->|Opcional| Ext["SEFAZ / ADN / Bancos / Impressoras"]
 ```
 
-> **Nota:** O campo `xml` aceita o XML do CT-e em Base64 ou a string XML direta.
-
----
-
-### 📤 Exemplo de Resposta (`POST /cte/dacte`)
-
-```json
-{
-  "id": "req-12345",
-  "chave": "35210403911545000148570010000001011000001018",
-  "url": "/cte/pdf/35210403911545000148570010000001011000001018",
-  "tamanho": "142850",
-  "pdf": "JVBERi0xLjQ... (Base64 do PDF) ..."
-}
-```
-
----
-
-### ⚡ Dica de Alta Performance: Geração Leve via `/cte/dacte-url`
-
-Para evitar tráfego excessivo em redes ou na integração com **N8N** / **Zapier**, utilize a rota `/cte/dacte-url`. O PDF é gerado no servidor e você recebe diretamente a URL de download.
+### 1. Descoberta Dinâmica de Payloads (`GET /modelo/<modulo>/<operacao>`)
+Toda rota de operação possui um endpoint espelho `GET /modelo/<modulo>/<operacao>` que instancia o componente real do ACBr em memória, executa `TJSONTools.ObjToJson` via RTTI e devolve o esqueleto JSON exato aceito pela versão compilada:
 
 ```bash
-# Geração leve via URL
-curl -X POST http://localhost:8080/cte/dacte-url \
+# Inspecionar a estrutura completa de configuração da NF-e
+curl -s http://localhost:9002/modelo/nfe/config
+
+# Inspecionar o esqueleto RTTI completo de emissão de NF-e, CT-e, MDF-e ou GNRE
+curl -s http://localhost:9002/modelo/nfe/nfe
+curl -s http://localhost:9002/modelo/cte/cte
+curl -s http://localhost:9002/modelo/mdfe/mdfe
+curl -s http://localhost:9002/modelo/gnre/guia
+```
+
+### 2. Resolução Inteligente de `PathSchemas` Relativa ao Binário
+Em todas as pontes DF-e (`NFe`, `CTe`, `MDFe`, `NFSe` e `GNRe`), os caminhos internos são resolvidos sempre de forma relativa ao diretório do executável (`ExtractFilePath(ParamStr(0))`), sem depender do diretório corrente do shell:
+- Se `config.Arquivos.PathSchemas` for omitido (`""`) **ou** apontar apenas para o diretório raiz `Schemas/` (ex.: `<bin>/Schemas`), o servidor resolve automaticamente a subpasta específica do modelo:
+  - `TACBrNFe` $\rightarrow$ `<bin>/Schemas/NFe/`
+  - `TACBrCTe` $\rightarrow$ `<bin>/Schemas/CTe/`
+  - `TACBrMDFe` $\rightarrow$ `<bin>/Schemas/MDFe/`
+  - `TACBrNFSeX` $\rightarrow$ `<bin>/Schemas/NFSe/` (aplicado antes de `LerParamsMunicipio` para correta resolução do provedor)
+  - `TACBrGNRE` $\rightarrow$ `<bin>/Schemas/GNRe/`
+
+### 3. Estabilidade Criptográfica Cross-Platform (Win64 & Linux x86_64)
+Todas as pontes DF-e padronizam automaticamente `SSLLib = libOpenSSL`, `SSLCryptLib = cryOpenSSL`, `SSLHttpLib = httpOpenSSL` e `SSLXmlSignLib = xsLibXml2`, suportando tanto caminho de certificado no host (`Certificados.ArquivoPFX`) quanto carregamento direto em memória via Base64 (`Certificados.DadosPFXBase64` ou `Certificados.DadosPFX`), sem gravar chaves privadas temporárias em disco.
+
+---
+
+## 🚀 Exemplos Rápidos de Uso (`curl`)
+
+> 💡 Todos os exemplos abaixo utilizam exclusivamente dados sintéticos universais (`12.345.678/0001-95`, `00.000.000/0000-00`, `EMPRESA EXEMPLO LTDA`). Veja dezenas de exemplos adicionais em **[API_ROUTES.md](API_ROUTES.md)**.
+
+### 1. Gerar XML Determinístico de GNRE 2.00 (Sem Transmissão SOAP)
+```bash
+curl -X POST http://localhost:9002/gnre/gnre-to-xml \
   -H "Content-Type: application/json" \
-  -d '{"xml": "<xml_base64_ou_string>"}'
+  -d '{
+    "config": {
+      "Geral": { "VersaoDF": "ve200" },
+      "WebServices": { "Ambiente": "taHomologacao", "UF": "SP" }
+    },
+    "VersaoDF": "ve200",
+    "c01_UfFavorecida": "SP",
+    "c02_receita": 100099,
+    "c03_idContribuinteEmitente": { "CNPJ": "12345678000195" },
+    "c28_tipoDocOrigem": 10,
+    "c04_docOrigem": "1001",
+    "c06_valorPrincipal": 150.00,
+    "c10_valorTotal": 150.00,
+    "c14_dataVencimento": "2026-12-31",
+    "c16_razaoSocialEmitente": "EMPRESA EXEMPLO LTDA",
+    "c18_enderecoEmitente": "AVENIDA EXEMPLO, 1000",
+    "c19_municipioEmitente": "50308",
+    "c20_ufEnderecoEmitente": "SP",
+    "c21_cepEmitente": "01001000",
+    "camposExtras": [
+      { "codigo": 86, "tipo": "T", "valor": "35260112345678000195550010000010011000010015" }
+    ]
+  }'
+```
 
-# Baixar o PDF diretamente
-curl -o dacte.pdf http://localhost:8080/cte/pdf/35210403911545000148570010000001011000001018
+### 2. Gerar Arquivo Sintegra (`126` Colunas `CP1252` / `ASCII`)
+```bash
+curl -X POST http://localhost:9002/sintegra/gerar \
+  -H "Content-Type: application/json" \
+  -d '{
+    "RetirarAcentos": true,
+    "Registro10": {
+      "CNPJ": "12345678000195",
+      "Inscricao": "110042490114",
+      "RazaoSocial": "EMPRESA EXEMPLO COMÉRCIO E INDÚSTRIA LTDA",
+      "Cidade": "SÃO PAULO",
+      "Estado": "SP",
+      "Telefone": "1130000000",
+      "DataInicial": "2026-01-01",
+      "DataFinal": "2026-01-31",
+      "CodigoConvenio": "3",
+      "NaturezaInformacoes": "3",
+      "FinalidadeArquivo": "1"
+    },
+    "Registro11": {
+      "Endereco": "AVENIDA EXEMPLO",
+      "Numero": "1000",
+      "Bairro": "CENTRO",
+      "Cep": "01001000",
+      "Responsavel": "CONTADOR EXEMPLO",
+      "Telefone": "1130000000"
+    }
+  }'
+```
+
+### 3. Gerar Spool EscPos em Memória (`Base64`) sem Impressora Física Conectada
+```bash
+curl -X POST http://localhost:9002/escpos/escpos \
+  -H "Content-Type: application/json" \
+  -d '{
+    "Modelo": "ppEscPosEpson",
+    "PaginaDeCodigo": "pc850",
+    "ColunasFonteNormal": 48,
+    "Porta": "BUFFER",
+    "GerarSpool": true,
+    "CortaPapel": true,
+    "Linhas": [
+      "</zera><ce><n>EMPRESA EXEMPLO LTDA</n></ce>",
+      "<ce>CNPJ: 12.345.678/0001-95</ce>",
+      "</linha_simples>",
+      "<ae>ITEM 001 - PRODUTO EXEMPLO          R$ 25,00</ae>",
+      "</linha_simples>",
+      "<ad><e>TOTAL: R$ 25,00</e></ad>",
+      "</corte_parcial>"
+    ]
+  }'
+```
+
+### 4. Gerar Arquivos de Carga para Balança (`Toledo MGV6` / `Filizola`)
+```bash
+curl -X POST http://localhost:9002/diversos/balanca/carga \
+  -H "Content-Type: application/json" \
+  -d '{
+    "Modelo": "modToledoMGV6",
+    "RetirarAcentos": true,
+    "Produtos": [
+      {
+        "Codigo": 101,
+        "Descricao": "PAO FRANCES KG",
+        "ValorVenda": 16.90,
+        "Validade": 2,
+        "Tipo": "tpvPeso"
+      }
+    ]
+  }'
 ```
 
 ---
 
-## 📋 Requisitos e Arquitetura RTTI
+## 🛠️ Compilação Rápida (Windows & Linux)
 
-> 📖 **Para o guia passo a passo completo de compilação em outra máquina (Windows ou Linux), consulte o arquivo [BUILD_GUIDE.md](BUILD_GUIDE.md).**
+### Requisitos Essenciais
+| Componente | Versão Obrigatória | Detalhe |
+| :--- | :--- | :--- |
+| **Free Pascal (FPC)** | **`3.3.1` (`trunk`)** | Compilado com **`-dENABLE_DELPHI_RTTI`** (`EnableRTTI=1` no `fpcupdeluxe`). |
+| **Lazarus (`lazbuild`)** | **`4.x` (`fixes_4` / `4.99`)** | Com `{$EXTENDEDRTTI ON}` na linha 3 de `acbr/Fontes/ACBrComum/ACBr.inc`. |
 
-| Requisito | Versão / Configuração Obrigatória |
-|-----------|----------------------------------|
-| Free Pascal Compiler (FPC) | **`3.3.1` (Trunk / `main`)** compilado com **`-dENABLE_DELPHI_RTTI`** (`EnableRTTI=1`) |
-| Lazarus (`lazbuild`) | **`4.99` (Trunk)** no Windows ou **`4.x` (branch `fixes_4`)** no Linux |
-| fpcupdeluxe (Windows) | [Releases fpcupdeluxe](https://github.com/LongDirtyAnimAlf/fpcupdeluxe/releases) (`x86_64-win64`) |
-| fpclazup (Linux) | [Releases fpclazup](https://github.com/LongDirtyAnimAlf/Reiniero-fpcup/releases) |
-| Git | Qualquer versão recente |
-
-### ⚙️ Configuração Obrigatória do Extended RTTI
-
-O motor de serialização (`tools/jsonconvert.pas`) utiliza o **Extended RTTI** (`TRttiContext`) do FPC 3.3.1 para mapear automaticamente JSON $\leftrightarrow$ propriedades `public` e métodos `.New` das classes do ACBr, sem necessidade de scripts externos de alteração de fontes:
-
-1. **No Compilador FPC 3.3.1**: Deve ser compilado com a flag **`-dENABLE_DELPHI_RTTI`** (opção `Enable Extended RTTI` / `EnableRTTI=1` no `fpcupdeluxe`).
-2. **No `ACBr.inc`**: O arquivo `acbr/Fontes/ACBrComum/ACBr.inc` deve conter a diretiva **`{$EXTENDEDRTTI ON}`** logo na linha 3:
-   ```pascal
-   {$IFNDEF ACBr_INC}
-   {$DEFINE ACBr_INC}
-   {$EXTENDEDRTTI ON}
-   ```
-
-### Dependências (baixadas via `download.sh`)
-
-| Dependência | Finalidade / Repositório |
-|------------|--------------------------|
-| ACBr | Suíte fiscal e geração nativa de PDF via **FPDF** (`ACBr_*_FPDF`) |
-| Horse | [HashLoad/horse](https://github.com/HashLoad/horse) — Servidor HTTP e Roteamento |
-| Handle-Exception | [HashLoad/handle-exception](https://github.com/HashLoad/handle-exception) — Middleware de exceções |
-| Jhonson | [HashLoad/jhonson](https://github.com/HashLoad/jhonson) — Middleware JSON |
-
----
-
-## 🛠️ Compilação Primária (Windows e Linux Nativo)
-
-### 🪟 Opção 1: Build Direto no Windows
-
-1. Instale o **FPC 3.3.1 (`trunk`)** e **Lazarus (`4.99` / `fixes_4`)** em `C:\fpcupdeluxe` usando o `fpcupdeluxe-x86_64-win64.exe` com a opção **`Enable Extended RTTI`** marcada em `Setup+`.
-2. Garanta que `acbr\Fontes\ACBrComum\ACBr.inc` contenha `{$EXTENDEDRTTI ON}` no topo e registre os pacotes `.lpk` do ACBr no `lazbuild` (veja o comando completo em **[BUILD_GUIDE.md](BUILD_GUIDE.md)**).
-3. Compile o projeto executando o script `compile_win.bat` ou via linha de comando:
-   ```powershell
-   cd C:\BuildWebService\src
-   & "C:\fpcupdeluxe\lazarus\lazbuild.exe" --max-process-count=1 -B --os=win64 --cpu=x86_64 ACBRWebService.lpi
-   ```
-   O executável será gerado em `src\bin\ACBRWebService-x86_64-win64.exe`.
-
----
-
-### 🐧 Opção 2: Build Direto no Linux (Sem Docker)
-
-Para compilar diretamente em servidores ou estações Linux (Ubuntu 22.04 / 24.04 LTS ou compatível):
-
-#### 1️⃣ Provisionamento Automático do Ambiente (`setup-vm.sh`)
-O script `setup-vm.sh` instala todas as dependências de sistema, compila o **FPC 3.3.1 (`trunk`)** com `-dENABLE_DELPHI_RTTI`, o **Lazarus (`fixes_4`)** e os cross-compilers Windows:
-
-```bash
-cd ~/BuildWebService/src
-chmod +x setup-vm.sh
-sudo ./setup-vm.sh
-source ~/.profile
+### Windows (`win64` / `x86_64`)
+```powershell
+cd C:\BuildWebService\src
+& "C:\fpcupdeluxe\lazarus\lazbuild.exe" --max-process-count=1 --os=win64 --cpu=x86_64 ACBRWebService.lpi
+# Binário gerado em: bin\ACBRWebService-x86_64-win64.exe
 ```
 
-#### 2️⃣ Download das Dependências
+### Linux (`linux` / `x86_64` — Nativo sem Docker)
 ```bash
 cd ~/BuildWebService/src
-chmod +x download.sh
+chmod +x setup-vm.sh download.sh build.sh
+sudo ./setup-vm.sh && source ~/.profile
 ./download.sh
-```
-> Confirme que `../acbr/Fontes/ACBrComum/ACBr.inc` possui `{$EXTENDEDRTTI ON}` na linha 3.
-
-#### 3️⃣ Compilação
-Para registrar os pacotes do ACBr e compilar todos os alvos (Linux x86_64, Windows x86_64 e Windows i386):
-```bash
-dos2unix build.sh
-chmod +x build.sh
 ./build.sh
+# Binário nativo gerado em: bin/ACBRWebService-x86_64-linux
 ```
 
-Ou para compilar **apenas um alvo específico**:
-```bash
-# Linux 64-bit (nativo)
-"$LAZBUILD_CMD" --lazarusdir="$LAZARUS_DIR" --compiler="$FPC_COMPILER" -B --os=linux --cpu=x86_64 ACBRWebService.lpi
+### Executar Testes Automatizados (`FPCUnit`)
+```powershell
+# Compilar o TestRunner
+& "C:\fpcupdeluxe\lazarus\lazbuild.exe" --max-process-count=1 --os=win64 --cpu=x86_64 tests\unit\TestRunner.lpi
 
-# Windows 64-bit (cross-compile)
-"$LAZBUILD_CMD" --lazarusdir="$LAZARUS_DIR" --compiler="$FPC_COMPILER" -B --os=win64 --cpu=x86_64 --ws=nogui ACBRWebService.lpi
-
-# Windows 32-bit (cross-compile)
-"$LAZBUILD_CMD" --lazarusdir="$LAZARUS_DIR" --compiler="$FPC_COMPILER" -B --os=win32 --cpu=i386 --ws=nogui ACBRWebService.lpi
+# Com o ACBRWebService em execução na porta 9002 e as DLLs de bin\ no PATH:
+$env:PATH = "$PWD\bin;$env:PATH"
+.\tests\unit\TestRunner.exe --all --format=plain
 ```
+
+> 📖 Consulte **[BUILD_GUIDE.md](BUILD_GUIDE.md)** para a lista completa de pacotes `.lpk`, bibliotecas dinâmicas (`OpenSSL` e `LibXml2`) e instruções de build em container Docker ou GitHub Actions.
 
 ---
 
-## 📦 Release e Alternativas de Build (CI/CD e Docker)
+## 🔒 Segurança e Boas Práticas em Produção
 
-O projeto gera binários para **3 plataformas** no diretório `bin/`:
-
-| Plataforma | Arquivo |
-|-----------|---------|
-| 🐧 Linux x86_64 | `ACBRWebService-x86_64-linux` |
-| 🪟 Windows x86_64 | `ACBRWebService-x86_64-win64.exe` |
-| 🪟 Windows i386 | `ACBRWebService-i386-win32.exe` |
-
-### 🤖 Release Automático (GitHub Actions)
-
-O workflow de CI/CD (`.github/workflows/release.yml`) é acionado ao enviar uma **tag Git** com prefixo `v`:
-
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
-
-### 🐳 Build via Docker (Opcional)
-
-Se preferir compilar dentro de um container isolado sem instalar o FPC/Lazarus na máquina host:
-
-```cmd
-docker-build.bat
-```
-Ou manualmente:
-```bash
-docker build --target builder -t acbr-webservice-builder src
-docker run --rm -v "$(pwd):/workspace" -w "/workspace/src" acbr-webservice-builder bash -c "dos2unix ./build.sh && chmod +x ./build.sh && ./build.sh"
-```
+1. **Isolamento de Rede:** Por design, o `ACBRWebService` opera como um microserviço interno (sidecar ou rede privada de containers/servidores) sem camada própria de autenticação de usuários. **Nunca exponha a porta `9002` diretamente na internet pública** — restrinja o bind/firewall à rede interna do backend consumidor ou utilize proxy reverso autenticado (mTLS / API Gateway).
+2. **Proteção de Certificados e Artefatos Sensíveis:** Nunca versione arquivos `.pfx`, `.p12`, `.pem`, `.key`, arquivos `.ini` de produção, PDFs ou XMLs de documentos reais. O `.gitignore` do repositório bloqueia automaticamente `bin/`, `**/certificados/**`, `**/pdf/**`, `**/tmp/**`, `**/logs/**`, `**/spool/**` e chaves criptográficas.
 
 ---
 
-## 📝 Licença
+## 📝 Licença e Aviso Legal
 
-O projeto ACBRWebService é licenciado sob a mesma licença do projeto ACBR.
-
-## ⚠️ Aviso
-
-O nome "ACBR" pertence ao [Projeto ACBr](https://www.projetoacbr.com.br/). Este projeto não tem vínculo oficial.
-A ACBR agora também possui uma API própria — confira em [acbr.api.br](https://www.acbr.api.br/).
-
----
-
-## 🤖 Regras para Inteligência Artificial
-
-Este repositório possui diretrizes rigorosas para agentes de IA para evitar a geração de arquivos indesejados e vazamentos. 
-Consulte o arquivo **[docs/ai_rules.md](docs/ai_rules.md)** para entender os limites de workspace e o uso obrigatório de diretórios temporários (`/tmp`).
+Este projeto é distribuído como software livre sob licença compatível com o ecossistema [Projeto ACBr](https://www.projetoacbr.com.br/) (LGPL). O nome "ACBr" e os componentes subjacentes pertencem aos respectivos mantenedores do [Projeto ACBr](https://www.projetoacbr.com.br/); este repositório é uma ponte HTTP independente mantida pela comunidade.

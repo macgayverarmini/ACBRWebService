@@ -39,6 +39,7 @@ resourcestring
   RSNFeConsultaReciboRoute = '/nfe/consulta-recibo';
   RSNFeDebugConfigRoute = '/nfe/debug-config';
   RSNFeLoteRoute = '/nfe/nfe-lote';
+  RSNFeLoteShortRoute = '/nfe/lote';
   
   // Rotas - CTe
   RSModeloCTeConfigRoute = '/modelo/cte/config';
@@ -166,6 +167,12 @@ resourcestring
   RSMDFeCancelamentoRoute = '/mdfe/cancelamento';
   RSMDFeEncerramentoRoute = '/mdfe/encerramento';
   RSMDFeNaoEncerradosRoute = '/mdfe/nao-encerrados';
+  RSMDFeValidarRegrasRoute = '/mdfe/validar-regras';
+  RSModeloMDFeValidarRegrasRoute = '/modelo/mdfe/validar-regras';
+  RSMDFeEmailRoute = '/mdfe/email';
+  RSModeloMDFeEmailRoute = '/modelo/mdfe/email';
+  RSMDFeEventoToXMLRoute = '/mdfe/evento-to-xml';
+  RSModeloMDFeEventoToXMLRoute = '/modelo/mdfe/evento-to-xml';
 
   // Rotas Adicionais - SPED PIS/COFINS
   RSModeloSPEDPisCofinsConfigRoute = '/modelo/sped/piscofins/config';
@@ -192,8 +199,11 @@ resourcestring
   // Rotas - GNRE
   RSModeloGNREConfigRoute = '/modelo/gnre/config';
   RSModeloGNREGuiaRoute = '/modelo/gnre/guia';
+  RSModeloGNREToXMLRoute = '/modelo/gnre/gnre-to-xml';
   RSGNREEnviarRoute = '/gnre/enviar';
   RSGNREConsultarRoute = '/gnre/consultar';
+  RSGNREToXMLRoute = '/gnre/gnre-to-xml';
+  RSGNREGerarXMLRoute = '/gnre/gerar-xml';
 
   // Rotas - Diversos Legado (CMC7, Balanca InStore, CargaBal, IBPTax)
   RSModeloDiversosCMC7Route = '/modelo/diversos/cmc7';
@@ -218,6 +228,8 @@ resourcestring
   RSDiversosMailRoute = '/diversos/mail';
   RSModeloNFSeEventosRoute = '/modelo/nfse/eventos';
   RSNFSeEventosRoute = '/nfse/eventos';
+  RSModeloNFSeConsultarEventosRoute = '/modelo/nfse/consultar-eventos';
+  RSNFSeConsultarEventosRoute = '/nfse/consultar-eventos';
 
 implementation
 

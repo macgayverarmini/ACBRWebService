@@ -1,6 +1,6 @@
-# Index — NFMonitor & ACBRWebService
+# Index — ACBRWebService
 
-> Comprehensive architecture, REST endpoint reference, and component knowledge base for ACBRWebService & NFMonitor.
+> Comprehensive architecture, REST endpoint reference, and component knowledge base for ACBRWebService.
 
 ## 🔖 Navigation
 - [[#Concepts]] · [[#Entities]] · [[#Summaries]] · [[#Open Questions]]
@@ -47,4 +47,4 @@
 ## Open Questions
 
 - How is the ACBRWebService SOAP/REST endpoint lifecycle structured?
-- What are the primary dataset definitions and database connections in NFMonitor?
+- What are the primary configuration structures and stateless lifecycle patterns in ACBRWebService?

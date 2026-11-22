@@ -267,8 +267,10 @@ Para executar o binário gerado em qualquer máquina ou servidor de produção, 
    - `ACBrCTeServicos.ini`
    - `ACBrMDFeServicos.ini`
    - `ACBrNFSeXServicos.ini`
+   - `ACBrGNREServicos.ini` (quando utilizar transmissão SOAP de GNRE)
 2. **Diretório `Schemas/`:**
-   - Contendo as subpastas com os arquivos `.xsd` atualizados (`Schemas/NFe`, `Schemas/CTe`, `Schemas/MDFe`, `Schemas/NFSe`, etc.).
+   - Contendo as subpastas com os arquivos `.xsd` atualizados (`Schemas/NFe`, `Schemas/CTe`, `Schemas/MDFe`, `Schemas/NFSe`, `Schemas/GNRe`, etc.).
+   - Todos os caminhos internos são resolvidos relativamente ao diretório do executável (`ExtractFilePath(ParamStr(0))`). Se `config.Arquivos.PathSchemas` for omitido ou apontar para a raiz `Schemas/`, o servidor seleciona automaticamente a subpasta correspondente ao documento fiscal.
 3. **Bibliotecas Dinâmicas (OpenSSL + LibXml2):**
    - **No Windows x64** (na mesma pasta do `.exe`, disponíveis em `acbr/DLLs/`):
      - OpenSSL 1.1 x64: `libcrypto-1_1-x64.dll`, `libssl-1_1-x64.dll` (e/ou `libeay32.dll`, `ssleay32.dll`)
@@ -278,3 +280,28 @@ Para executar o binário gerado em qualquer máquina ou servidor de produção, 
      sudo apt-get update && sudo apt-get install -y \
        libxml2 libxmlsec1 libxmlsec1-openssl openssl ca-certificates tzdata
      ```
+
+---
+
+## 🧪 7. Compilação e Execução dos Testes Automatizados (`TestRunner`)
+
+O diretório `src/tests/unit/` contém a suíte de testes unitários e de integração (`FPCUnit`) do projeto (`TestRunner.lpi`).
+
+### No Windows (`win64`)
+```powershell
+cd C:\BuildWebService\src
+& "C:\fpcupdeluxe\lazarus\lazbuild.exe" --max-process-count=1 --os=win64 --cpu=x86_64 tests\unit\TestRunner.lpi
+
+# Inicie o servidor ACBRWebService na porta 9002 (a partir da pasta bin\) e adicione bin\ ao PATH para carregamento da LibXml2:
+$env:PATH = "$PWD\bin;$env:PATH"
+.\tests\unit\TestRunner.exe --all --format=plain
+```
+
+### No Linux (`x86_64`)
+```bash
+cd ~/BuildWebService/src
+"$LAZBUILD_CMD" --lazarusdir="$LAZARUS_DIR" --compiler="$FPC_COMPILER" --os=linux --cpu=x86_64 tests/unit/TestRunner.lpi
+
+# Com o ACBRWebService em execução na porta 9002:
+./tests/unit/TestRunner --all --format=plain
+```

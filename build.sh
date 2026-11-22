@@ -82,11 +82,12 @@ fi
 log "OK: lazbuild encontrado em $LAZBUILD_CMD"
 
 # Flags globais: apontar diretórios explicitamente (evita depender do XML)
-FPC_COMPILER="${FPC_COMPILER:-/home/datalider/development/fpc/bin/x86_64-linux/fpc}"
+FPC_COMPILER="${FPC_COMPILER:-$HOME/development/fpc/bin/x86_64-linux/fpc}"
 LAZBUILD_OPTS="--lazarusdir=$LAZARUS_DIR --compiler=$FPC_COMPILER"
-if [ -d "/home/datalider/vps_libs" ]; then
-    LAZBUILD_OPTS="$LAZBUILD_OPTS --opt=-Fl/home/datalider/vps_libs --opt=-k-L/home/datalider/vps_libs --opt=-k-rpath-link=/home/datalider/vps_libs"
-    log "INFO: Using custom VPS libraries in /home/datalider/vps_libs for compatibility."
+VPS_LIBS_PATH="${VPS_LIBS_DIR:-$HOME/vps_libs}"
+if [ -d "$VPS_LIBS_PATH" ]; then
+    LAZBUILD_OPTS="$LAZBUILD_OPTS --opt=-Fl$VPS_LIBS_PATH --opt=-k-L$VPS_LIBS_PATH --opt=-k-rpath-link=$VPS_LIBS_PATH"
+    log "INFO: Using custom libraries in $VPS_LIBS_PATH for compatibility."
 fi
 log "FPC Compiler: $FPC_COMPILER"
 log "Lazarus Dir : $LAZARUS_DIR"

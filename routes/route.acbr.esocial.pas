@@ -47,7 +47,7 @@ begin
 
   Ac := TACBRBridgeeSocial.Create(TJSONTools.ExtractConfig(O));
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(Ac.eSocial(O));
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.eSocial(O)));
   finally
     O.Free;
     Ac.Free;

@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const dir = 'C:\\Users\\macga\\Downloads\\encemissodectedesubcontrataodt530043885510101';
+const dir = process.env.XML_TEST_DIR || path.join(__dirname, '..', 'resources');
 const files = fs.readdirSync(dir).filter(f => f.endsWith('.xml'));
 
 async function testFiles() {

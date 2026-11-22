@@ -5,7 +5,7 @@
 interface
 
 uses
-  method.acbr.diversos.extenso, fpjson, Horse, Horse.Commons, Classes, SysUtils,
+  method.acbr.diversos.extenso, jsonconvert, fpjson, Horse, Horse.Commons, Classes, SysUtils,
   resource.strings.routes;
 
 
@@ -22,7 +22,7 @@ var
 begin
   Ac := TACBRBridgeExtenso.Create;
   try
-    Res.Send<TJSONObject>(AC.Modelo);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(AC.Modelo));
   finally
     Ac.Free;
   end;
@@ -37,7 +37,7 @@ begin
   O := GetJSON(Req.Body) as TJSONObject;
   Ac := TACBRBridgeExtenso.Create;
   try
-    Res.Send<TJSONObject>(AC.TraduzValor(O));
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(AC.TraduzValor(O)));
   finally
     O.Free;
     Ac.Free;
@@ -48,6 +48,7 @@ procedure regRouter;
 begin
   THorse.Get(RSModeloDiversosExtensoRoute, GetModeloExtenso);
   THorse.Get(RSDiversosExtensoRoute, GetTraduzValor);
+  THorse.Post(RSDiversosExtensoRoute, GetTraduzValor);
 end;
 
 

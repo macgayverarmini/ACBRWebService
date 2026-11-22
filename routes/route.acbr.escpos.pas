@@ -48,7 +48,7 @@ begin
 
   Ac := TACBRBridgeEscPos.Create(TJSONTools.ExtractConfig(O));
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(Ac.EscPos(O));
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.EscPos(O)));
   finally
     O.Free;
     Ac.Free;
@@ -61,7 +61,7 @@ var
 begin
   Ac := TACBRBridgeEscPos.Create('');
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send<TJSONObject>(Ac.PortasDisponiveis);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.PortasDisponiveis));
   finally
     Ac.Free;
   end;

@@ -7,6 +7,7 @@ interface
 uses
   method.acbr.nfse, jsonconvert, fpjson, Horse, Horse.Commons, Classes, SysUtils,
   resource.strings.global,
+  resource.strings.msg,
   resource.strings.routes;
 
 // Get - Modelos
@@ -36,6 +37,8 @@ procedure PostNFSeFromXML(Req: THorseRequest; Res: THorseResponse; Next: TNextPr
 procedure PostNFSeToXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure GetModeloEventoNFSe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostEventoNFSe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure GetModeloConsultarEventosNFSe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+procedure PostConsultarEventosNFSe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
 procedure regRouter;
 
@@ -511,6 +514,49 @@ begin
   end;
 end;
 
+procedure GetModeloConsultarEventosNFSe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  LJson: TJSONObject;
+begin
+  LJson := TJSONObject.Create;
+  try
+    LJson.Add('Chave', '00000000000000000000000000000000000000000000000000');
+    LJson.Add('TipoEvento', 'e101101');
+    LJson.Add('nSeqEvento', 1);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+  finally
+    LJson.Free;
+  end;
+end;
+
+procedure PostConsultarEventosNFSe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+var
+  O, LJson: TJSONObject;
+  Ac: TACBRBridgeNFSe;
+begin
+  try
+    O := GetJSON(Req.Body) as TJSONObject;
+  except
+    on E: Exception do
+    begin
+      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
+      Exit;
+    end;
+  end;
+  Ac := TACBRBridgeNFSe.Create(TJSONTools.ExtractConfig(O));
+  try
+    LJson := Ac.ConsultarEventos(O);
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
+  finally
+    O.Free;
+    Ac.Free;
+  end;
+end;
+
 procedure regRouter;
 begin
   THorse.Get(RSModeloNFSeConfigRoute, GetModeloConfig);
@@ -525,6 +571,7 @@ begin
   THorse.Get(RSModeloNFSeNFSeToXMLRoute, GetModeloNFSeToXML);
   THorse.Get(RSModeloNFSeEventoRoute, GetModeloEventoNFSe);
   THorse.Get(RSModeloNFSeEventosRoute, GetModeloEventoNFSe);
+  THorse.Get(RSModeloNFSeConsultarEventosRoute, GetModeloConsultarEventosNFSe);
 
   THorse.Post(RSNFSeEmitirRoute, PostEmitir);
   THorse.Post(RSNFSeGerarRoute, PostGerar);
@@ -536,6 +583,7 @@ begin
   THorse.Post(RSNFSeSubstituirRoute, PostSubstituir);
   THorse.Post(RSNFSeDANFSeRoute, PostDANFSe);
   THorse.Post(RSNFSeDistribuicaoRoute, PostDistribuicao);
+  THorse.Post(RSNFSeConsultarEventosRoute, PostConsultarEventosNFSe);
   THorse.Post(RSNFSeNFSeFromXMLRoute, PostNFSeFromXML);
   THorse.Post(RSNFSeNFSeToXMLRoute, PostNFSeToXML);
   THorse.Post(RSNFSeEventoRoute, PostEventoNFSe);

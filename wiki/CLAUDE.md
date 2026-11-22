@@ -1,4 +1,4 @@
-# NFMonitor & ACBRWebService Knowledge Base
+# ACBRWebService Knowledge Base
 
 > Schema document — read at the start of every session together with `wiki/index.md`.
 > Update after every major compile, ingest batch, or structural change.
@@ -6,7 +6,7 @@
 ## Scope
 
 What this wiki covers:
-- Architecture, design patterns, and components of NFMonitor and ACBRWebService (Delphi / FireMonkey / ACBr integrations).
+- Architecture, design patterns, and components of ACBRWebService (Lazarus / Free Pascal / Horse / ACBr integrations).
 - Data models, database tables, web service endpoints, XML/NFe processing, and background services.
 - Codebase guidelines, AST/MCP tool usage (`mcp-firemonkey`), and refactoring history.
 
@@ -72,12 +72,12 @@ All pages require YAML frontmatter: `title`, `type`, `created`, `updated`, `sour
 ## Open research questions
 
 - How is the ACBRWebService SOAP/REST endpoint lifecycle structured?
-- What are the primary dataset definitions and database connections in NFMonitor?
+- What are the primary configuration structures and stateless lifecycle patterns in ACBRWebService?
 
 ## Research gaps
 
 Sources to ingest:
-- [ ] Primary source units (`.pas`, `.fmx`) and configuration files in `C:\NFMonitor\src`
+- [ ] Primary source units (`.pas`) and configuration files in `C:\BuildWebService\src`
 
 ## Audit backlog
 

@@ -8,6 +8,7 @@ interface
 uses
   RTTI,
   ACBrSintegra,
+  ACBrUtil.Strings,
   ACBRDFe.Conversao,
   Variants,
   fpjson,
@@ -47,6 +48,49 @@ begin
 end;
 
 { TACBRBridgeSintegra }
+
+procedure SanitizarStringsJSON(const AData: TJSONData);
+var
+  I: Integer;
+  LObj: TJSONObject;
+  LArr: TJSONArray;
+  LChild: TJSONData;
+begin
+  if not Assigned(AData) then
+    Exit;
+  case AData.JSONType of
+    jtObject:
+      begin
+        LObj := TJSONObject(AData);
+        for I := 0 to LObj.Count - 1 do
+        begin
+          LChild := LObj.Items[I];
+          if Assigned(LChild) then
+          begin
+            if LChild.JSONType = jtString then
+              LChild.AsString := TiraAcentos(LChild.AsString)
+            else if LChild.JSONType in [jtObject, jtArray] then
+              SanitizarStringsJSON(LChild);
+          end;
+        end;
+      end;
+    jtArray:
+      begin
+        LArr := TJSONArray(AData);
+        for I := 0 to LArr.Count - 1 do
+        begin
+          LChild := LArr.Items[I];
+          if Assigned(LChild) then
+          begin
+            if LChild.JSONType = jtString then
+              LChild.AsString := TiraAcentos(LChild.AsString)
+            else if LChild.JSONType in [jtObject, jtArray] then
+              SanitizarStringsJSON(LChild);
+          end;
+        end;
+      end;
+  end;
+end;
 
 procedure TACBRBridgeSintegra.CarregaConfig;
 var
@@ -91,8 +135,8 @@ const
     );
 var
   tamanho, i, k, m, countInChunk, total90Lines, totalFileLines, cntTipo: integer;
-  isTempFile: boolean;
-  jData, jObj, jItem: TJSONObject;
+  isTempFile, retirarAcentos: boolean;
+  jData, jClean, jObj, jItem: TJSONObject;
   jNode: TJSONData;
   jArr: TJSONArray;
   sl: TStringList;
@@ -143,6 +187,19 @@ begin
           jData := TJSONObject(jNode);
       end;
 
+      jClean := nil;
+      if Assigned(jData) then
+      begin
+        jClean := TJSONObject(jData.Clone);
+        retirarAcentos := jClean.Get('RetirarAcentos', True);
+        if Assigned(jSintegra) and (jSintegra <> jData) then
+          retirarAcentos := jSintegra.Get('RetirarAcentos', retirarAcentos);
+        if retirarAcentos then
+          SanitizarStringsJSON(jClean);
+        jData := jClean;
+      end;
+
+      try
       facbr.LimparRegistros;
 
       // Mapeamento Generico das Propriedades (Registro10, Registro11, flags)
@@ -590,6 +647,9 @@ begin
       begin
         Result.Add('arquivo_base64', FileToStringBase64(facbr.FileName, isTempFile, tamanho));
         Result.Add('tamanho', tamanho);
+      end;
+      finally
+        jClean.Free;
       end;
     except
       on E: Exception do
