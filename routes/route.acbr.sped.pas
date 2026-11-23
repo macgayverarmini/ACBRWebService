@@ -7,7 +7,11 @@ interface
 uses
   method.acbr.sped,
   jsonconvert,
-  fpjson, Horse, Horse.Commons, Classes, SysUtils,
+  fpjson,
+  Horse,
+  Horse.Commons,
+  Classes,
+  SysUtils,
   resource.strings.global,
   resource.strings.msg,
   resource.strings.routes;
@@ -22,7 +26,6 @@ procedure PostGerar(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostImportarFiscal(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostGerarPisCofins(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostImportarPisCofins(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
-procedure PostConsolidarPisCofins(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
 procedure regRouter;
 
@@ -180,26 +183,6 @@ begin
   end;
 end;
 
-procedure PostConsolidarPisCofins(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
-var
-  O, LJson: TJSONObject;
-  Ac: TACBRBridgeSPEDPisCofins;
-begin
-  O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeSPEDPisCofins.Create(TJSONTools.ExtractConfig(O));
-  try
-    LJson := Ac.Consolidar(O);
-    try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
-    finally
-      LJson.Free;
-    end;
-  finally
-    O.Free;
-    Ac.Free;
-  end;
-end;
-
 procedure GetModeloImportarSPEDPisCofins(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   AcM: TACBRModelosJSONSPEDPisCofins;
@@ -230,7 +213,6 @@ begin
   THorse.Post(RSSPEDFiscalImportarRoute, PostImportarFiscal);
   THorse.Post(RSSPEDPisCofinsGerarRoute, PostGerarPisCofins);
   THorse.Post(RSSPEDPisCofinsImportarRoute, PostImportarPisCofins);
-  THorse.Post(RSSPEDPisCofinsConsolidarRoute, PostConsolidarPisCofins);
 end;
 
 end.

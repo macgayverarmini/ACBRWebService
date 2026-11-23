@@ -27,7 +27,7 @@ uses
   route.acbr.boleto,
   route.acbr.reinf,
   route.acbr.gnre,
-  route.acbr.diversos.legado,
+  route.acbr.diversos,
   resource.strings.global,
   resource.strings.msg;
 
@@ -107,8 +107,8 @@ begin
   route.acbr.gnre.regRouter;
   LogInfo(RSACBRGNRERoutesMapped);
 
-  route.acbr.diversos.legado.regRouter;
-  LogInfo(RSACBRDiversosLegadoRoutesMapped);
+  route.acbr.diversos.regRouter;
+  LogInfo(RSACBRDiversosRoutesMapped);
 
   WriteLn(RSSeparatorLine);
   LogInfo(RSHorseApplicationStarted);

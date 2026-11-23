@@ -153,7 +153,6 @@ begin
   THorse.Post(RSGNREEnviarRoute, PostEnviarGNRE);
   THorse.Post(RSGNREConsultarRoute, PostConsultarGNRE);
   THorse.Post(RSGNREToXMLRoute, PostGNREToXML);
-  THorse.Post(RSGNREGerarXMLRoute, PostGNREToXML);
 end;
 
 end.

@@ -40,7 +40,8 @@ type
     fcfg: string;
     facbr: TACBrMDFe;
     fdamdfe: TACBrMDFeDAMDFeFPDF;
-    procedure CarregaConfig;
+    procedure CarregaConfig(const AllowEmpty: Boolean = False);
+    function HasUsableCertificate: Boolean;
     function DecodeXMLValue(const rawValue: string): string;
     function ReadXMLFromJSON(const jsonData: TJSONObject): string;
     procedure ApplyLogoFromJSON(const jsonData: TJSONObject; const pdfDir: string; out tempLogoFile: string);
@@ -301,13 +302,16 @@ begin
   Obj.Add(Key, Value);
 end;
 
-procedure TACBRBridgeMDFe.CarregaConfig;
+procedure TACBRBridgeMDFe.CarregaConfig(const AllowEmpty: Boolean = False);
 var
   O: TJSONObject;
   LPfx: AnsiString;
   tempData: TJSONData;
   logoCfg, LDefaultRootSchemas, LCurSchemas: string;
 begin
+  if (Trim(fcfg) = '') and (not AllowEmpty) then
+    raise Exception.Create(RSConfigEmptyError);
+
   LDefaultRootSchemas := ExcludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)) + RSSchemasDir);
 
   if Trim(fcfg) <> '' then
@@ -357,6 +361,15 @@ begin
   LCurSchemas := ExcludeTrailingPathDelimiter(Trim(facbr.Configuracoes.Arquivos.PathSchemas));
   if (LCurSchemas = '') or SameText(LCurSchemas, LDefaultRootSchemas) then
     facbr.Configuracoes.Arquivos.PathSchemas := LDefaultRootSchemas + PathDelim + 'MDFe' + PathDelim;
+end;
+
+function TACBRBridgeMDFe.HasUsableCertificate: Boolean;
+var
+  LPfxPath: string;
+begin
+  LPfxPath := Trim(facbr.Configuracoes.Certificados.ArquivoPFX);
+  Result := (Length(facbr.Configuracoes.Certificados.DadosPFX) > 0) or
+            ((LPfxPath <> '') and FileExists(LPfxPath));
 end;
 
 function TACBRBridgeMDFe.DecodeXMLValue(const rawValue: string): string;
@@ -554,7 +567,7 @@ var
   wsXMotivo, wsProtocolo, wsRecibo: string;
   wsCStat: Integer;
   Sincrono: Boolean;
-  jOpt, jTarget, jInf, jEmit, jModal, jRodo: TJSONData;
+  jOpt: TJSONData;
 begin
   CarregaConfig;
 
@@ -591,54 +604,10 @@ begin
   Manifesto := facbr.Manifestos.Add;
 
   try
-    jTarget := nil;
-    if Assigned(jMDFe) then
-    begin
-      jTarget := jMDFe.Find('MDFe');
-      if not Assigned(jTarget) then
-        jTarget := jMDFe.Find('mdfe');
-    end;
-    if not (Assigned(jTarget) and (jTarget.JSONType = jtObject)) then
-      jTarget := jMDFe;
-
-    if Assigned(jTarget) and (jTarget.JSONType = jtObject) then
-    begin
-      jInf := TJSONObject(jTarget).Find('infMDFe');
-      if Assigned(TJSONObject(jTarget).Find('Ide')) or Assigned(TJSONObject(jTarget).Find('ide')) then
-        TJSONTools.JsonToObj(TJSONObject(jTarget), Manifesto.MDFe)
-      else if Assigned(jInf) and (jInf.JSONType = jtObject) then
-        TJSONTools.JsonToObj(TJSONObject(jInf), Manifesto.MDFe)
-      else
-        TJSONTools.JsonToObj(TJSONObject(jTarget), Manifesto.MDFe);
-
-      if Assigned(jInf) and (jInf.JSONType = jtObject) and
-         not Assigned(TJSONObject(jTarget).Find('rodo')) then
-      begin
-        jModal := TJSONObject(jInf).Find('infModal');
-        if Assigned(jModal) and (jModal.JSONType = jtObject) then
-        begin
-          jRodo := TJSONObject(jModal).Find('rodo');
-          if Assigned(jRodo) and (jRodo.JSONType = jtObject) then
-            TJSONTools.JsonToObj(TJSONObject(jRodo), Manifesto.MDFe.rodo);
-        end;
-      end;
-
-      if Manifesto.MDFe.Emit.CNPJCPF = '' then
-      begin
-        jEmit := TJSONObject(jTarget).Find('Emit');
-        if not Assigned(jEmit) then jEmit := TJSONObject(jTarget).Find('emit');
-        if not Assigned(jEmit) and Assigned(jInf) and (jInf.JSONType = jtObject) then
-        begin
-          jEmit := TJSONObject(jInf).Find('Emit');
-          if not Assigned(jEmit) then jEmit := TJSONObject(jInf).Find('emit');
-        end;
-        if Assigned(jEmit) and (jEmit.JSONType = jtObject) then
-          Manifesto.MDFe.Emit.CNPJCPF := TJSONObject(jEmit).Get(
-            'CNPJCPF',
-            TJSONObject(jEmit).Get('CNPJ', TJSONObject(jEmit).Get('CPF', ''))
-          );
-      end;
-    end;
+    if Assigned(jMDFe.Find('MDFe')) then
+      TJSONTools.JsonToObj(jMDFe, Manifesto)
+    else
+      TJSONTools.JsonToObj(jMDFe, Manifesto.MDFe);
   except
     on E: Exception do
     begin
@@ -769,7 +738,6 @@ var
   InfEvento: TJSONObject;
   XmlBase64: TJSONData;
   xmlStr: string;
-  LOk: Boolean;
 begin
   CarregaConfig;
   Result := '';
@@ -805,28 +773,6 @@ begin
       TJSONTools.JsonToObj(oEvento, objEvento.InfEvento)
     else
       TJSONTools.JsonToObj(oEvento, objEvento);
-
-    if objEvento.InfEvento.tpEvento = teNaoMapeado then
-    begin
-      xmlStr := Trim(InfEvento.Get('tpEvento', oEvento.Get('tpEvento', '')));
-      if xmlStr <> '' then
-        objEvento.InfEvento.tpEvento := StrToTpEventoMDFe(LOk, xmlStr);
-    end;
-
-    if Assigned(InfEvento.Find('detEvento')) and (InfEvento.Find('detEvento').JSONType = jtObject) then
-    begin
-      TJSONTools.JsonToObj(TJSONObject(InfEvento.Find('detEvento')), objEvento.InfEvento.detEvento);
-      if Assigned(TJSONObject(InfEvento.Find('detEvento')).Find('condutor')) and
-         (TJSONObject(InfEvento.Find('detEvento')).Find('condutor').JSONType = jtObject) then
-      begin
-        TJSONTools.JsonToObj(
-          TJSONObject(TJSONObject(InfEvento.Find('detEvento')).Find('condutor')),
-          objEvento.InfEvento.detEvento
-        );
-      end;
-    end
-    else if Assigned(InfEvento.Find('DetEvento')) and (InfEvento.Find('DetEvento').JSONType = jtObject) then
-      TJSONTools.JsonToObj(TJSONObject(InfEvento.Find('DetEvento')), objEvento.InfEvento.detEvento);
 
     with objEvento.InfEvento do
     begin
@@ -895,7 +841,7 @@ var
   chClean: string;
   tempLogoFile: string;
 begin
-  CarregaConfig;
+  CarregaConfig(True);
   Result := TJSONObject.Create;
   tempLogoFile := '';
 
@@ -1010,7 +956,7 @@ var
   pdfDir: string;
   tempLogoFile: string;
 begin
-  CarregaConfig;
+  CarregaConfig(True);
   Result := TJSONObject.Create;
   tempLogoFile := '';
 
@@ -1146,7 +1092,7 @@ function TACBRBridgeMDFe.MDFeFromXML(const jXML: TJSONObject): TJSONObject;
 var
   xmlBase64: string;
 begin
-  CarregaConfig;
+  CarregaConfig(True);
   try
     xmlBase64 := ReadXMLFromJSON(jXML);
     try
@@ -1186,60 +1132,16 @@ function TACBRBridgeMDFe.MDFeToXML(const jMDFe: TJSONObject): TJSONObject;
 var
   ManifestoMDFe: TManifesto;
   xmlString: string;
-  jTarget, jInf, jEmit, jModal, jRodo: TJSONData;
+  LAssinado: Boolean;
 begin
-  CarregaConfig;
+  CarregaConfig(True);
 
   try
     ManifestoMDFe := facbr.Manifestos.Add;
-    jTarget := nil;
-    if Assigned(jMDFe) then
-    begin
-      jTarget := jMDFe.Find('MDFe');
-      if not Assigned(jTarget) then
-        jTarget := jMDFe.Find('mdfe');
-    end;
-    if not (Assigned(jTarget) and (jTarget.JSONType = jtObject)) then
-      jTarget := jMDFe;
-
-    if Assigned(jTarget) and (jTarget.JSONType = jtObject) then
-    begin
-      jInf := TJSONObject(jTarget).Find('infMDFe');
-      if Assigned(TJSONObject(jTarget).Find('Ide')) or Assigned(TJSONObject(jTarget).Find('ide')) then
-        TJSONTools.JsonToObj(TJSONObject(jTarget), ManifestoMDFe.MDFe)
-      else if Assigned(jInf) and (jInf.JSONType = jtObject) then
-        TJSONTools.JsonToObj(TJSONObject(jInf), ManifestoMDFe.MDFe)
-      else
-        TJSONTools.JsonToObj(TJSONObject(jTarget), ManifestoMDFe.MDFe);
-
-      if Assigned(jInf) and (jInf.JSONType = jtObject) and
-         not Assigned(TJSONObject(jTarget).Find('rodo')) then
-      begin
-        jModal := TJSONObject(jInf).Find('infModal');
-        if Assigned(jModal) and (jModal.JSONType = jtObject) then
-        begin
-          jRodo := TJSONObject(jModal).Find('rodo');
-          if Assigned(jRodo) and (jRodo.JSONType = jtObject) then
-            TJSONTools.JsonToObj(TJSONObject(jRodo), ManifestoMDFe.MDFe.rodo);
-        end;
-      end;
-
-      if ManifestoMDFe.MDFe.Emit.CNPJCPF = '' then
-      begin
-        jEmit := TJSONObject(jTarget).Find('Emit');
-        if not Assigned(jEmit) then jEmit := TJSONObject(jTarget).Find('emit');
-        if not Assigned(jEmit) and Assigned(jInf) and (jInf.JSONType = jtObject) then
-        begin
-          jEmit := TJSONObject(jInf).Find('Emit');
-          if not Assigned(jEmit) then jEmit := TJSONObject(jInf).Find('emit');
-        end;
-        if Assigned(jEmit) and (jEmit.JSONType = jtObject) then
-          ManifestoMDFe.MDFe.Emit.CNPJCPF := TJSONObject(jEmit).Get(
-            'CNPJCPF',
-            TJSONObject(jEmit).Get('CNPJ', TJSONObject(jEmit).Get('CPF', ''))
-          );
-      end;
-    end;
+    if Assigned(jMDFe.Find('MDFe')) then
+      TJSONTools.JsonToObj(jMDFe, ManifestoMDFe)
+    else
+      TJSONTools.JsonToObj(jMDFe, ManifestoMDFe.MDFe);
   except
     on E: Exception do
     begin
@@ -1251,14 +1153,11 @@ begin
 
   try
     facbr.Manifestos.GerarMDFe;
-    if (Trim(facbr.Configuracoes.Certificados.ArquivoPFX) <> '') or
-       (Length(facbr.Configuracoes.Certificados.DadosPFX) > 0) or
-       (Trim(facbr.Configuracoes.Certificados.NumeroSerie) <> '') then
+    LAssinado := False;
+    if HasUsableCertificate then
     begin
-      try
-        facbr.Manifestos.Items[0].Assinar;
-      except
-      end;
+      facbr.Manifestos.Items[0].Assinar;
+      LAssinado := True;
     end;
     xmlString := facbr.Manifestos.Items[0].XML;
     if xmlString = '' then
@@ -1266,11 +1165,9 @@ begin
 
     Result := TJSONObject.Create;
     Result.Add(RSStatusField, RSStatusSucesso);
-    Result.Add('sucesso', True);
-    Result.Add(RSXmlKey, EncodeStringBase64(xmlString));
-    Result.Add('xml_raw', xmlString);
-    Result.Add(RSXMLField, xmlString);
     Result.Add(RSChaveField, StringReplace(facbr.Manifestos.Items[0].MDFe.infMDFe.ID, 'MDFe', '', [rfIgnoreCase]));
+    Result.Add('assinado', LAssinado);
+    Result.Add(RSXmlKey, EncodeStringBase64(xmlString));
   except
     on E: Exception do
       Result := TJSONTools.SafeObjToJson(nil, 'Erro ao gerar XML do MDFe: ' + E.Message);
@@ -1542,11 +1439,10 @@ end;
 function TACBRBridgeMDFe.ValidarRegras(const jMDFe: TJSONObject): TJSONObject;
 var
   ManifestoMDFe: TManifesto;
-  jTarget, jInf, jEmit, jModal, jRodo: TJSONData;
-  xmlInput, errosRegras: string;
-  hasCert: Boolean;
+  xmlInput, xmlOut, errosRegras: string;
+  hasCert, LAssinado: Boolean;
 begin
-  CarregaConfig;
+  CarregaConfig(True);
   Result := nil;
 
   try
@@ -1566,104 +1462,65 @@ begin
       else
       begin
         ManifestoMDFe := facbr.Manifestos.Add;
-        jTarget := nil;
-        if Assigned(jMDFe) then
-        begin
-          jTarget := jMDFe.Find('MDFe');
-          if not Assigned(jTarget) then
-            jTarget := jMDFe.Find('mdfe');
-        end;
-        if not (Assigned(jTarget) and (jTarget.JSONType = jtObject)) then
-          jTarget := jMDFe;
-
-        if Assigned(jTarget) and (jTarget.JSONType = jtObject) then
-        begin
-          jInf := TJSONObject(jTarget).Find('infMDFe');
-          if Assigned(TJSONObject(jTarget).Find('Ide')) or Assigned(TJSONObject(jTarget).Find('ide')) then
-            TJSONTools.JsonToObj(TJSONObject(jTarget), ManifestoMDFe.MDFe)
-          else if Assigned(jInf) and (jInf.JSONType = jtObject) then
-            TJSONTools.JsonToObj(TJSONObject(jInf), ManifestoMDFe.MDFe)
-          else
-            TJSONTools.JsonToObj(TJSONObject(jTarget), ManifestoMDFe.MDFe);
-
-          if Assigned(jInf) and (jInf.JSONType = jtObject) and
-             not Assigned(TJSONObject(jTarget).Find('rodo')) then
-          begin
-            jModal := TJSONObject(jInf).Find('infModal');
-            if Assigned(jModal) and (jModal.JSONType = jtObject) then
-            begin
-              jRodo := TJSONObject(jModal).Find('rodo');
-              if Assigned(jRodo) and (jRodo.JSONType = jtObject) then
-                TJSONTools.JsonToObj(TJSONObject(jRodo), ManifestoMDFe.MDFe.rodo);
-            end;
-          end;
-
-          if ManifestoMDFe.MDFe.Emit.CNPJCPF = '' then
-          begin
-            jEmit := TJSONObject(jTarget).Find('Emit');
-            if not Assigned(jEmit) then jEmit := TJSONObject(jTarget).Find('emit');
-            if not Assigned(jEmit) and Assigned(jInf) and (jInf.JSONType = jtObject) then
-            begin
-              jEmit := TJSONObject(jInf).Find('Emit');
-              if not Assigned(jEmit) then jEmit := TJSONObject(jInf).Find('emit');
-            end;
-            if Assigned(jEmit) and (jEmit.JSONType = jtObject) then
-              ManifestoMDFe.MDFe.Emit.CNPJCPF := TJSONObject(jEmit).Get(
-                'CNPJCPF',
-                TJSONObject(jEmit).Get('CNPJ', TJSONObject(jEmit).Get('CPF', ''))
-              );
-          end;
-        end;
+        if Assigned(jMDFe.Find('MDFe')) then
+          TJSONTools.JsonToObj(jMDFe, ManifestoMDFe)
+        else
+          TJSONTools.JsonToObj(jMDFe, ManifestoMDFe.MDFe);
       end;
     except
       on E: Exception do
       begin
         Result := TJSONObject.Create;
         Result.Add(RSStatusField, 'erro_parse');
-        Result.Add('sucesso', False);
         Result.Add(RSMessageField, 'Erro na conversao JSON/XML para MDF-e: ' + E.Message);
         Exit;
       end;
     end;
 
     try
-      hasCert := (Trim(facbr.Configuracoes.Certificados.ArquivoPFX) <> '') or
-                 (Length(facbr.Configuracoes.Certificados.DadosPFX) > 0) or
-                 (Trim(facbr.Configuracoes.Certificados.NumeroSerie) <> '');
-      if hasCert then
-        facbr.Manifestos.Items[0].Assinar
+      hasCert := HasUsableCertificate;
+      LAssinado := Pos('<Signature', facbr.Manifestos.Items[0].XMLOriginal) > 0;
+      if hasCert and (not LAssinado) then
+      begin
+        facbr.Manifestos.Items[0].Assinar;
+        LAssinado := True;
+      end
       else if facbr.Manifestos.Items[0].XMLOriginal = '' then
         facbr.Manifestos.GerarMDFe;
 
-      if hasCert or (Pos('<Signature', facbr.Manifestos.Items[0].XML) > 0) then
+      if LAssinado or (Pos('<Signature', facbr.Manifestos.Items[0].XML) > 0) then
+      begin
+        LAssinado := True;
         facbr.Manifestos.Items[0].Validar;
+      end;
 
       errosRegras := '';
       facbr.Manifestos.ValidarRegrasdeNegocios(errosRegras);
+      xmlOut := facbr.Manifestos.Items[0].XML;
+      if xmlOut = '' then
+        xmlOut := facbr.Manifestos.Items[0].XMLOriginal;
 
       Result := TJSONObject.Create;
       if Trim(errosRegras) <> '' then
       begin
         Result.Add(RSStatusField, 'erro_validacao');
-        Result.Add('sucesso', False);
         Result.Add(RSMessageField, Trim(errosRegras));
         Result.Add('erros_regras_negocio', Trim(errosRegras));
       end
       else
       begin
         Result.Add(RSStatusField, RSStatusSucesso);
-        Result.Add('sucesso', True);
         Result.Add(RSMessageField, 'XML Valido');
       end;
-      Result.Add('xml_assinado', EncodeStringBase64(facbr.Manifestos.Items[0].XML));
       Result.Add(RSChaveField, StringReplace(facbr.Manifestos.Items[0].MDFe.infMDFe.ID, 'MDFe', '', [rfIgnoreCase]));
+      Result.Add('assinado', LAssinado);
+      Result.Add(RSXmlKey, EncodeStringBase64(xmlOut));
     except
       on E: Exception do
       begin
         Result := TJSONTools.SafeObjToJson(nil, E.Message);
         Result.Delete(RSStatusField);
         Result.Add(RSStatusField, 'erro_validacao');
-        Result.Add('sucesso', False);
         if (facbr.Manifestos.Count > 0) and (facbr.Manifestos.Items[0].ErroValidacao <> '') then
           Result.Add('detalhes', facbr.Manifestos.Items[0].ErroValidacao);
       end;
@@ -1675,134 +1532,95 @@ end;
 
 function TACBRBridgeMDFe.EventoToXML(const jEvento: TJSONObject): TJSONObject;
 var
-  EvtObj, DetJson: TJSONObject;
-  EvtNode, DetNode: TJSONData;
   objEvento: TInfEventoCollectionItem;
-  chMDFe, nProt, cnpjCpf, xJust, dtEncStr, tpEvtStr, xmlOut: string;
-  cUF, cMun: Integer;
-  dtEncTmp: TDateTime;
-  LOk, hasCert: Boolean;
+  LEvtArrData: TJSONData;
+  LEvtItemObj: TJSONObject;
+  xmlOut: string;
+  LAssinado: Boolean;
 begin
-  CarregaConfig;
+  CarregaConfig(True);
   Result := TJSONObject.Create;
   facbr.EventoMDFe.Evento.Clear;
   try
     try
-      EvtObj := jEvento;
       if Assigned(jEvento) then
       begin
-        EvtNode := jEvento.Find('evento');
-        if not Assigned(EvtNode) then EvtNode := jEvento.Find('Evento');
-        if not Assigned(EvtNode) then EvtNode := jEvento.Find('encerramento');
-        if not Assigned(EvtNode) then EvtNode := jEvento.Find('cancelamento');
-        if not Assigned(EvtNode) then EvtNode := jEvento.Find('InfEvento');
-        if not Assigned(EvtNode) then EvtNode := jEvento.Find('infEvento');
-        if Assigned(EvtNode) and (EvtNode.JSONType = jtObject) then
-          EvtObj := TJSONObject(EvtNode);
-      end;
-
-      objEvento := facbr.EventoMDFe.Evento.New;
-      TJSONTools.JsonToObj(EvtObj, objEvento.InfEvento);
-
-      DetNode := EvtObj.Find('detEvento');
-      if not Assigned(DetNode) then DetNode := EvtObj.Find('DetEvento');
-      if Assigned(DetNode) and (DetNode.JSONType = jtObject) then
-      begin
-        DetJson := TJSONObject(DetNode);
-        TJSONTools.JsonToObj(DetJson, objEvento.InfEvento.detEvento);
-      end
-      else
-        DetJson := EvtObj;
-
-      chMDFe := Trim(EvtObj.Get('chMDFe', EvtObj.Get(RSChaveField, objEvento.InfEvento.chMDFe)));
-      if chMDFe <> '' then
-        objEvento.InfEvento.chMDFe := chMDFe;
-
-      cnpjCpf := Trim(EvtObj.Get('CNPJCPF', EvtObj.Get('cnpj', objEvento.InfEvento.CNPJCPF)));
-      if (cnpjCpf = '') and (Length(objEvento.InfEvento.chMDFe) >= 20) then
-        cnpjCpf := Copy(objEvento.InfEvento.chMDFe, 7, 14);
-      if cnpjCpf <> '' then
-        objEvento.InfEvento.CNPJCPF := cnpjCpf;
-
-      if objEvento.InfEvento.cOrgao = 0 then
-        objEvento.InfEvento.cOrgao := StrToIntDef(Copy(objEvento.InfEvento.chMDFe, 1, 2), 0);
-      if objEvento.InfEvento.dhEvento = 0 then
-        objEvento.InfEvento.dhEvento := Now;
-      if objEvento.InfEvento.nSeqEvento <= 0 then
-        objEvento.InfEvento.nSeqEvento := EvtObj.Get('nSeqEvento', 1);
-
-      tpEvtStr := Trim(EvtObj.Get('tpEvento', ''));
-      if (tpEvtStr = '110112') or SameText(tpEvtStr, 'teEncerramento') or SameText(tpEvtStr, 'encerramento') then
-        objEvento.InfEvento.tpEvento := teEncerramento
-      else if (tpEvtStr = '110111') or SameText(tpEvtStr, 'teCancelamento') or SameText(tpEvtStr, 'cancelamento') then
-        objEvento.InfEvento.tpEvento := teCancelamento
-      else if tpEvtStr <> '' then
-      begin
-        objEvento.InfEvento.tpEvento := StrToTpEventoMDFe(LOk, tpEvtStr);
-        if not LOk then
-          objEvento.InfEvento.tpEvento := teEncerramento;
-      end
-      else if objEvento.InfEvento.tpEvento = teNaoMapeado then
-        objEvento.InfEvento.tpEvento := teEncerramento;
-
-      nProt := Trim(DetJson.Get('nProt', DetJson.Get('protocolo', objEvento.InfEvento.detEvento.nProt)));
-      if nProt <> '' then
-        objEvento.InfEvento.detEvento.nProt := nProt;
-
-      xJust := Trim(DetJson.Get('xJust', DetJson.Get('justificativa', objEvento.InfEvento.detEvento.xJust)));
-      if xJust <> '' then
-        objEvento.InfEvento.detEvento.xJust := xJust;
-
-      if objEvento.InfEvento.tpEvento = teEncerramento then
-      begin
-        cMun := DetJson.Get('cMun', objEvento.InfEvento.detEvento.cMun);
-        cUF := DetJson.Get('cUF', objEvento.InfEvento.detEvento.cUF);
-        if (cUF = 0) and (cMun > 0) then
-          cUF := StrToIntDef(Copy(IntToStr(cMun), 1, 2), 0);
-        objEvento.InfEvento.detEvento.cMun := cMun;
-        objEvento.InfEvento.detEvento.cUF := cUF;
-
-        dtEncStr := Trim(DetJson.Get('dtEnc', DetJson.Get('dtEncStr', DetJson.Get('dhEnc', ''))));
-        if dtEncStr <> '' then
+        if Assigned(jEvento.Find('Evento')) and (jEvento.Find('Evento').JSONType = jtArray) then
+          TJSONTools.JsonToObj(jEvento, facbr.EventoMDFe)
+        else
         begin
-          if TryISO8601ToDate(dtEncStr, dtEncTmp, True) then
-            objEvento.InfEvento.detEvento.dtEnc := Trunc(dtEncTmp)
+          LEvtArrData := jEvento.Find(RSEventosField);
+          if Assigned(LEvtArrData) and (LEvtArrData.JSONType = jtArray) and (TJSONArray(LEvtArrData).Count > 0) then
+          begin
+            LEvtItemObj := TJSONArray(LEvtArrData).Objects[0];
+            objEvento := facbr.EventoMDFe.Evento.New;
+            if Assigned(LEvtItemObj.Find('InfEvento')) then
+              TJSONTools.JsonToObj(LEvtItemObj, objEvento)
+            else
+              TJSONTools.JsonToObj(LEvtItemObj, objEvento.InfEvento);
+          end
           else
-            objEvento.InfEvento.detEvento.dtEnc := StrToDateDef(dtEncStr, Date);
-        end
-        else if objEvento.InfEvento.detEvento.dtEnc = 0 then
-          objEvento.InfEvento.detEvento.dtEnc := Date;
+          begin
+            objEvento := facbr.EventoMDFe.Evento.New;
+            if Assigned(jEvento.Find('InfEvento')) then
+              TJSONTools.JsonToObj(jEvento, objEvento)
+            else
+              TJSONTools.JsonToObj(jEvento, objEvento.InfEvento);
+          end;
+        end;
       end;
 
-      facbr.EventoMDFe.Versao := '3.00';
+      if facbr.EventoMDFe.Evento.Count = 0 then
+        raise Exception.Create('Nenhum evento MDF-e informado no payload JSON.');
+
+      objEvento := facbr.EventoMDFe.Evento.Items[0];
+      if Trim(objEvento.InfEvento.chMDFe) = '' then
+        raise Exception.Create('Campo "chMDFe" nao informado para geracao do evento MDF-e.');
+      if objEvento.InfEvento.tpEvento = teNaoMapeado then
+        raise Exception.Create('Campo "tpEvento" invalido ou nao informado para geracao do evento MDF-e.');
+
+      with objEvento.InfEvento do
+      begin
+        if (CNPJCPF = '') and (Length(chMDFe) >= 20) then
+          CNPJCPF := Copy(chMDFe, 7, 14);
+        if (cOrgao = 0) and (Length(chMDFe) >= 2) then
+          cOrgao := StrToIntDef(Copy(chMDFe, 1, 2), 0);
+        if dhEvento = 0 then
+          dhEvento := Now;
+        if nSeqEvento <= 0 then
+          nSeqEvento := 1;
+        if tpEvento = teEncerramento then
+        begin
+          if detEvento.dtEnc = 0 then
+            detEvento.dtEnc := Date;
+          if (detEvento.cUF = 0) and (detEvento.cMun > 0) then
+            detEvento.cUF := StrToIntDef(Copy(IntToStr(detEvento.cMun), 1, 2), 0);
+        end;
+      end;
+
+      if facbr.EventoMDFe.Versao = '' then
+        facbr.EventoMDFe.Versao := '3.00';
       if facbr.EventoMDFe.idLote <= 0 then
         facbr.EventoMDFe.idLote := 1;
       facbr.EventoMDFe.GerarXML;
       xmlOut := facbr.EventoMDFe.XmlEnvio;
 
-      hasCert := (Trim(facbr.Configuracoes.Certificados.ArquivoPFX) <> '') or
-                 (Length(facbr.Configuracoes.Certificados.DadosPFX) > 0) or
-                 (Trim(facbr.Configuracoes.Certificados.NumeroSerie) <> '');
-      if hasCert and (xmlOut <> '') then
+      LAssinado := False;
+      if HasUsableCertificate and (xmlOut <> '') then
       begin
-        try
-          xmlOut := facbr.SSL.Assinar(xmlOut, 'eventoMDFe', 'infEvento');
-        except
-        end;
+        xmlOut := facbr.SSL.Assinar(xmlOut, 'eventoMDFe', 'infEvento');
+        LAssinado := True;
       end;
 
       Result.Add(RSStatusField, RSStatusSucesso);
-      Result.Add('sucesso', True);
       Result.Add(RSChaveField, objEvento.InfEvento.chMDFe);
-      Result.Add('id', objEvento.InfEvento.id);
+      Result.Add(RSIDField, objEvento.InfEvento.Id);
+      Result.Add('assinado', LAssinado);
       Result.Add(RSXmlKey, EncodeStringBase64(xmlOut));
-      Result.Add('xml_raw', xmlOut);
-      Result.Add(RSXMLField, xmlOut);
     except
       on E: Exception do
       begin
         Result.Add(RSStatusField, RSStatusErro);
-        Result.Add('sucesso', False);
         Result.Add(RSMessageField, 'Erro ao gerar XML do evento MDF-e: ' + E.Message);
       end;
     end;
@@ -1820,7 +1638,7 @@ var
   msgLines, ccLines: TStringList;
   I: Integer;
 begin
-  CarregaConfig;
+  CarregaConfig(True);
   Result := TJSONObject.Create;
 
   try
@@ -1906,14 +1724,12 @@ begin
       facbr.Manifestos.Items[0].EnviarEmail(para, assunto, msgLines, enviaPdf, ccLines, nil, nil);
 
       Result.Add(RSStatusField, RSStatusSucesso);
-      Result.Add('sucesso', True);
       Result.Add('para', para);
       Result.Add('assunto', assunto);
     except
       on E: Exception do
       begin
         Result.Add(RSStatusField, RSStatusErro);
-        Result.Add('sucesso', False);
         Result.Add(RSErrorField, 'Erro ao enviar e-mail do MDF-e: ' + E.Message);
       end;
     end;

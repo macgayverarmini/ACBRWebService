@@ -311,8 +311,10 @@ Begin
           sNomeMun := TempIni.ReadString(sCodigoMun, 'Nome', '');
           sUFMun := TempIni.ReadString(sCodigoMun, 'UF', '');
           sProvedorMun := Trim(TempIni.ReadString(sCodigoMun, 'Provedor', ''));
+          if (sProvedorMun = '') and Assigned(jGeral) then
+            sProvedorMun := Trim(jGeral.Get('Provedor', jGeral.Get('provedor', '')));
           if sProvedorMun = '' then
-            sProvedorMun := 'EL';
+            raise Exception.Create('Provedor municipal nao encontrado no INI nem informado em config.Geral.Provedor.');
 
           TempIni.EraseSection(sCodigoMun);
           if sNomeMun <> '' then
@@ -968,7 +970,7 @@ Begin
   CarregaConfig;
   Result := nil;
 
-  if facbr.Configuracoes.Geral.Provedor <> proPadraoNacional then
+  if facbr.Configuracoes.Geral.Provedor = proNenhum then
   begin
     facbr.Configuracoes.Geral.LayoutNFSe := lnfsPadraoNacionalv101;
     facbr.SetProvedor(proPadraoNacional, ve101, False);
@@ -1046,7 +1048,7 @@ Begin
   CarregaConfig;
   Result := nil;
 
-  if facbr.Configuracoes.Geral.Provedor <> proPadraoNacional then
+  if facbr.Configuracoes.Geral.Provedor = proNenhum then
   begin
     facbr.Configuracoes.Geral.LayoutNFSe := lnfsPadraoNacionalv101;
     facbr.SetProvedor(proPadraoNacional, ve101, False);

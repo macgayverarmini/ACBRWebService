@@ -694,8 +694,7 @@ var
 begin
   AcM := TACBRModelosJSONMDFe.Create('');
   try
-    LJson := AcM.ModelEncerramento;
-    LJson.Add('tpEvento', '110112');
+    LJson := AcM.ModelEvento;
     try
       Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
     finally

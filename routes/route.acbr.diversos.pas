@@ -1,12 +1,16 @@
-﻿unit route.acbr.diversos.legado;
+unit route.acbr.diversos;
 
 {$mode Delphi}{$H+}
 
 interface
 
 uses
-  method.acbr.diversos.legado,
-  fpjson, Horse, Horse.Commons, Classes, SysUtils,
+  method.acbr.diversos,
+  fpjson,
+  Horse,
+  Horse.Commons,
+  Classes,
+  SysUtils,
   resource.strings.routes;
 
 procedure GetModeloCMC7(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
@@ -30,10 +34,10 @@ implementation
 
 procedure GetModeloCMC7(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  Ac: TACBRBridgeDiversosLegado;
+  Ac: TACBRBridgeDiversos;
   LJson: TJSONObject;
 begin
-  Ac := TACBRBridgeDiversosLegado.Create;
+  Ac := TACBRBridgeDiversos.Create;
   try
     LJson := Ac.ModelCMC7;
     try
@@ -49,10 +53,10 @@ end;
 procedure PostCMC7(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   O, LJson: TJSONObject;
-  Ac: TACBRBridgeDiversosLegado;
+  Ac: TACBRBridgeDiversos;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeDiversosLegado.Create;
+  Ac := TACBRBridgeDiversos.Create;
   try
     LJson := Ac.ProcessarCMC7(O);
     try
@@ -68,10 +72,10 @@ end;
 
 procedure GetModeloInStore(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  Ac: TACBRBridgeDiversosLegado;
+  Ac: TACBRBridgeDiversos;
   LJson: TJSONObject;
 begin
-  Ac := TACBRBridgeDiversosLegado.Create;
+  Ac := TACBRBridgeDiversos.Create;
   try
     LJson := Ac.ModelInStore;
     try
@@ -87,10 +91,10 @@ end;
 procedure PostInStore(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   O, LJson: TJSONObject;
-  Ac: TACBRBridgeDiversosLegado;
+  Ac: TACBRBridgeDiversos;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeDiversosLegado.Create;
+  Ac := TACBRBridgeDiversos.Create;
   try
     LJson := Ac.DesmembrarInStore(O);
     try
@@ -106,10 +110,10 @@ end;
 
 procedure GetModeloCargaBal(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  Ac: TACBRBridgeDiversosLegado;
+  Ac: TACBRBridgeDiversos;
   LJson: TJSONObject;
 begin
-  Ac := TACBRBridgeDiversosLegado.Create;
+  Ac := TACBRBridgeDiversos.Create;
   try
     LJson := Ac.ModelCargaBal;
     try
@@ -125,10 +129,10 @@ end;
 procedure PostCargaBal(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   O, LJson: TJSONObject;
-  Ac: TACBRBridgeDiversosLegado;
+  Ac: TACBRBridgeDiversos;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeDiversosLegado.Create;
+  Ac := TACBRBridgeDiversos.Create;
   try
     LJson := Ac.GerarCargaBalanca(O);
     try
@@ -144,10 +148,10 @@ end;
 
 procedure GetModeloIBPT(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  Ac: TACBRBridgeDiversosLegado;
+  Ac: TACBRBridgeDiversos;
   LJson: TJSONObject;
 begin
-  Ac := TACBRBridgeDiversosLegado.Create;
+  Ac := TACBRBridgeDiversos.Create;
   try
     LJson := Ac.ModelIBPT;
     try
@@ -163,10 +167,10 @@ end;
 procedure PostIBPTLerTabela(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   O, LJson: TJSONObject;
-  Ac: TACBRBridgeDiversosLegado;
+  Ac: TACBRBridgeDiversos;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeDiversosLegado.Create;
+  Ac := TACBRBridgeDiversos.Create;
   try
     LJson := Ac.LerTabelaIBPT(O);
     try
@@ -182,10 +186,10 @@ end;
 
 procedure GetModeloEAD(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  Ac: TACBRBridgeDiversosLegado;
+  Ac: TACBRBridgeDiversos;
   LJson: TJSONObject;
 begin
-  Ac := TACBRBridgeDiversosLegado.Create;
+  Ac := TACBRBridgeDiversos.Create;
   try
     LJson := Ac.ModelEAD;
     try
@@ -201,10 +205,10 @@ end;
 procedure PostEAD(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   O, LJson: TJSONObject;
-  Ac: TACBRBridgeDiversosLegado;
+  Ac: TACBRBridgeDiversos;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeDiversosLegado.Create;
+  Ac := TACBRBridgeDiversos.Create;
   try
     LJson := Ac.ProcessarEAD(O);
     try
@@ -220,10 +224,10 @@ end;
 
 procedure GetModeloCalcDigito(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  Ac: TACBRBridgeDiversosLegado;
+  Ac: TACBRBridgeDiversos;
   LJson: TJSONObject;
 begin
-  Ac := TACBRBridgeDiversosLegado.Create;
+  Ac := TACBRBridgeDiversos.Create;
   try
     LJson := Ac.ModelCalcDigito;
     try
@@ -239,10 +243,10 @@ end;
 procedure PostCalcDigito(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   O, LJson: TJSONObject;
-  Ac: TACBRBridgeDiversosLegado;
+  Ac: TACBRBridgeDiversos;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeDiversosLegado.Create;
+  Ac := TACBRBridgeDiversos.Create;
   try
     LJson := Ac.CalcularDigito(O);
     try
@@ -258,10 +262,10 @@ end;
 
 procedure GetModeloMail(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  Ac: TACBRBridgeDiversosLegado;
+  Ac: TACBRBridgeDiversos;
   LJson: TJSONObject;
 begin
-  Ac := TACBRBridgeDiversosLegado.Create;
+  Ac := TACBRBridgeDiversos.Create;
   try
     LJson := Ac.ModelMail;
     try
@@ -277,10 +281,10 @@ end;
 procedure PostMail(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   O, LJson: TJSONObject;
-  Ac: TACBRBridgeDiversosLegado;
+  Ac: TACBRBridgeDiversos;
 begin
   O := GetJSON(Req.Body) as TJSONObject;
-  Ac := TACBRBridgeDiversosLegado.Create;
+  Ac := TACBRBridgeDiversos.Create;
   try
     LJson := Ac.EnviarEmail(O);
     try

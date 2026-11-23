@@ -212,10 +212,10 @@
         <Filename Value="routes/route.acbr.gnre.pas"/>
       </Unit>
       <Unit>
-        <Filename Value="method/method.acbr.diversos.legado.pas"/>
+        <Filename Value="method/method.acbr.diversos.pas"/>
       </Unit>
       <Unit>
-        <Filename Value="routes/route.acbr.diversos.legado.pas"/>
+        <Filename Value="routes/route.acbr.diversos.pas"/>
       </Unit>
     </Units>
   </ProjectOptions>

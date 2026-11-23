@@ -26,7 +26,7 @@ resourcestring
   RSACBRBoletoRoutesMapped = '  Rotas ACBR Boleto mapeadas.';
   RSACBRReinfRoutesMapped = '  Rotas ACBR Reinf mapeadas.';
   RSACBRGNRERoutesMapped = '  Rotas ACBR GNRE mapeadas.';
-  RSACBRDiversosLegadoRoutesMapped = '  Rotas ACBR Diversos Legado mapeadas.';
+  RSACBRDiversosRoutesMapped = '  Rotas ACBR Diversos mapeadas.';
   RSHorseApplicationStarted = 'Aplicação Horse iniciada com sucesso.';
   RSListeningOnPort = 'Escutando na porta %d';
   RSApplicationStopped = 'Aplicação ACBRWebService finalizada.';

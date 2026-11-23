@@ -39,7 +39,6 @@ resourcestring
   RSNFeConsultaReciboRoute = '/nfe/consulta-recibo';
   RSNFeDebugConfigRoute = '/nfe/debug-config';
   RSNFeLoteRoute = '/nfe/nfe-lote';
-  RSNFeLoteShortRoute = '/nfe/lote';
   
   // Rotas - CTe
   RSModeloCTeConfigRoute = '/modelo/cte/config';
@@ -179,7 +178,6 @@ resourcestring
   RSModeloSPEDPisCofinsGerarRoute = '/modelo/sped/piscofins/gerar';
   RSSPEDPisCofinsGerarRoute = '/sped/piscofins/gerar';
   RSSPEDPisCofinsImportarRoute = '/sped/piscofins/importar';
-  RSSPEDPisCofinsConsolidarRoute = '/sped/piscofins/consolidar';
 
   // Rotas - Boleto Bancario
   RSModeloBoletoConfigRoute = '/modelo/boleto/config';
@@ -203,9 +201,8 @@ resourcestring
   RSGNREEnviarRoute = '/gnre/enviar';
   RSGNREConsultarRoute = '/gnre/consultar';
   RSGNREToXMLRoute = '/gnre/gnre-to-xml';
-  RSGNREGerarXMLRoute = '/gnre/gerar-xml';
 
-  // Rotas - Diversos Legado (CMC7, Balanca InStore, CargaBal, IBPTax)
+  // Rotas - Diversos (CMC7, Balanca InStore, CargaBal, IBPTax, EAD, CalcDigito, Mail)
   RSModeloDiversosCMC7Route = '/modelo/diversos/cmc7';
   RSDiversosCMC7Route = '/diversos/cmc7';
   RSModeloDiversosInStoreRoute = '/modelo/diversos/balanca/instore';
