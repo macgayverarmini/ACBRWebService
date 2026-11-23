@@ -69,12 +69,12 @@ begin
   Json := FAcbrNFeModels.ModelNFe;
   try
     AssertNotNull('ModelNFe returned nil', Json);
-    AssertJSONHasField(Json, 'NFe.infNFe.Versao');
-    AssertJSONHasField(Json, 'NFe.Ide.cUF');
-    AssertJSONHasField(Json, 'NFe.Ide.natOp');
-    AssertJSONHasField(Json, 'NFe.Emit.CNPJCPF');
-    AssertJSONHasField(Json, 'NFe.Dest.CNPJCPF');
-    AssertJSONHasField(Json, 'NFe.Det');
+    AssertJSONHasField(Json, 'infNFe.Versao');
+    AssertJSONHasField(Json, 'Ide.cUF');
+    AssertJSONHasField(Json, 'Ide.natOp');
+    AssertJSONHasField(Json, 'Emit.CNPJCPF');
+    AssertJSONHasField(Json, 'Dest.CNPJCPF');
+    AssertJSONHasField(Json, 'Det');
   finally
     Json.Free;
   end;

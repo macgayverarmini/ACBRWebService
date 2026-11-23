@@ -33,19 +33,39 @@ end;
 
 procedure PostEscPos(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
+  LData: TJSONData;
   O: TJSONObject;
   Ac: TACBRBridgeEscPos;
 begin
+  LData := nil;
   try
-    O := GetJSON(Req.Body) as TJSONObject;
+    LData := GetJSON(Req.Body);
   except
     on E: Exception do
     begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSInvalidJSONBodyError])));
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+         .Status(400)
+         .Send(TJSONTools.JsonAndFree(TJSONObject.Create([
+           RSStatusField, RSStatusErro,
+           RSMessageField, RSInvalidJSONBodyError + ' ' + E.Message
+         ])));
       Exit;
     end;
   end;
 
+  if not Assigned(LData) or not (LData is TJSONObject) then
+  begin
+    FreeAndNil(LData);
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Status(400)
+       .Send(TJSONTools.JsonAndFree(TJSONObject.Create([
+         RSStatusField, RSStatusErro,
+         RSMessageField, RSInvalidJSONBodyError
+       ])));
+    Exit;
+  end;
+
+  O := TJSONObject(LData);
   Ac := TACBRBridgeEscPos.Create(TJSONTools.ExtractConfig(O));
   try
     Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.EscPos(O)));

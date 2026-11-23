@@ -64,13 +64,10 @@ type
     function ValidarRegras(const jCTe: TJSONObject): TJSONObject;
     function DACTEEvento(const xmlEvento: TJSONObject): TJSONObject;
 
-    function DebugConfig: TJSONObject;
-    function DebugCTe(const O: TJSONObject): TJSONObject;
-
     function TesteConfig: boolean;
   end;
 
-  { TACBRModelosJSONCTe - Salva os retornos de modelo de requisies CTe }
+  { TACBRModelosJSONCTe }
 
   TACBRModelosJSONCTe = class(TACBRBridgeCTe)
   private
@@ -91,198 +88,89 @@ type
 
 implementation
 
-// Se precisar de pcnAuxiliar ou outras units de converso (UFtoCUF), adicione aqui.
-// Exemplo: pcnAuxiliar (para UFtoCUF, se no estiver em pcnConversao ou pcteConversaoCTe)
-
 { TACBRModelosJSONCTe }
 
 function TACBRModelosJSONCTe.ModelConfig: TJSONObject;
 begin
-  with facbr.Configuracoes.Geral do
-  begin
-    VersaoDF := TVersaoCTe.ve400;
-    RetirarAcentos := True;
-
-    SSLLib := TSSLLib.libOpenSSL;
-    SSLCryptLib := TSSLCryptLib.cryOpenSSL;
-    SSLHttpLib := TSSLHttpLib.httpOpenSSL;
-    SSLXmlSignLib := TSSLXmlSignLib.xsLibXml2;
-  end;
-
-  with facbr.Configuracoes.WebServices do
-  begin
-    Ambiente := TpcnTipoAmbiente.taHomologacao;
-    UF := RSDefaultUF;
-    TimeOut := 15000;
-    Visualizar := False;
-  end;
-
-  with facbr.Configuracoes.Certificados do
-  begin
-    ArquivoPFX := RSDefaultCertPath;
-    Senha := RSDefaultCertPassword;
-  end;
-
-  with facbr.Configuracoes.Arquivos do
-  begin
-    Salvar := True; // Exemplo: para salvar os XMLs gerados
-  end;
-
-  with facbr.DACTE do
-  begin
-    Logo := 'C:\caminho\sua_logo.jpg'; // Exemplo
-  end;
-
-  Result := TJSONTools.ObjToJson(facbr.Configuracoes);
+  Result := TJSONTools.SafeObjToJson(facbr.Configuracoes, 'Erro ao gerar modelo de configuracao do CT-e');
 end;
 
 function TACBRModelosJSONCTe.ModelStatusServico: TJSONObject;
 begin
-  Result := TJSONObject.Create;
+  Result := TJSONTools.SafeObjToJson(facbr.WebServices.StatusServico, 'Erro ao gerar modelo de status do CT-e');
 end;
 
 function TACBRModelosJSONCTe.ModelConsulta: TJSONObject;
 begin
-  // A classe TCTeConsulta tem a propriedade CTeChave. Vamos usar ela.
-  facbr.WebServices.Consulta.CTeChave := 'Preencha com a Chave de Acesso do CTe';
-  Result := TJSONObject.Create;
-  Result.Add('CTeChave', facbr.WebServices.Consulta.CTeChave);
+  Result := TJSONTools.SafeObjToJson(facbr.WebServices.Consulta, 'Erro ao gerar modelo de consulta do CT-e');
 end;
 
 function TACBRModelosJSONCTe.ModelInutilizacao: TJSONObject;
 begin
-  facbr.WebServices.Inutilizacao.CNPJ := '00000000000000';
-  facbr.WebServices.Inutilizacao.Justificativa := 'Justificativa da Inutilizacao';
-  facbr.WebServices.Inutilizacao.Ano := 2023;
-  facbr.WebServices.Inutilizacao.Serie := 1;
-  facbr.WebServices.Inutilizacao.NumeroInicial := 100;
-  facbr.WebServices.Inutilizacao.NumeroFinal := 100;
-  facbr.WebServices.Inutilizacao.Modelo := 57;
-  
-  Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.Inutilizacao));
+  Result := TJSONTools.SafeObjToJson(facbr.WebServices.Inutilizacao, 'Erro ao gerar modelo de inutilizacao do CT-e');
 end;
 
 function TACBRModelosJSONCTe.ModelEvento: TJSONObject;
 begin
-  facbr.EventoCTe.Evento.New;
-  // Preencher campos mnimos de exemplo se desejado
-  Result := TJSONTools.ObjToJson(facbr.EventoCTe);
   facbr.EventoCTe.Evento.Clear;
+  facbr.EventoCTe.Evento.New;
+  try
+    Result := TJSONTools.SafeObjToJson(facbr.EventoCTe, 'Erro ao gerar modelo de evento do CT-e');
+  finally
+    facbr.EventoCTe.Evento.Clear;
+  end;
 end;
 
 function TACBRModelosJSONCTe.ModelCancelamento: TJSONObject;
+var
+  LEvt: TInfEventoCollectionItem;
 begin
   facbr.EventoCTe.Evento.Clear;
-  with facbr.EventoCTe.Evento.New.InfEvento do
-  begin
-     tpEvento := teCancelamento;
-     chCTe := 'Preencha com a Chave de Acesso';
-     detEvento.nProt := 'Preencha com o Protocolo';
-     detEvento.xJust := 'Justificativa do Cancelamento (min 15 caracteres)';
+  LEvt := facbr.EventoCTe.Evento.New;
+  try
+    Result := TJSONTools.SafeObjToJson(LEvt, 'Erro ao gerar modelo de cancelamento do CT-e');
+  finally
+    facbr.EventoCTe.Evento.Clear;
   end;
-  Result := TJSONObject(TJSONTools.ObjToJson(facbr.EventoCTe.Evento.Items[0]));
-  facbr.EventoCTe.Evento.Clear;
 end;
 
 function TACBRModelosJSONCTe.ModelCTeFromXML: TJSONObject;
 begin
-  Result := TJSONObject.Create;
-  Result.Add(RSXmlKey, 'XML do CTe em Base64 Ã¢â‚¬â€ retorna o CTe como JSON');
+  Result := ModelCTe;
 end;
 
 function TACBRModelosJSONCTe.ModelCTeToXML: TJSONObject;
 begin
   Result := ModelCTe;
-  // O modelo ÃƒÂ© o mesmo do CTe Ã¢â‚¬â€ envie o JSON do CTe e receba o XML gerado
 end;
 
 function TACBRModelosJSONCTe.ModelCTe: TJSONObject;
 var
   vConhecimento: Conhecimento;
 begin
-  vConhecimento := facbr.Conhecimentos.Add;
-  with vConhecimento.CTe do
-  begin
-    infCTe.versao := 4.0;
-    Ide.cUF := UFtoCUF('ES'); // Certifique-se que UFtoCUF est acessvel
-    Ide.CFOP := 5353;
-    Ide.natOp := 'PRESTACAO SERVICO';
-    ide.forPag := fpAPagar;
-    Ide.modelo := 57;
-    Ide.serie := 1;
-    Ide.nCT := 1;
-    Ide.cCT := 1; // Ateno: deve ser aleatrio
-    Ide.dhEmi := Now;
-    Ide.tpImp := tiRetrato;
-    Ide.tpEmis := teNormal;
-    Ide.tpAmb := taHomologacao;
-    Ide.tpCTe := tcNormal;
-    Ide.procEmi := peAplicativoContribuinte;
-    Ide.verProc := '4.0'; // Ou sua verso
-    Ide.cMunEnv := StrToInt('3203205'); // Exemplo Linhares/ES
-    Ide.xMunEnv := 'LINHARES';
-    Ide.UFEnv := 'ES';
-    Ide.modal := mdRodoviario;
-    Ide.tpServ := tsNormal;
-    ide.indIEToma := TpcnindIEDest.inContribuinte; // Corrigido: indIEToma usa enum ii*
-    Ide.cMunIni := 3119401; // Exemplo Coronel Fabriciano/MG
-    Ide.xMunIni := 'CORONEL FABRICIANO';
-    Ide.UFIni := 'MG';
-    Ide.cMunFim := 2900207; // Exemplo Abar/BA
-    Ide.xMunFim := 'ABARE';
-    Ide.UFFim := 'BA';
-    Ide.retira := rtSim;
-    ide.indGlobalizado := TIndicador.tiSim; // boolean
-
-    // Adicione mais campos conforme o modelo extenso que voc tinha
-    // ...
-
-    Emit.CRT := crtRegimeNormal;
-    Emit.CNPJ := '11222333000144'; // CNPJ fictcio
-    Emit.IE := '001000000000';    // IE fictcia
-    Emit.xNome := 'Empresa Ficticia de Transportes Ltda';
-    Emit.enderEmit.xLgr := 'Avenida das Flores';
-    Emit.enderEmit.nro := '1234';
-    Emit.enderEmit.xBairro := 'Centro';
-    Emit.enderEmit.cMun := 3205002; // Serra/ES como exemplo
-    Emit.enderEmit.xMun := 'SERRA';
-    Emit.enderEmit.CEP := 29160000;
-    Emit.enderEmit.UF := 'ES';
-
-    // ... (Restante do seu preenchimento detalhado do CTe)
-
-    autXML.New.CNPJCPF := '01234567809'; // Exemplo
-  end;
-
-  Result := TJSONTools.ObjToJson(vConhecimento.Cte);
-
-  Result.Delete(RSXMLField);
-  Result.Delete(RSXMLOriginalField);
-  Result.Delete(RSNomeArqField);
-  Result.Delete(RSProtocoloField);
-  Result.Delete('DigVal');
-  Result.Delete('infCTeSupl');
-
   facbr.Conhecimentos.Clear;
+  vConhecimento := facbr.Conhecimentos.Add;
+  try
+    Result := TJSONTools.SafeObjToJson(vConhecimento.CTe, 'Erro ao gerar modelo do CT-e');
+  finally
+    facbr.Conhecimentos.Clear;
+  end;
 end;
 
 function TACBRModelosJSONCTe.ModelDistribuicao: string;
 begin
-  Result := TJSONTools.SafeObjToJsonString(facbr.WebServices.DistribuicaoDFe);
+  Result := TJSONTools.SafeObjToJsonString(facbr.WebServices.DistribuicaoDFe, 'Erro ao gerar modelo de distribuicao do CT-e');
 end;
 
 function TACBRModelosJSONCTe.ModelValidarRegras: TJSONObject;
 begin
   Result := ModelCTe;
-  // O modelo ÃƒÂ© o mesmo do CTe Ã¢â‚¬â€ envie o JSON do CTe para validaÃƒÂ§ÃƒÂ£o offline
 end;
 
 function TACBRModelosJSONCTe.ModelDACTEEvento: TJSONObject;
 begin
-  Result := TJSONObject.Create;
-  Result.Add(RSXmlKey, 'XML do ProcEventoCTe em Base64 Ã¢â‚¬â€ retorna o PDF do evento');
+  Result := ModelEvento;
 end;
-
 
 { TACBRBridgeCTe }
 
@@ -474,6 +362,8 @@ begin
   Result := nil;
 
   objDistribuicao := facbr.WebServices.DistribuicaoDFe;
+  if Assigned(jDistribuicao) then
+    TJSONTools.JsonToObj(jDistribuicao, objDistribuicao);
 
   if jDistribuicao.Find(RSUFField, UF) then
   begin
@@ -536,18 +426,26 @@ end;
 function TACBRBridgeCTe.Consulta(const jConsulta: TJSONObject): TJSONObject;
 var
   Chave: TJSONData;
+  sChave: string;
 begin
   CarregaConfig;
+  if Assigned(jConsulta) then
+    TJSONTools.JsonToObj(jConsulta, facbr.WebServices.Consulta);
 
-  Chave := jConsulta.Find('CTeChave');
-  if not Assigned(Chave) then Chave := jConsulta.Find('chCTe');
-  if not Assigned(Chave) then Chave := jConsulta.Find('chave');
-  if not Assigned(Chave) then Chave := jConsulta.Find('Chave');
+  sChave := Trim(facbr.WebServices.Consulta.CTeChave);
+  if (sChave = '') and Assigned(jConsulta) then
+  begin
+    Chave := jConsulta.Find('chCTe');
+    if not Assigned(Chave) then Chave := jConsulta.Find('chave');
+    if not Assigned(Chave) then Chave := jConsulta.Find('Chave');
+    if Assigned(Chave) then
+      sChave := Trim(Chave.AsString);
+  end;
 
-  if Assigned(Chave) and (Trim(Chave.AsString) <> '') then
+  if sChave <> '' then
   begin
     try
-      facbr.WebServices.Consulta.CTeChave := Trim(Chave.AsString);
+      facbr.WebServices.Consulta.CTeChave := sChave;
       facbr.WebServices.Consulta.Executar;
       Result := TJSONTools.SafeObjToJson(facbr.WebServices.Consulta, 'Erro na consulta');
     except
@@ -1025,34 +923,6 @@ begin
     facbr.EventoCTe.Evento.Clear;
     facbr.Conhecimentos.Clear;
   end;
-end;
-
-function TACBRBridgeCTe.DebugConfig: TJSONObject;
-begin
-  CarregaConfig(True);
-  Result := TJSONTools.ObjToJson(facbr.Configuracoes);
-end;
-
-function TACBRBridgeCTe.DebugCTe(const O: TJSONObject): TJSONObject;
-var
-  Item: Conhecimento;
-begin
-  CarregaConfig(True);
-  try
-    Item := facbr.Conhecimentos.Add;
-    if Assigned(O.Find('CTe')) then
-      TJSONTools.JsonToObj(O, Item)
-    else
-      TJSONTools.JsonToObj(O, Item.CTe);
-    Result := TJSONTools.ObjToJson(Item.CTe);
-  except
-    on E: Exception do
-    begin
-      Result := TJSONTools.SafeObjToJson(nil, 'Erro no DebugCTe: ' + E.Message);
-      Exit;
-    end;
-  end;
-  facbr.Conhecimentos.Clear;
 end;
 
 function TACBRBridgeCTe.TesteConfig: boolean;

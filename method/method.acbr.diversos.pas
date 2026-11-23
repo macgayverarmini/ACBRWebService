@@ -6,17 +6,14 @@ unit method.acbr.diversos;
 interface
 
 uses
-  RTTI,
   TypInfo,
   ACBrCMC7,
   ACBrInStore,
   ACBrCargaBal,
   ACBrIBPTax,
-  Variants,
   fpjson,
   jsonconvert,
   Base64,
-  jsonparser,
   Classes,
   SysUtils,
   streamtools,
@@ -60,62 +57,70 @@ implementation
 { TACBRBridgeDiversos }
 
 function TACBRBridgeDiversos.ModelCMC7: TJSONObject;
+var
+  acbr: TACBrCMC7;
 begin
-  Result := TJSONObject.Create;
-  Result.Add('CMC7', '<00100049<0030000065>900000000109:');
-  Result.Add('Banco', '001');
-  Result.Add('Agencia', '0004');
-  Result.Add('Comp', '003');
-  Result.Add('Numero', '000006');
-  Result.Add('Conta', '0000000001');
-  Result.Add('Tipificacao', '5');
+  acbr := TACBrCMC7.Create(nil);
+  try
+    Result := TJSONTools.SafeObjToJson(acbr, 'Erro ao gerar modelo CMC7');
+  finally
+    acbr.Free;
+  end;
 end;
 
 function TACBRBridgeDiversos.ProcessarCMC7(const jCMC7: TJSONObject): TJSONObject;
 var
   acbr: TACBrCMC7;
-  banda, banco, agencia, comp, numero, conta, tipif: string;
+  banda, banco, agencia, comp, numero, conta, tipif, b1, b2, b3: string;
 begin
-  Result := TJSONObject.Create;
   acbr := TACBrCMC7.Create(nil);
   try
     try
-      banda := jCMC7.Get('CMC7', '');
+      banda := Trim(jCMC7.Get('CMC7', ''));
       if banda <> '' then
-        acbr.CMC7 := FormataCMC7(banda)
+      begin
+        if Length(banda) = 34 then
+          TJSONTools.JsonToObj(jCMC7, acbr)
+        else
+          acbr.CMC7 := FormataCMC7(banda);
+      end
       else
       begin
-        banco := jCMC7.Get('Banco', '');
-        agencia := jCMC7.Get('Agencia', '');
-        comp := jCMC7.Get('Comp', '');
-        numero := jCMC7.Get('Numero', '');
-        conta := jCMC7.Get('Conta', '');
-        tipif := jCMC7.Get('Tipificacao', '5');
-        if tipif = '' then
-          tipif := '5';
-        acbr.MontaCMC7(banco, agencia, conta, numero, comp, tipif[1]);
+        b1 := jCMC7.Get('CMC7Bloco1', jCMC7.Get('Bloco1', ''));
+        b2 := jCMC7.Get('CMC7Bloco2', jCMC7.Get('Bloco2', ''));
+        b3 := jCMC7.Get('CMC7Bloco3', jCMC7.Get('Bloco3', ''));
+        if (b1 <> '') or (b2 <> '') or (b3 <> '') then
+          acbr.MontaCMC7(b1, b2, b3)
+        else
+        begin
+          banco := jCMC7.Get('Banco', '');
+          agencia := jCMC7.Get('Agencia', '');
+          comp := jCMC7.Get('Comp', '');
+          numero := jCMC7.Get('Numero', '');
+          conta := jCMC7.Get('Conta', '');
+          tipif := jCMC7.Get('Tipificacao', '5');
+          if tipif = '' then
+            tipif := '5';
+          acbr.MontaCMC7(banco, agencia, conta, numero, comp, tipif[1]);
+        end;
       end;
 
-      Result.Add(RSStatusField, RSStatusSucesso);
-      Result.Add('CMC7', acbr.CMC7);
-      Result.Add('Banco', acbr.Banco);
-      Result.Add('Agencia', acbr.Agencia);
-      Result.Add('DvCCT', string(acbr.DvCCT));
-      Result.Add('Comp', acbr.Comp);
-      Result.Add('Numero', acbr.Numero);
-      Result.Add('Conta', acbr.Conta);
-      Result.Add('Tipificacao', string(acbr.Tipificacao));
-      Result.Add('DvBcoAg', string(acbr.DvBcoAg));
-      Result.Add('DvCMC7', string(acbr.DvCMC7));
-      Result.Add('C1', acbr.C1);
-      Result.Add('C2', acbr.C2);
-      Result.Add('C3', acbr.C3);
-      Result.Add('Bloco1', acbr.CMC7Bloco1);
-      Result.Add('Bloco2', acbr.CMC7Bloco2);
-      Result.Add('Bloco3', acbr.CMC7Bloco3);
+      Result := TJSONTools.SafeObjToJson(acbr, 'Erro ao serializar CMC7');
+      if Assigned(Result) then
+      begin
+        if Result.Find(RSStatusField) = nil then
+          Result.Add(RSStatusField, RSStatusSucesso);
+        if Result.Find('Bloco1') = nil then
+          Result.Add('Bloco1', acbr.CMC7Bloco1);
+        if Result.Find('Bloco2') = nil then
+          Result.Add('Bloco2', acbr.CMC7Bloco2);
+        if Result.Find('Bloco3') = nil then
+          Result.Add('Bloco3', acbr.CMC7Bloco3);
+      end;
     except
       on E: Exception do
       begin
+        Result := TJSONObject.Create;
         Result.Add(RSStatusField, RSStatusErro);
         Result.Add(RSErrorField, E.Message);
       end;
@@ -126,10 +131,15 @@ begin
 end;
 
 function TACBRBridgeDiversos.ModelInStore: TJSONObject;
+var
+  acbr: TACBrInStore;
 begin
-  Result := TJSONObject.Create;
-  Result.Add('Codificacao', '2CCCC0TTTTTT0');
-  Result.Add('CodigoEtiqueta', '2000100015009');
+  acbr := TACBrInStore.Create(nil);
+  try
+    Result := TJSONTools.SafeObjToJson(acbr, 'Erro ao gerar modelo InStore');
+  finally
+    acbr.Free;
+  end;
 end;
 
 function TACBRBridgeDiversos.DesmembrarInStore(const jInStore: TJSONObject): TJSONObject;
@@ -137,25 +147,20 @@ var
   acbr: TACBrInStore;
   etiqueta: string;
 begin
-  Result := TJSONObject.Create;
   acbr := TACBrInStore.Create(nil);
   try
     try
       TJSONTools.JsonToObj(jInStore, acbr);
-      if acbr.Codificacao = '' then
-        acbr.Codificacao := '2CCCC0TTTTTT0';
       etiqueta := jInStore.Get('CodigoEtiqueta', '');
       acbr.Desmembrar(etiqueta);
 
-      Result.Add(RSStatusField, RSStatusSucesso);
-      Result.Add('Prefixo', acbr.Prefixo);
-      Result.Add('Codigo', acbr.Codigo);
-      Result.Add('Peso', acbr.Peso);
-      Result.Add('Total', acbr.Total);
-      Result.Add('DV', acbr.DV);
+      Result := TJSONTools.SafeObjToJson(acbr, 'Erro ao serializar InStore');
+      if Assigned(Result) and (Result.Find(RSStatusField) = nil) then
+        Result.Add(RSStatusField, RSStatusSucesso);
     except
       on E: Exception do
       begin
+        Result := TJSONObject.Create;
         Result.Add(RSStatusField, RSStatusErro);
         Result.Add(RSErrorField, E.Message);
       end;
@@ -239,10 +244,15 @@ begin
 end;
 
 function TACBRBridgeDiversos.ModelIBPT: TJSONObject;
+var
+  acbr: TACBrIBPTax;
 begin
-  Result := TJSONObject.Create;
-  Result.Add('arquivo_base64', 'CONTEUDO_CSV_IBPT_EM_BASE64');
-  Result.Add('NCM', '84713012');
+  acbr := TACBrIBPTax.Create(nil);
+  try
+    Result := TJSONTools.SafeObjToJson(acbr, 'Erro ao gerar modelo IBPTax');
+  finally
+    acbr.Free;
+  end;
 end;
 
 function TACBRBridgeDiversos.LerTabelaIBPT(const jIBPT: TJSONObject): TJSONObject;
@@ -253,12 +263,13 @@ var
   aliqFedNac, aliqFedImp, aliqEst, aliqMun: Double;
   Stream: TStringStream;
   arrItens: TJSONArray;
-  itemObj: TJSONObject;
 begin
   Result := TJSONObject.Create;
   acbr := TACBrIBPTax.Create(nil);
   try
     try
+      TJSONTools.JsonToObj(jIBPT, acbr);
+
       b64Csv := jIBPT.Get('arquivo_base64', '');
       fileName := jIBPT.Get('ArquivoNome', '');
       ncm := jIBPT.Get('NCM', '');
@@ -272,12 +283,14 @@ begin
           Stream.Free;
         end;
       end
+      else if acbr.Arquivo.Count > 0 then
+        acbr.AbrirTabela(acbr.Arquivo)
       else if fileName <> '' then
         acbr.AbrirTabela(fileName)
       else
       begin
         Result.Add(RSStatusField, RSStatusErro);
-        Result.Add(RSErrorField, 'Informe "arquivo_base64" ou "ArquivoNome" para abrir a tabela IBPT.');
+        Result.Add(RSErrorField, 'Informe "arquivo_base64", "Arquivo" ou "ArquivoNome" para abrir a tabela IBPT.');
         Exit;
       end;
 
@@ -313,18 +326,7 @@ begin
         if maxItems > acbr.Itens.Count then
           maxItems := acbr.Itens.Count;
         for I := 0 to maxItems - 1 do
-        begin
-          itemObj := TJSONObject.Create;
-          itemObj.Add('NCM', acbr.Itens[I].NCM);
-          itemObj.Add('Excecao', acbr.Itens[I].Excecao);
-          itemObj.Add('Tabela', Integer(acbr.Itens[I].Tabela));
-          itemObj.Add('Descricao', acbr.Itens[I].Descricao);
-          itemObj.Add('FederalNacional', acbr.Itens[I].FederalNacional);
-          itemObj.Add('FederalImportado', acbr.Itens[I].FederalImportado);
-          itemObj.Add('Estadual', acbr.Itens[I].Estadual);
-          itemObj.Add('Municipal', acbr.Itens[I].Municipal);
-          arrItens.Add(itemObj);
-        end;
+          arrItens.Add(TJSONTools.SafeObjToJson(acbr.Itens[I], 'Erro ao serializar item IBPT'));
         Result.Add('Itens', arrItens);
       end;
     except
@@ -350,14 +352,15 @@ begin
 end;
 
 function TACBRBridgeDiversos.ModelEAD: TJSONObject;
+var
+  acbr: TACBrEAD;
 begin
-  Result := TJSONObject.Create;
-  Result.Add('Operacao', 'calcular_ead | verificar_ead | gerar_chaves | calcular_hash | md5');
-  Result.Add('Conteudo', 'Conteudo texto para assinar ou verificar');
-  Result.Add('ChavePrivada', '-----BEGIN RSA PRIVATE KEY----- ...');
-  Result.Add('ChavePublica', '-----BEGIN PUBLIC KEY----- ...');
-  Result.Add('EAD', '');
-  Result.Add('Digest', 'dgstMD5');
+  acbr := TACBrEAD.Create(nil);
+  try
+    Result := TJSONTools.SafeObjToJson(acbr, 'Erro ao gerar modelo EAD');
+  finally
+    acbr.Free;
+  end;
 end;
 
 function TACBRBridgeDiversos.ProcessarEAD(const jEAD: TJSONObject): TJSONObject;
@@ -374,6 +377,8 @@ begin
   acbr := TACBrEAD.Create(nil);
   try
     try
+      TJSONTools.JsonToObj(jEAD, acbr);
+
       operacao := LowerCase(Trim(jEAD.Get('Operacao', 'calcular_ead')));
       fChavePrivada := AnsiString(jEAD.Get('ChavePrivada', ''));
       fChavePublica := AnsiString(jEAD.Get('ChavePublica', ''));
@@ -458,12 +463,7 @@ var
 begin
   calc := TACBrCalcDigito.Create;
   try
-    calc.Documento := '123456789';
-    calc.FormulaDigito := frModulo11;
-    calc.CalculoPadrao;
     Result := TJSONTools.SafeObjToJson(calc, 'Erro ao gerar modelo CalcDigito');
-    if Assigned(Result) then
-      Result.Add('CalculoPadrao', True);
   finally
     calc.Free;
   end;
@@ -473,7 +473,6 @@ function TACBRBridgeDiversos.CalcularDigito(const jDigito: TJSONObject): TJSONOb
 var
   calc: TACBrCalcDigito;
 begin
-  Result := TJSONObject.Create;
   calc := TACBrCalcDigito.Create;
   try
     try
@@ -487,14 +486,13 @@ begin
 
       calc.Calcular;
 
-      Result.Add(RSStatusField, RSStatusSucesso);
-      Result.Add('Documento', calc.Documento);
-      Result.Add('DigitoFinal', calc.DigitoFinal);
-      Result.Add('SomaDigitos', calc.SomaDigitos);
-      Result.Add('ModuloFinal', calc.ModuloFinal);
+      Result := TJSONTools.SafeObjToJson(calc, 'Erro ao serializar CalcDigito');
+      if Assigned(Result) and (Result.Find(RSStatusField) = nil) then
+        Result.Add(RSStatusField, RSStatusSucesso);
     except
       on E: Exception do
       begin
+        Result := TJSONObject.Create;
         Result.Add(RSStatusField, RSStatusErro);
         Result.Add(RSErrorField, E.Message);
       end;
@@ -505,33 +503,70 @@ begin
 end;
 
 function TACBRBridgeDiversos.ModelMail: TJSONObject;
+var
+  mail: TACBrMail;
 begin
-  Result := TJSONObject.Create;
-  Result.Add('Host', 'smtp.seudominio.com.br');
-  Result.Add('Port', '587');
-  Result.Add('Username', 'fiscal@seudominio.com.br');
-  Result.Add('Password', 'senha');
-  Result.Add('SetSSL', False);
-  Result.Add('SetTLS', True);
-  Result.Add('IsHTML', True);
-  Result.Add('From', 'fiscal@seudominio.com.br');
-  Result.Add('FromName', 'Departamento Fiscal');
-  Result.Add('Para', 'cliente@empresa.com.br');
-  Result.Add('Subject', 'Documento Fiscal Eletronico');
-  Result.Add('Body', '<p>Segue em anexo o documento fiscal.</p>');
-  Result.Add('ApenasGerarMime', False);
+  mail := TACBrMail.Create(nil);
+  try
+    Result := TJSONTools.SafeObjToJson(mail, 'Erro ao gerar modelo Mail');
+  finally
+    mail.Free;
+  end;
 end;
 
 function TACBRBridgeDiversos.EnviarEmail(const jMail: TJSONObject): TJSONObject;
 var
   mail: TACBrMail;
-  paraStr, bodyStr, altBodyStr, nomeArq, b64Anexo, descAnexo: string;
-  arrDest, arrAnexos: TJSONData;
+  nomeArq, b64Anexo, descAnexo: string;
+  jNode, arrAnexos: TJSONData;
   arr: TJSONArray;
   objAnexo: TJSONObject;
   I: Integer;
   anexoStream, mimeStream: TMemoryStream;
   rawBytes: AnsiString;
+
+  procedure AddEmailsFromNode(const AKey: string; const AKind: Integer);
+  var
+    LNode: TJSONData;
+    LArr: TJSONArray;
+    K: Integer;
+    LEmail: string;
+  begin
+    LNode := jMail.Find(AKey);
+    if not Assigned(LNode) then
+      Exit;
+    if LNode.JSONType = jtString then
+    begin
+      LEmail := Trim(LNode.AsString);
+      if LEmail <> '' then
+      begin
+        case AKind of
+          0: mail.AddAddress(LEmail);
+          1: mail.AddCC(LEmail);
+          2: mail.AddBCC(LEmail);
+          3: mail.AddReplyTo(LEmail);
+        end;
+      end;
+    end
+    else if LNode.JSONType = jtArray then
+    begin
+      LArr := TJSONArray(LNode);
+      for K := 0 to LArr.Count - 1 do
+      begin
+        LEmail := Trim(LArr.Items[K].AsString);
+        if LEmail <> '' then
+        begin
+          case AKind of
+            0: mail.AddAddress(LEmail);
+            1: mail.AddCC(LEmail);
+            2: mail.AddBCC(LEmail);
+            3: mail.AddReplyTo(LEmail);
+          end;
+        end;
+      end;
+    end;
+  end;
+
 begin
   Result := TJSONObject.Create;
   mail := TACBrMail.Create(nil);
@@ -539,33 +574,36 @@ begin
   try
     try
       mail.Clear;
-      mail.UseThread := False;
       mail.Port := '587';
       mail.SetTLS := True;
       mail.IsHTML := True;
       TJSONTools.JsonToObj(jMail, mail);
+      mail.UseThread := False;
       if mail.From = '' then
         mail.From := mail.Username;
 
-      paraStr := jMail.Get('Para', '');
-      if paraStr <> '' then
-        mail.AddAddress(paraStr);
+      AddEmailsFromNode('To', 0);
+      AddEmailsFromNode('Para', 0);
+      AddEmailsFromNode('Destinatarios', 0);
+      AddEmailsFromNode('CC', 1);
+      AddEmailsFromNode('Cc', 1);
+      AddEmailsFromNode('Copia', 1);
 
-      arrDest := jMail.Find('Destinatarios');
-      if Assigned(arrDest) and (arrDest.JSONType = jtArray) then
-      begin
-        arr := TJSONArray(arrDest);
-        for I := 0 to arr.Count - 1 do
-          mail.AddAddress(arr.Strings[I]);
-      end;
+      jNode := jMail.Find('BCC');
+      if Assigned(jNode) and (jNode.JSONType = jtString) and (Trim(jNode.AsString) <> '') then
+        mail.AddBCC(Trim(jNode.AsString));
 
-      bodyStr := jMail.Get('Body', '');
-      if bodyStr <> '' then
-        mail.Body.Text := bodyStr;
+      jNode := jMail.Find('ReplyTo');
+      if Assigned(jNode) and (jNode.JSONType = jtString) and (Trim(jNode.AsString) <> '') then
+        mail.AddReplyTo(Trim(jNode.AsString));
 
-      altBodyStr := jMail.Get('AltBody', '');
-      if altBodyStr <> '' then
-        mail.AltBody.Text := altBodyStr;
+      jNode := jMail.Find('Body');
+      if Assigned(jNode) and (jNode.JSONType = jtString) then
+        mail.Body.Text := jNode.AsString;
+
+      jNode := jMail.Find('AltBody');
+      if Assigned(jNode) and (jNode.JSONType = jtString) then
+        mail.AltBody.Text := jNode.AsString;
 
       arrAnexos := jMail.Find('Anexos');
       if Assigned(arrAnexos) and (arrAnexos.JSONType = jtArray) then

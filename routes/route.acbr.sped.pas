@@ -8,6 +8,7 @@ uses
   method.acbr.sped,
   jsonconvert,
   fpjson,
+  jsonparser,
   Horse,
   Horse.Commons,
   Classes,
@@ -31,6 +32,53 @@ procedure regRouter;
 
 implementation
 
+procedure SendJsonError(Res: THorseResponse; const AStatus: Integer; const AMsg: string);
+var
+  LErr: TJSONObject;
+begin
+  LErr := TJSONObject.Create;
+  LErr.Add(RSStatusField, RSStatusErro);
+  LErr.Add(RSMessageField, AMsg);
+  Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+     .Status(AStatus)
+     .Send(TJSONTools.JsonAndFree(LErr));
+end;
+
+function TryParseJsonObjectBody(Req: THorseRequest; Res: THorseResponse; out AObj: TJSONObject): Boolean;
+var
+  LData: TJSONData;
+begin
+  Result := False;
+  AObj := nil;
+  if Trim(Req.Body) = '' then
+  begin
+    SendJsonError(Res, 400, RSInvalidJSONBodyError);
+    Exit;
+  end;
+  try
+    LData := GetJSON(Req.Body);
+  except
+    on E: Exception do
+    begin
+      SendJsonError(Res, 400, RSInvalidJSONBodyError);
+      Exit;
+    end;
+  end;
+  if not Assigned(LData) then
+  begin
+    SendJsonError(Res, 400, RSInvalidJSONBodyError);
+    Exit;
+  end;
+  if not (LData is TJSONObject) then
+  begin
+    LData.Free;
+    SendJsonError(Res, 400, RSNotJSONObjectError);
+    Exit;
+  end;
+  AObj := TJSONObject(LData);
+  Result := True;
+end;
+
 procedure GetModeloConfigSPED(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   AcM: TACBRModelosJSONSPED;
@@ -60,19 +108,17 @@ var
   O: TJSONObject;
   Ac: TACBRBridgeSPED;
 begin
-  try
-    O := GetJSON(Req.Body) as TJSONObject;
-  except
-    on E: Exception do
-    begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSInvalidJSONBodyError])));
-      Exit;
-    end;
-  end;
+  if not TryParseJsonObjectBody(Req, Res, O) then
+    Exit;
 
   Ac := TACBRBridgeSPED.Create(TJSONTools.ExtractConfig(O));
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.SPED(O)));
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.SPED(O)));
+    except
+      on E: Exception do
+        SendJsonError(Res, 500, E.Message);
+    end;
   finally
     O.Free;
     Ac.Free;
@@ -84,14 +130,16 @@ var
   O: TJSONObject;
   Ac: TACBRBridgeSPED;
 begin
-  O := GetJSON(Req.Body) as TJSONObject;
+  if not TryParseJsonObjectBody(Req, Res, O) then
+    Exit;
+
   Ac := TACBRBridgeSPED.Create(TJSONTools.ExtractConfig(O));
   try
     try
       Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.Gerar(O)));
     except
       on E: Exception do
-        Res.Status(500).Send(E.Message);
+        SendJsonError(Res, 500, E.Message);
     end;
   finally
     O.Free;
@@ -128,14 +176,16 @@ var
   O: TJSONObject;
   Ac: TACBRBridgeSPEDPisCofins;
 begin
-  O := GetJSON(Req.Body) as TJSONObject;
+  if not TryParseJsonObjectBody(Req, Res, O) then
+    Exit;
+
   Ac := TACBRBridgeSPEDPisCofins.Create(TJSONTools.ExtractConfig(O));
   try
     try
       Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.Gerar(O)));
     except
       on E: Exception do
-        Res.Status(500).Send(E.Message);
+        SendJsonError(Res, 500, E.Message);
     end;
   finally
     O.Free;
@@ -145,17 +195,19 @@ end;
 
 procedure PostImportarFiscal(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O, LJson: TJSONObject;
+  O: TJSONObject;
   Ac: TACBRBridgeSPED;
 begin
-  O := GetJSON(Req.Body) as TJSONObject;
+  if not TryParseJsonObjectBody(Req, Res, O) then
+    Exit;
+
   Ac := TACBRBridgeSPED.Create(TJSONTools.ExtractConfig(O));
   try
-    LJson := Ac.Importar(O);
     try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
-    finally
-      LJson.Free;
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.Importar(O)));
+    except
+      on E: Exception do
+        SendJsonError(Res, 500, E.Message);
     end;
   finally
     O.Free;
@@ -165,17 +217,19 @@ end;
 
 procedure PostImportarPisCofins(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O, LJson: TJSONObject;
+  O: TJSONObject;
   Ac: TACBRBridgeSPEDPisCofins;
 begin
-  O := GetJSON(Req.Body) as TJSONObject;
+  if not TryParseJsonObjectBody(Req, Res, O) then
+    Exit;
+
   Ac := TACBRBridgeSPEDPisCofins.Create(TJSONTools.ExtractConfig(O));
   try
-    LJson := Ac.Importar(O);
     try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
-    finally
-      LJson.Free;
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.Importar(O)));
+    except
+      on E: Exception do
+        SendJsonError(Res, 500, E.Message);
     end;
   finally
     O.Free;
@@ -186,16 +240,10 @@ end;
 procedure GetModeloImportarSPEDPisCofins(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   AcM: TACBRModelosJSONSPEDPisCofins;
-  LJson: TJSONObject;
 begin
   AcM := TACBRModelosJSONSPEDPisCofins.Create('');
   try
-    LJson := AcM.ModelImportar;
-    try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
-    finally
-      LJson.Free;
-    end;
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(AcM.ModelImportar));
   finally
     AcM.Free;
   end;

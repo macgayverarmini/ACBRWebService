@@ -6,10 +6,8 @@
 interface
 
 uses
-  RTTI,
   ACBrSpedFiscal,
   ACBrSpedPisCofins,
-  Variants,
   fpjson,
   jsonconvert,
   Base64,
@@ -19,10 +17,7 @@ uses
   streamtools,
   ACBrEPCImportar,
   ACBrEFDImportar,
-  ACBrEPCBlocos,
-  DateUtils,
   ACBrEFDBlocos,
-  ACBrEPCBloco_0,
   resource.strings.global,
   resource.strings.msg;
 
@@ -56,8 +51,6 @@ type
     fErrosValidacao: TStringList;
     procedure CarregaConfig(const AllowEmpty: Boolean = True);
     procedure DoAcbrError(const MsnError: string);
-    procedure AjustarRegistrosImportados(const ASL: TStringList; const ASped: TACBrSPEDPisCofins);
-    procedure NormalizarTxtRegerado(const AFileName: string);
     procedure PopularBlocosEPC(const jRoot: TJSONObject; out AOmitBlocoP: Boolean);
   public
     constructor Create(const Cfg: string);
@@ -383,91 +376,16 @@ begin
   Result := Assigned(D) and not D.IsNull;
 end;
 
-{ Remove |9900|0100|1| emitido incondicionalmente pelo TACBrSPEDFiscal quando Registro0100 = nil }
-procedure RemoveOrphanEfd0100Counter(const AFileName: string);
-var
-  SL: TStringList;
-  I, N: Integer;
-  Removed: Boolean;
-  Line, Inner: string;
-begin
-  if (AFileName = '') or not FileExists(AFileName) then
-    Exit;
-  SL := TStringList.Create;
-  try
-    SL.LoadFromFile(AFileName);
-    Removed := False;
-    for I := SL.Count - 1 downto 0 do
-    begin
-      if SL[I] = '|9900|0100|1|' then
-      begin
-        SL.Delete(I);
-        Removed := True;
-        Break;
-      end;
-    end;
-    if Removed then
-    begin
-      for I := 0 to SL.Count - 1 do
-      begin
-        Line := SL[I];
-        if Pos('|9900|9900|', Line) = 1 then
-        begin
-          Inner := Copy(Line, 12, Length(Line) - 12);
-          if TryStrToInt(Inner, N) and (N > 1) then
-            SL[I] := '|9900|9900|' + IntToStr(N - 1) + '|';
-        end
-        else if Pos('|9990|', Line) = 1 then
-        begin
-          Inner := Copy(Line, 7, Length(Line) - 7);
-          if TryStrToInt(Inner, N) and (N > 1) then
-            SL[I] := '|9990|' + IntToStr(N - 1) + '|';
-        end
-        else if Pos('|9999|', Line) = 1 then
-        begin
-          Inner := Copy(Line, 7, Length(Line) - 7);
-          if TryStrToInt(Inner, N) and (N > 1) then
-            SL[I] := '|9999|' + IntToStr(N - 1) + '|';
-        end;
-      end;
-      SL.SaveToFile(AFileName);
-    end;
-  finally
-    SL.Free;
-  end;
-end;
-
 { TACBRModelosJSONSPED }
 
 function TACBRModelosJSONSPED.ModelConfig: TJSONObject;
 begin
-  Result := TJSONObject.Create;
-  Result.Add('Path', facbr.Path);
-  Result.Add('Arquivo', facbr.Arquivo);
-  Result.Add('DT_INI', FormatDateTime('yyyy-mm-dd', Date));
-  Result.Add('DT_FIN', FormatDateTime('yyyy-mm-dd', Date));
+  Result := TJSONTools.SafeObjToJson(facbr);
 end;
 
 function TACBRModelosJSONSPED.ModelGerar: TJSONObject;
-var
-  jSped: TJSONObject;
 begin
-  facbr.DT_INI := Date;
-  facbr.DT_FIN := Date;
-  TJSONTools.PopulateModelDefaults(facbr.Bloco_0, 5);
-  TJSONTools.PopulateModelDefaults(facbr.Bloco_B, 5);
-  TJSONTools.PopulateModelDefaults(facbr.Bloco_C, 5);
-  TJSONTools.PopulateModelDefaults(facbr.Bloco_D, 5);
-  TJSONTools.PopulateModelDefaults(facbr.Bloco_E, 5);
-  TJSONTools.PopulateModelDefaults(facbr.Bloco_G, 5);
-  TJSONTools.PopulateModelDefaults(facbr.Bloco_H, 5);
-  TJSONTools.PopulateModelDefaults(facbr.Bloco_K, 5);
-  TJSONTools.PopulateModelDefaults(facbr.Bloco_1, 5);
-  jSped := TJSONTools.ObjToJson(facbr);
-  if Assigned(jSped) then
-    jSped.Delete('Bloco_9');
-  Result := TJSONObject.Create;
-  Result.Add('sped', jSped);
+  Result := TJSONTools.SafeObjToJson(facbr);
 end;
 
 { TACBRBridgeSPED }
@@ -614,11 +532,20 @@ begin
     end;
 
     PopularBlocosEFD(jRoot, omit0100);
+    if omit0100 then
+    begin
+      { TACBrSPEDFiscal.WriteRegistro0001 appends REG_BLC='0100' unconditionally to
+        Bloco_9.Registro9900 even when Registro0100=nil. Remove it in-memory before
+        SaveFileTXT writes Bloco_9 (IniciaGeracao/WriteBloco_0 guard against re-running). }
+      facbr.IniciaGeracao;
+      facbr.WriteBloco_0;
+      for I := facbr.Bloco_9.Registro9900.Count - 1 downto 0 do
+        if facbr.Bloco_9.Registro9900.Items[I].REG_BLC = '0100' then
+          facbr.Bloco_9.Registro9900.Delete(I);
+    end;
     facbr.SaveFileTXT;
 
     fullFile := IncludeTrailingPathDelimiter(facbr.Path) + facbr.Arquivo;
-    if omit0100 then
-      RemoveOrphanEfd0100Counter(fullFile);
     ConvertFileUtf8ToCp1252(fullFile);
 
     Result.Add(RSStatusField, RSStatusSucesso);
@@ -656,17 +583,18 @@ begin
   try
     try
       CarregaConfig(True);
+      TJSONTools.JsonToObj(jSPED, Imp);
       b64 := jSPED.Get('arquivo_base64', '');
-      tmpFile := jSPED.Get('Arquivo', '');
       if b64 <> '' then
       begin
         tmpDir := ExtractFilePath(ParamStr(0)) + 'tmp' + PathDelim;
         ForceDirectories(tmpDir);
         tmpFile := tmpDir + 'sped_efdimp_' + IntToStr(GetTickCount64) + '_' + IntToStr(Random(1000000)) + '.txt';
         WriteUtf8TempFile(tmpFile, EnsureUtf8FromBytes(DecodeStringBase64(b64)));
+        Imp.Arquivo := tmpFile;
       end;
 
-      if (tmpFile = '') or not FileExists(tmpFile) then
+      if (Imp.Arquivo = '') or not FileExists(Imp.Arquivo) then
       begin
         Result.Add(RSStatusField, RSStatusErro);
         Result.Add(RSMessageField, 'Arquivo SPED Fiscal nao informado ou inexistente para importacao.');
@@ -674,7 +602,6 @@ begin
       end;
 
       Imp.ACBrSpedFiscal := facbr;
-      Imp.Arquivo := tmpFile;
       Imp.Importar;
 
       Result.Add(RSStatusField, RSStatusSucesso);
@@ -698,41 +625,24 @@ end;
 
 function TACBRModelosJSONSPEDPisCofins.ModelConfig: TJSONObject;
 begin
-  Result := TJSONObject.Create;
-  Result.Add('Path', facbr.Path);
-  Result.Add('Arquivo', facbr.Arquivo);
-  Result.Add('DT_INI', FormatDateTime('yyyy-mm-dd', Date));
-  Result.Add('DT_FIN', FormatDateTime('yyyy-mm-dd', Date));
+  Result := TJSONTools.SafeObjToJson(facbr);
 end;
 
 function TACBRModelosJSONSPEDPisCofins.ModelGerar: TJSONObject;
-var
-  jSped: TJSONObject;
 begin
-  facbr.DT_INI := Date;
-  facbr.DT_FIN := Date;
-  facbr.Bloco_0.Registro0900New;
-  TJSONTools.PopulateModelDefaults(facbr.Bloco_0, 5);
-  TJSONTools.PopulateModelDefaults(facbr.Bloco_A, 5);
-  TJSONTools.PopulateModelDefaults(facbr.Bloco_C, 5);
-  TJSONTools.PopulateModelDefaults(facbr.Bloco_D, 5);
-  TJSONTools.PopulateModelDefaults(facbr.Bloco_F, 5);
-  TJSONTools.PopulateModelDefaults(facbr.Bloco_I, 5);
-  TJSONTools.PopulateModelDefaults(facbr.Bloco_M, 5);
-  TJSONTools.PopulateModelDefaults(facbr.Bloco_P, 5);
-  TJSONTools.PopulateModelDefaults(facbr.Bloco_1, 5);
-  jSped := TJSONTools.ObjToJson(facbr);
-  if Assigned(jSped) then
-    jSped.Delete('Bloco_9');
-  Result := TJSONObject.Create;
-  Result.Add('sped', jSped);
+  Result := TJSONTools.SafeObjToJson(facbr);
 end;
 
 function TACBRModelosJSONSPEDPisCofins.ModelImportar: TJSONObject;
+var
+  Imp: TACBrSpedPCImportar;
 begin
-  Result := TJSONObject.Create;
-  Result.Add('arquivo_base64', 'CONTEUDO_TXT_SPED_PIS_COFINS_EM_BASE64');
-  Result.Add('RegerarTXT', False);
+  Imp := TACBrSpedPCImportar.Create(nil);
+  try
+    Result := TJSONTools.SafeObjToJson(Imp);
+  finally
+    Imp.Free;
+  end;
 end;
 
 { TACBRBridgeSPEDPisCofins }
@@ -876,13 +786,14 @@ begin
 
     if omitBlocoP then
     begin
+      { IniciaGeracao resets Bloco_P.Gravado := False and sets FInicializado := True;
+        SaveFileTXT's internal IniciaGeracao exits immediately when FInicializado = True. }
       facbr.IniciaGeracao;
       facbr.Bloco_P.Gravado := True;
     end;
     facbr.SaveFileTXT;
 
     fullFile := IncludeTrailingPathDelimiter(facbr.Path) + facbr.Arquivo;
-    NormalizarTxtRegerado(fullFile);
     ConvertFileUtf8ToCp1252(fullFile);
 
     Result.Add(RSStatusField, RSStatusSucesso);
@@ -912,14 +823,12 @@ function TACBRBridgeSPEDPisCofins.Importar(const jSPED: TJSONObject): TJSONObjec
 var
   Imp: TACBrSpedPCImportar;
   b64, tmpFile, outFile, tmpDir: string;
-  SL: TStringList;
   regerar: Boolean;
   tamanho, I: Integer;
   arrAvisos: TJSONArray;
 begin
   Result := TJSONObject.Create;
   Imp := TACBrSpedPCImportar.Create(nil);
-  SL := TStringList.Create;
   b64 := '';
   tmpFile := '';
   outFile := '';
@@ -927,8 +836,9 @@ begin
     try
       CarregaConfig(True);
       fErrosValidacao.Clear;
+
+      TJSONTools.JsonToObj(jSPED, Imp);
       b64 := jSPED.Get('arquivo_base64', '');
-      tmpFile := jSPED.Get('Arquivo', '');
       regerar := jSPED.Get('RegerarTXT', False);
 
       tmpDir := ExtractFilePath(ParamStr(0)) + 'tmp' + PathDelim;
@@ -938,12 +848,10 @@ begin
       begin
         tmpFile := tmpDir + 'sped_epcimp_' + IntToStr(GetTickCount64) + '_' + IntToStr(Random(1000000)) + '.txt';
         WriteUtf8TempFile(tmpFile, EnsureUtf8FromBytes(DecodeStringBase64(b64)));
-        SL.LoadFromFile(tmpFile);
-      end
-      else if (tmpFile <> '') and FileExists(tmpFile) then
-        SL.LoadFromFile(tmpFile);
+        Imp.Arquivo := tmpFile;
+      end;
 
-      if (tmpFile = '') or not FileExists(tmpFile) then
+      if (Imp.Arquivo = '') or not FileExists(Imp.Arquivo) then
       begin
         Result.Add(RSStatusField, RSStatusErro);
         Result.Add(RSMessageField, 'Arquivo SPED Contribuicoes nao informado ou inexistente para importacao.');
@@ -951,9 +859,7 @@ begin
       end;
 
       Imp.ACBrSpedPisCofins := facbr;
-      Imp.Arquivo := tmpFile;
       Imp.Importar;
-      AjustarRegistrosImportados(SL, facbr);
 
       Result.Add(RSStatusField, RSStatusSucesso);
       Result.Add(RSMessageField, 'SPED Contribuicoes importado com sucesso.');
@@ -974,7 +880,6 @@ begin
         facbr.SaveFileTXT;
 
         outFile := IncludeTrailingPathDelimiter(facbr.Path) + facbr.Arquivo;
-        NormalizarTxtRegerado(outFile);
         ConvertFileUtf8ToCp1252(outFile);
         if FileExists(outFile) then
           Result.Add('arquivo_base64', FileToStringBase64(outFile, True, tamanho));
@@ -996,152 +901,7 @@ begin
   finally
     if (b64 <> '') and (tmpFile <> '') and FileExists(tmpFile) then
       SysUtils.DeleteFile(tmpFile);
-    SL.Free;
     Imp.Free;
-  end;
-end;
-
-{ Completa o parse de Registro0900 (ausente em TACBrSpedPCImportar) e libera M200/M600 vazios }
-procedure TACBRBridgeSPEDPisCofins.AjustarRegistrosImportados(
-  const ASL: TStringList;
-  const ASped: TACBrSPEDPisCofins
-);
-var
-  Fields: TStringList;
-  I: Integer;
-  HasM200, HasM600: Boolean;
-  R0900: ACBrEPCBloco_0.TRegistro0900;
-
-  function Parse0900Var(const Idx: Integer): Variant;
-  var
-    S: string;
-    FVal: Double;
-    VCode: Integer;
-  begin
-    if Idx >= Fields.Count then
-      Exit(Null);
-    S := Trim(Fields[Idx]);
-    if S = '' then
-      Exit(Null);
-    System.Val(StringReplace(S, ',', '.', [rfReplaceAll]), FVal, VCode);
-    if VCode = 0 then
-      Result := FVal
-    else
-      Result := Null;
-  end;
-
-begin
-  if not Assigned(ASL) or not Assigned(ASped) or (ASL.Count = 0) then
-    Exit;
-  Fields := TStringList.Create;
-  try
-    Fields.StrictDelimiter := True;
-    Fields.Delimiter := '|';
-    Fields.DelimitedText := ASL[0];
-    if (Fields.Count > 4) and (Fields[1] = '0000') then
-    begin
-      if Trim(Fields[4]) = '' then
-        ASped.Bloco_0.Registro0000.IND_SIT_ESP := ACBrEPCBlocos.indNenhum;
-      if (Fields.Count > 13) and (Trim(Fields[13]) = '') then
-        ASped.Bloco_0.Registro0000.IND_NAT_PJ := ACBrEPCBlocos.indNatPJNenhum;
-    end;
-
-    HasM200 := False;
-    HasM600 := False;
-    for I := 0 to ASL.Count - 1 do
-    begin
-      if Pos('|0900|', ASL[I]) = 1 then
-      begin
-        Fields.DelimitedText := ASL[I];
-        R0900 := ASped.Bloco_0.Registro0900New;
-        R0900.REC_TOTAL_BLOCO_A := Parse0900Var(2);
-        R0900.REC_NRB_BLOCO_A := Parse0900Var(3);
-        R0900.REC_TOTAL_BLOCO_C := Parse0900Var(4);
-        R0900.REC_NRB_BLOCO_C := Parse0900Var(5);
-        R0900.REC_TOTAL_BLOCO_D := Parse0900Var(6);
-        R0900.REC_NRB_BLOCO_D := Parse0900Var(7);
-        R0900.REC_TOTAL_BLOCO_F := Parse0900Var(8);
-        R0900.REC_NRB_BLOCO_F := Parse0900Var(9);
-        R0900.REC_TOTAL_BLOCO_I := Parse0900Var(10);
-        R0900.REC_NRB_BLOCO_I := Parse0900Var(11);
-        R0900.REC_TOTAL_BLOCO_1 := Parse0900Var(12);
-        R0900.REC_NRB_BLOCO_1 := Parse0900Var(13);
-        R0900.REC_TOTAL_PERIODO := Parse0900Var(14);
-        R0900.REC_TOTAL_NRB_PERIODO := Parse0900Var(15);
-      end
-      else if Pos('|M200|', ASL[I]) = 1 then
-        HasM200 := True
-      else if Pos('|M600|', ASL[I]) = 1 then
-        HasM600 := True;
-    end;
-
-    if ASped.Bloco_M.RegistroM001.IND_MOV = ACBrEPCBlocos.imComDados then
-    begin
-      if not HasM200 and Assigned(ASped.Bloco_M.RegistroM001.RegistroM200) then
-      begin
-        ASped.Bloco_M.RegistroM001.RegistroM200.Free;
-        ASped.Bloco_M.RegistroM001.RegistroM200 := nil;
-      end;
-      if not HasM600 and Assigned(ASped.Bloco_M.RegistroM001.RegistroM600) then
-      begin
-        ASped.Bloco_M.RegistroM001.RegistroM600.Free;
-        ASped.Bloco_M.RegistroM001.RegistroM600 := nil;
-      end;
-    end;
-  finally
-    Fields.Free;
-  end;
-end;
-
-{ Preserva 4 casas decimais em ALIQ_PIS/ALIQ_COFINS do C175 (ACBrEPCBloco_C_Class usa VLFill com CurMascara #0.00) }
-procedure TACBRBridgeSPEDPisCofins.NormalizarTxtRegerado(const AFileName: string);
-var
-  Lines, Fields: TStringList;
-  I, CommaPos: Integer;
-  Modified, LineModified: Boolean;
-begin
-  if (AFileName = '') or not FileExists(AFileName) then
-    Exit;
-  Lines := TStringList.Create;
-  Fields := TStringList.Create;
-  try
-    Lines.LoadFromFile(AFileName);
-    Fields.StrictDelimiter := True;
-    Fields.Delimiter := '|';
-    Modified := False;
-    for I := 0 to Lines.Count - 1 do
-    begin
-      if Pos('|C175|', Lines[I]) = 1 then
-      begin
-        LineModified := False;
-        Fields.DelimitedText := Lines[I];
-        if Fields.Count > 13 then
-        begin
-          CommaPos := Pos(',', Fields[7]);
-          if (CommaPos > 0) and (Length(Fields[7]) - CommaPos = 2) then
-          begin
-            Fields[7] := Fields[7] + '00';
-            LineModified := True;
-          end;
-          CommaPos := Pos(',', Fields[13]);
-          if (CommaPos > 0) and (Length(Fields[13]) - CommaPos = 2) then
-          begin
-            Fields[13] := Fields[13] + '00';
-            LineModified := True;
-          end;
-          if LineModified then
-          begin
-            Lines[I] := Fields.DelimitedText;
-            Modified := True;
-          end;
-        end;
-      end;
-    end;
-    if Modified then
-      Lines.SaveToFile(AFileName);
-  finally
-    Fields.Free;
-    Lines.Free;
   end;
 end;
 

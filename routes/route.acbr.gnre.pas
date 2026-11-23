@@ -22,6 +22,30 @@ procedure regRouter;
 
 implementation
 
+function TryParseJSONObject(Req: THorseRequest; Res: THorseResponse; out O: TJSONObject): Boolean;
+var
+  LData: TJSONData;
+begin
+  Result := False;
+  O := nil;
+  try
+    LData := GetJSON(Req.Body);
+    if not (LData is TJSONObject) then
+    begin
+      LData.Free;
+      Res.Status(400).ContentType(TMimeTypes.ApplicationJSON.ToString)
+        .Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSStatusField, RSStatusErro, RSMessageField, RSNotJSONObjectError])));
+      Exit;
+    end;
+    O := TJSONObject(LData);
+    Result := True;
+  except
+    on E: Exception do
+      Res.Status(400).ContentType(TMimeTypes.ApplicationJSON.ToString)
+        .Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSStatusField, RSStatusErro, RSMessageField, RSInvalidJSONBodyError + ' ' + E.Message])));
+  end;
+end;
+
 procedure GetModeloConfigGNRE(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   AcM: TACBRModelosJSONGNRE;
@@ -63,15 +87,8 @@ var
   O, LJson: TJSONObject;
   Ac: TACBRBridgeGNRE;
 begin
-  try
-    O := GetJSON(Req.Body) as TJSONObject;
-  except
-    on E: Exception do
-    begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSInvalidJSONBodyError + ' ' + E.Message])));
-      Exit;
-    end;
-  end;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
 
   Ac := TACBRBridgeGNRE.Create(TJSONTools.ExtractConfig(O));
   try
@@ -92,15 +109,8 @@ var
   O, LJson: TJSONObject;
   Ac: TACBRBridgeGNRE;
 begin
-  try
-    O := GetJSON(Req.Body) as TJSONObject;
-  except
-    on E: Exception do
-    begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSInvalidJSONBodyError + ' ' + E.Message])));
-      Exit;
-    end;
-  end;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
 
   Ac := TACBRBridgeGNRE.Create(TJSONTools.ExtractConfig(O));
   try
@@ -121,15 +131,8 @@ var
   O, LJson: TJSONObject;
   Ac: TACBRBridgeGNRE;
 begin
-  try
-    O := GetJSON(Req.Body) as TJSONObject;
-  except
-    on E: Exception do
-    begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSInvalidJSONBodyError + ' ' + E.Message])));
-      Exit;
-    end;
-  end;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
 
   Ac := TACBRBridgeGNRE.Create(TJSONTools.ExtractConfig(O));
   try

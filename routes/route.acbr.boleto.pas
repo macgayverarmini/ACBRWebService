@@ -25,19 +25,63 @@ procedure regRouter;
 
 implementation
 
+function TryParseJsonObject(const ABody: string; Res: THorseResponse; out AObj: TJSONObject): Boolean;
+var
+  LData: TJSONData;
+begin
+  Result := False;
+  AObj := nil;
+  LData := nil;
+  try
+    LData := GetJSON(ABody);
+  except
+    on E: Exception do
+    begin
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+         .Status(400)
+         .Send(TJSONTools.JsonAndFree(TJSONObject.Create([
+           RSStatusField, RSStatusErro,
+           RSMessageField, RSInvalidJSONBodyError + ' ' + E.Message
+         ])));
+      Exit;
+    end;
+  end;
+
+  if not Assigned(LData) then
+  begin
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Status(400)
+       .Send(TJSONTools.JsonAndFree(TJSONObject.Create([
+         RSStatusField, RSStatusErro,
+         RSMessageField, RSInvalidJSONBodyError
+       ])));
+    Exit;
+  end;
+
+  if not (LData is TJSONObject) then
+  begin
+    LData.Free;
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Status(400)
+       .Send(TJSONTools.JsonAndFree(TJSONObject.Create([
+         RSStatusField, RSStatusErro,
+         RSMessageField, RSNotJSONObjectError
+       ])));
+    Exit;
+  end;
+
+  AObj := TJSONObject(LData);
+  Result := True;
+end;
+
 procedure GetModeloBoletoConfig(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   AcM: TACBRModelosJSONBoleto;
-  LJson: TJSONObject;
 begin
   AcM := TACBRModelosJSONBoleto.Create('');
   try
-    LJson := AcM.ModelConfig;
-    try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
-    finally
-      LJson.Free;
-    end;
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Send(TJSONTools.JsonAndFree(AcM.ModelConfig));
   finally
     AcM.Free;
   end;
@@ -46,16 +90,11 @@ end;
 procedure GetModeloBoletoTitulo(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   AcM: TACBRModelosJSONBoleto;
-  LJson: TJSONObject;
 begin
   AcM := TACBRModelosJSONBoleto.Create('');
   try
-    LJson := AcM.ModelTitulo;
-    try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
-    finally
-      LJson.Free;
-    end;
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Send(TJSONTools.JsonAndFree(AcM.ModelTitulo));
   finally
     AcM.Free;
   end;
@@ -63,27 +102,16 @@ end;
 
 procedure PostBoletoPDF(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O, LJson: TJSONObject;
+  O: TJSONObject;
   Ac: TACBRBridgeBoleto;
 begin
-  try
-    O := GetJSON(Req.Body) as TJSONObject;
-  except
-    on E: Exception do
-    begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSInvalidJSONBodyError + ' ' + E.Message])));
-      Exit;
-    end;
-  end;
+  if not TryParseJsonObject(Req.Body, Res, O) then
+    Exit;
 
   Ac := TACBRBridgeBoleto.Create(TJSONTools.ExtractConfig(O));
   try
-    LJson := Ac.GerarPDF(O);
-    try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
-    finally
-      LJson.Free;
-    end;
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Send(TJSONTools.JsonAndFree(Ac.GerarPDF(O)));
   finally
     O.Free;
     Ac.Free;
@@ -92,27 +120,16 @@ end;
 
 procedure PostBoletoRemessa(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O, LJson: TJSONObject;
+  O: TJSONObject;
   Ac: TACBRBridgeBoleto;
 begin
-  try
-    O := GetJSON(Req.Body) as TJSONObject;
-  except
-    on E: Exception do
-    begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSInvalidJSONBodyError + ' ' + E.Message])));
-      Exit;
-    end;
-  end;
+  if not TryParseJsonObject(Req.Body, Res, O) then
+    Exit;
 
   Ac := TACBRBridgeBoleto.Create(TJSONTools.ExtractConfig(O));
   try
-    LJson := Ac.GerarRemessa(O);
-    try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
-    finally
-      LJson.Free;
-    end;
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Send(TJSONTools.JsonAndFree(Ac.GerarRemessa(O)));
   finally
     O.Free;
     Ac.Free;
@@ -121,27 +138,16 @@ end;
 
 procedure PostBoletoRetorno(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O, LJson: TJSONObject;
+  O: TJSONObject;
   Ac: TACBRBridgeBoleto;
 begin
-  try
-    O := GetJSON(Req.Body) as TJSONObject;
-  except
-    on E: Exception do
-    begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSInvalidJSONBodyError + ' ' + E.Message])));
-      Exit;
-    end;
-  end;
+  if not TryParseJsonObject(Req.Body, Res, O) then
+    Exit;
 
   Ac := TACBRBridgeBoleto.Create(TJSONTools.ExtractConfig(O));
   try
-    LJson := Ac.LerRetorno(O);
-    try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
-    finally
-      LJson.Free;
-    end;
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Send(TJSONTools.JsonAndFree(Ac.LerRetorno(O)));
   finally
     O.Free;
     Ac.Free;
@@ -151,16 +157,11 @@ end;
 procedure GetModeloBoletoPixQRCode(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   AcM: TACBRModelosJSONBoleto;
-  LJson: TJSONObject;
 begin
   AcM := TACBRModelosJSONBoleto.Create('');
   try
-    LJson := AcM.ModelPixQRCode;
-    try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
-    finally
-      LJson.Free;
-    end;
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Send(TJSONTools.JsonAndFree(AcM.ModelPixQRCode));
   finally
     AcM.Free;
   end;
@@ -168,27 +169,16 @@ end;
 
 procedure PostBoletoPixQRCode(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O, LJson: TJSONObject;
+  O: TJSONObject;
   Ac: TACBRBridgeBoleto;
 begin
-  try
-    O := GetJSON(Req.Body) as TJSONObject;
-  except
-    on E: Exception do
-    begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSInvalidJSONBodyError + ' ' + E.Message])));
-      Exit;
-    end;
-  end;
+  if not TryParseJsonObject(Req.Body, Res, O) then
+    Exit;
 
   Ac := TACBRBridgeBoleto.Create(TJSONTools.ExtractConfig(O));
   try
-    LJson := Ac.GerarPixBrCode(O);
-    try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
-    finally
-      LJson.Free;
-    end;
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Send(TJSONTools.JsonAndFree(Ac.GerarPixQRCode(O)));
   finally
     O.Free;
     Ac.Free;
@@ -197,27 +187,16 @@ end;
 
 procedure PostBoletoEnviar(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O, LJson: TJSONObject;
+  O: TJSONObject;
   Ac: TACBRBridgeBoleto;
 begin
-  try
-    O := GetJSON(Req.Body) as TJSONObject;
-  except
-    on E: Exception do
-    begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSInvalidJSONBodyError + ' ' + E.Message])));
-      Exit;
-    end;
-  end;
+  if not TryParseJsonObject(Req.Body, Res, O) then
+    Exit;
 
   Ac := TACBRBridgeBoleto.Create(TJSONTools.ExtractConfig(O));
   try
-    LJson := Ac.EnviarWebService(O);
-    try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
-    finally
-      LJson.Free;
-    end;
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Send(TJSONTools.JsonAndFree(Ac.EnviarWebService(O)));
   finally
     O.Free;
     Ac.Free;

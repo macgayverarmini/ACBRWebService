@@ -6,9 +6,8 @@ unit method.acbr.diversos.validador;
 interface
 
 uses
-  fpjson,jsonconvert, ACBrValidador,
-  Horse.HandleException, Base64, jsonparser,
-  Classes, SysUtils, fpjsonrtti;
+  fpjson, jsonconvert, ACBrValidador,
+  Classes, SysUtils;
 
 type
 
@@ -24,18 +23,16 @@ type
     destructor Destroy; override;
   end;
 
-
 implementation
 
 { TACBRBridgeValidador }
 
 function TACBRBridgeValidador.Modelo: TJSONObject;
 begin
-   Result := TJSONTools.ObjToJson(facbr);
+  Result := TJSONTools.SafeObjToJson(facbr, 'Erro ao gerar modelo Validador');
 end;
 
-function TACBRBridgeValidador.Validar(const jValidador: TJSONObject
-  ): TJSONBoolean;
+function TACBRBridgeValidador.Validar(const jValidador: TJSONObject): TJSONBoolean;
 begin
   TJSONTools.JsonToObj(jValidador, facbr);
   Result := TJSONBoolean.Create(facbr.Validar);
@@ -43,7 +40,8 @@ end;
 
 constructor TACBRBridgeValidador.Create;
 begin
- facbr := TACBrValidador.Create(nil);
+  inherited Create;
+  facbr := TACBrValidador.Create(nil);
 end;
 
 destructor TACBRBridgeValidador.Destroy;
@@ -53,4 +51,3 @@ begin
 end;
 
 end.
-

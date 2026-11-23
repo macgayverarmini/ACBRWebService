@@ -5,10 +5,8 @@
 interface
 
 uses
-  // Unit com a lógica de negócio do MDF-e
   method.acbr.mdfe,
   jsonconvert,
-  // Units do Horse e JSON
   fpjson, Horse, Horse.Commons, Classes, SysUtils,
   resource.strings.global,
   resource.strings.msg,
@@ -23,7 +21,7 @@ procedure GetModeloMDFeFromXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next
 procedure GetModeloMDFeToXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure GetMDFePDFFile(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
-// --- Handlers para Endpoints de Operações (POST) ---
+// --- Handlers para Endpoints de Operacoes (POST) ---
 procedure PostEnviarMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostEventosMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostDamdfeMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
@@ -49,12 +47,33 @@ procedure PostEventoToXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNe
 procedure GetModeloEmailMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostEmailMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
-// Procedure para registrar todas as rotas no Horse
 procedure regRouter;
 
 implementation
 
-// --- Implementação dos Handlers de Modelos (GET) ---
+function TryParseJSONObject(Req: THorseRequest; Res: THorseResponse; out O: TJSONObject): Boolean;
+var
+  LData: TJSONData;
+begin
+  Result := False;
+  O := nil;
+  try
+    LData := GetJSON(Req.Body);
+    if not (LData is TJSONObject) then
+    begin
+      LData.Free;
+      Res.Status(400).ContentType(TMimeTypes.ApplicationJSON.ToString)
+        .Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSStatusField, RSStatusErro, RSMessageField, RSNotJSONObjectError])));
+      Exit;
+    end;
+    O := TJSONObject(LData);
+    Result := True;
+  except
+    on E: Exception do
+      Res.Status(400).ContentType(TMimeTypes.ApplicationJSON.ToString)
+        .Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSStatusField, RSStatusErro, RSMessageField, RSJSONParseError + E.Message])));
+  end;
+end;
 
 procedure GetModeloConfigMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
@@ -121,6 +140,7 @@ begin
     AcM.Free;
   end;
 end;
+
 procedure GetModeloMDFeFromXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   AcM: TACBRModelosJSONMDFe;
@@ -156,6 +176,7 @@ begin
     AcM.Free;
   end;
 end;
+
 procedure GetMDFePDFFile(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   Chave, FilePath, PdfDir: string;
@@ -174,22 +195,13 @@ begin
     Res.Status(404).Send('PDF do MDF-e nao encontrado');
 end;
 
-// --- Implementação dos Handlers de Operações (POST) ---
-
 procedure PostEnviarMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   O, LJson: TJSONObject;
   Ac: TACBRBridgeMDFe;
 begin
-  try
-    O := GetJSON(Req.Body) as TJSONObject;
-  except
-    on E: Exception do
-    begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
-      Exit;
-    end;
-  end;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
 
   Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
@@ -211,15 +223,8 @@ var
   LEventos: TJSONArray;
   Ac: TACBRBridgeMDFe;
 begin
-  try
-    O := GetJSON(Req.Body) as TJSONObject;
-  except
-    on E: Exception do
-    begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
-      Exit;
-    end;
-  end;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
 
   Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
@@ -238,19 +243,11 @@ end;
 
 procedure PostDamdfeMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O: TJSONObject;
+  O, LJson: TJSONObject;
   Ac: TACBRBridgeMDFe;
-  LJson: TJSONObject;
 begin
-  try
-    O := GetJSON(Req.Body) as TJSONObject;
-  except
-    on E: Exception do
-    begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
-      Exit;
-    end;
-  end;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
 
   Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
@@ -265,20 +262,14 @@ begin
     Ac.Free;
   end;
 end;
+
 procedure PostDamdfeURLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   O, LJson: TJSONObject;
   Ac: TACBRBridgeMDFe;
 begin
-  try
-    O := GetJSON(Req.Body) as TJSONObject;
-  except
-    on E: Exception do
-    begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
-      Exit;
-    end;
-  end;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
 
   Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
@@ -293,20 +284,14 @@ begin
     Ac.Free;
   end;
 end;
+
 procedure PostDamdfeEventoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   O, LJson: TJSONObject;
   Ac: TACBRBridgeMDFe;
 begin
-  try
-    O := GetJSON(Req.Body) as TJSONObject;
-  except
-    on E: Exception do
-    begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
-      Exit;
-    end;
-  end;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
 
   Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
@@ -324,19 +309,11 @@ end;
 
 procedure PostDistribuicaoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O: TJSONObject;
+  O, LJson: TJSONObject;
   Ac: TACBRBridgeMDFe;
-  LJson: TJSONObject;
 begin
-  try
-    O := GetJSON(Req.Body) as TJSONObject;
-  except
-    on E: Exception do
-    begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
-      Exit;
-    end;
-  end;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
 
   Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
@@ -351,20 +328,14 @@ begin
     Ac.Free;
   end;
 end;
+
 procedure PostMDFeFromXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   O, LJson: TJSONObject;
   Ac: TACBRBridgeMDFe;
 begin
-  try
-    O := GetJSON(Req.Body) as TJSONObject;
-  except
-    on E: Exception do
-    begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
-      Exit;
-    end;
-  end;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
 
   Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
@@ -385,15 +356,8 @@ var
   O, LJson: TJSONObject;
   Ac: TACBRBridgeMDFe;
 begin
-  try
-    O := GetJSON(Req.Body) as TJSONObject;
-  except
-    on E: Exception do
-    begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
-      Exit;
-    end;
-  end;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
 
   Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
@@ -408,8 +372,6 @@ begin
     Ac.Free;
   end;
 end;
-
-// --- Registro das Rotas ---
 
 procedure GetModeloStatusMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
@@ -506,15 +468,9 @@ var
   O, LJson: TJSONObject;
   Ac: TACBRBridgeMDFe;
 begin
-  try
-    O := GetJSON(Req.Body) as TJSONObject;
-  except
-    on E: Exception do
-    begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
-      Exit;
-    end;
-  end;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
+
   Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.StatusServico(O);
@@ -534,15 +490,9 @@ var
   O, LJson: TJSONObject;
   Ac: TACBRBridgeMDFe;
 begin
-  try
-    O := GetJSON(Req.Body) as TJSONObject;
-  except
-    on E: Exception do
-    begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
-      Exit;
-    end;
-  end;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
+
   Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.Consulta(O);
@@ -562,15 +512,9 @@ var
   O, LJson: TJSONObject;
   Ac: TACBRBridgeMDFe;
 begin
-  try
-    O := GetJSON(Req.Body) as TJSONObject;
-  except
-    on E: Exception do
-    begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
-      Exit;
-    end;
-  end;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
+
   Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.Cancelamento(O);
@@ -590,15 +534,9 @@ var
   O, LJson: TJSONObject;
   Ac: TACBRBridgeMDFe;
 begin
-  try
-    O := GetJSON(Req.Body) as TJSONObject;
-  except
-    on E: Exception do
-    begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
-      Exit;
-    end;
-  end;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
+
   Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.Encerramento(O);
@@ -618,15 +556,9 @@ var
   O, LJson: TJSONObject;
   Ac: TACBRBridgeMDFe;
 begin
-  try
-    O := GetJSON(Req.Body) as TJSONObject;
-  except
-    on E: Exception do
-    begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
-      Exit;
-    end;
-  end;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
+
   Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.ConsultarMDFeNaoEnc(O);
@@ -664,15 +596,9 @@ var
   O, LJson: TJSONObject;
   Ac: TACBRBridgeMDFe;
 begin
-  try
-    O := GetJSON(Req.Body) as TJSONObject;
-  except
-    on E: Exception do
-    begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
-      Exit;
-    end;
-  end;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
+
   Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.ValidarRegras(O);
@@ -710,15 +636,9 @@ var
   O, LJson: TJSONObject;
   Ac: TACBRBridgeMDFe;
 begin
-  try
-    O := GetJSON(Req.Body) as TJSONObject;
-  except
-    on E: Exception do
-    begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
-      Exit;
-    end;
-  end;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
+
   Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.EventoToXML(O);
@@ -735,28 +655,19 @@ end;
 
 procedure GetModeloEmailMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  LJson, LMail: TJSONObject;
+  AcM: TACBRModelosJSONMDFe;
+  LJson: TJSONObject;
 begin
-  LJson := TJSONObject.Create;
+  AcM := TACBRModelosJSONMDFe.Create('');
   try
-    LJson.Add(RSXMLField, 'XML do MDF-e em Base64 ou XML puro');
-    LJson.Add('para', 'cliente@empresa.com.br');
-    LJson.Add('assunto', 'Manifesto Eletronico de Documentos Fiscais');
-    LJson.Add('mensagem', 'Segue em anexo o MDF-e.');
-    LJson.Add('enviaPDF', True);
-    LMail := TJSONObject.Create;
-    LMail.Add('Host', 'smtp.empresa.com.br');
-    LMail.Add('Port', '587');
-    LMail.Add('Username', 'mdfe@empresa.com.br');
-    LMail.Add('Password', 'senha');
-    LMail.Add('From', 'mdfe@empresa.com.br');
-    LMail.Add('FromName', 'Emitente LTDA');
-    LMail.Add('SetSSL', False);
-    LMail.Add('SetTLS', True);
-    LJson.Add('mail', LMail);
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    LJson := AcM.ModelEmail;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
   finally
-    LJson.Free;
+    AcM.Free;
   end;
 end;
 
@@ -765,15 +676,9 @@ var
   O, LJson: TJSONObject;
   Ac: TACBRBridgeMDFe;
 begin
-  try
-    O := GetJSON(Req.Body) as TJSONObject;
-  except
-    on E: Exception do
-    begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
-      Exit;
-    end;
-  end;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
+
   Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.EnviarEmail(O);
@@ -807,7 +712,7 @@ begin
   THorse.Get(RSModeloMDFeEventoToXMLRoute, GetModeloEventoToXMLMDFe);
   THorse.Get(RSModeloMDFeEmailRoute, GetModeloEmailMDFe);
 
-  // Endpoints de Operações (POST)
+  // Endpoints de Operacoes (POST)
   THorse.Post(RSMDFeMDFeRoute, PostEnviarMDFe);
   THorse.Post(RSMDFeEventosRoute, PostEventosMDFe);
   THorse.Post(RSMDFeDAMDFeRoute, PostDamdfeMDFe);

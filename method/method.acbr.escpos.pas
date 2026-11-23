@@ -6,14 +6,12 @@
 interface
 
 uses
-  RTTI,
   TypInfo,
+  IniFiles,
   ACBrPosPrinter,
-  Variants,
   fpjson,
   jsonconvert,
   jsonparser,
-  Base64,
   streamtools,
   Classes,
   SysUtils,
@@ -25,6 +23,7 @@ type
   private
     fcfg: string;
     facbr: TACBrPosPrinter;
+    procedure AplicarConfigIni(const AIniText: string);
     procedure CarregaConfig(const AllowEmpty: Boolean = True);
   public
     constructor Create(const Cfg: string);
@@ -49,21 +48,116 @@ end;
 
 { TACBRBridgeEscPos }
 
+procedure TACBRBridgeEscPos.AplicarConfigIni(const AIniText: string);
+var
+  SL, Sections, Keys: TStringList;
+  Ini: TMemIniFile;
+  RootJson, TargetJson: TJSONObject;
+  S, K, V, SecUpper, SubProp: string;
+  I, J: Integer;
+  IntVal: Int64;
+begin
+  if Trim(AIniText) = '' then
+    Exit;
+
+  SL := TStringList.Create;
+  Sections := TStringList.Create;
+  Keys := TStringList.Create;
+  Ini := TMemIniFile.Create('');
+  RootJson := TJSONObject.Create;
+  try
+    SL.Text := AIniText;
+    Ini.SetStrings(SL);
+    Ini.ReadSections(Sections);
+
+    for I := 0 to Sections.Count - 1 do
+    begin
+      S := Sections[I];
+      SecUpper := UpperCase(Trim(S));
+      SubProp := '';
+      if (SecUpper = '') or (SecUpper = 'POSPRINTER') then
+        TargetJson := RootJson
+      else
+      begin
+        if (SecUpper = 'BARRAS') or (SecUpper = 'CONFIGBARRAS') then
+          SubProp := 'ConfigBarras'
+        else if (SecUpper = 'QRCODE') or (SecUpper = 'CONFIGQRCODE') then
+          SubProp := 'ConfigQRCode'
+        else if (SecUpper = 'LOGO') or (SecUpper = 'CONFIGLOGO') then
+          SubProp := 'ConfigLogo'
+        else if (SecUpper = 'GAVETA') or (SecUpper = 'CONFIGGAVETA') then
+          SubProp := 'ConfigGaveta'
+        else if (SecUpper = 'MODOPAGINA') or (SecUpper = 'CONFIGMODOPAGINA') then
+          SubProp := 'ConfigModoPagina'
+        else
+          SubProp := S;
+
+        TargetJson := RootJson.Find(SubProp) as TJSONObject;
+        if not Assigned(TargetJson) then
+        begin
+          TargetJson := TJSONObject.Create;
+          RootJson.Add(SubProp, TargetJson);
+        end;
+      end;
+
+      Keys.Clear;
+      Ini.ReadSection(S, Keys);
+      for J := 0 to Keys.Count - 1 do
+      begin
+        K := Keys[J];
+        V := Trim(Ini.ReadString(S, K, ''));
+        if (V <> '') and TryStrToInt64(V, IntVal) then
+          TargetJson.Add(K, IntVal)
+        else
+          TargetJson.Add(K, V);
+      end;
+    end;
+
+    TJSONTools.JsonToObj(RootJson, facbr);
+  finally
+    RootJson.Free;
+    Ini.Free;
+    Keys.Free;
+    Sections.Free;
+    SL.Free;
+  end;
+end;
+
 procedure TACBRBridgeEscPos.CarregaConfig(const AllowEmpty: Boolean);
 var
-  O: TJSONObject;
+  LTrimmed: string;
+  LData: TJSONData;
 begin
-  if (Trim(fcfg) = '') and (not AllowEmpty) then
+  LTrimmed := Trim(fcfg);
+  if (LTrimmed = '') and (not AllowEmpty) then
     raise Exception.Create(RSConfigEmptyError);
 
-  if Trim(fcfg) <> '' then
+  if LTrimmed <> '' then
   begin
-    O := GetJSON(fcfg) as TJSONObject;
-    try
-      TJSONTools.JsonToObj(O, facbr);
-    finally
-      O.Free;
+    LData := nil;
+    if (LTrimmed[1] = '{') or (LTrimmed[1] = '"') then
+    begin
+      try
+        LData := GetJSON(LTrimmed);
+      except
+        LData := nil;
+      end;
     end;
+
+    if Assigned(LData) then
+    begin
+      try
+        if LData is TJSONObject then
+          TJSONTools.JsonToObj(TJSONObject(LData), facbr)
+        else if LData is TJSONString then
+          AplicarConfigIni(TJSONString(LData).AsString);
+      finally
+        LData.Free;
+      end;
+    end
+    else
+      AplicarConfigIni(LTrimmed);
+
     fcfg := '';
   end;
 end;
@@ -83,7 +177,7 @@ end;
 
 function TACBRBridgeEscPos.EscPos(const jEscPos: TJSONObject): TJSONObject;
 var
-  jLinhas: TJSONData;
+  jLinhas, jBuffer: TJSONData;
   jArr: TJSONArray;
   SL: TStringList;
   I, tamanho: Integer;
@@ -99,6 +193,12 @@ begin
     textoImprimir := '';
     if Assigned(jEscPos) then
     begin
+      TJSONTools.JsonToObj(jEscPos, facbr);
+
+      jBuffer := jEscPos.Find('Buffer');
+      if Assigned(jBuffer) and (jBuffer.JSONType = jtString) then
+        facbr.Buffer.Text := jBuffer.AsString;
+
       jLinhas := jEscPos.Find('Linhas');
       if not Assigned(jLinhas) then
         jLinhas := jEscPos.Find('Texto');
@@ -126,13 +226,13 @@ begin
     begin
       tmpDir := ExtractFilePath(ParamStr(0)) + 'tmp' + PathDelim;
       ForceDirectories(tmpDir);
-      spoolFile := tmpDir + Format('escpos_spool_%d_%d.bin', [GetTickCount64, Random(1000000)]);
+      spoolFile := tmpDir + Format('escpos_%d_%d.bin', [GetTickCount64, Random(1000000)]);
       facbr.Porta := spoolFile;
     end;
 
     try
       facbr.Ativar;
-      if textoImprimir <> '' then
+      if (textoImprimir <> '') or (facbr.Buffer.Count > 0) then
         facbr.Imprimir(textoImprimir);
       facbr.Desativar;
 
@@ -145,18 +245,16 @@ begin
         b64Spool := FileToStringBase64(spoolFile, True, tamanho);
         Result.Add('spool_base64', b64Spool);
         Result.Add(RSTamanhoField, tamanho);
-      end
-      else if (not isTempSpool) and FileExists(facbr.Porta) then
-      begin
-        b64Spool := FileToStringBase64(facbr.Porta, False, tamanho);
-        Result.Add('spool_base64', b64Spool);
-        Result.Add(RSTamanhoField, tamanho);
       end;
     finally
       if facbr.Ativo then
         facbr.Desativar;
-      if isTempSpool and (spoolFile <> '') and FileExists(spoolFile) then
-        SysUtils.DeleteFile(spoolFile);
+      if isTempSpool then
+      begin
+        facbr.Porta := '';
+        if (spoolFile <> '') and FileExists(spoolFile) then
+          SysUtils.DeleteFile(spoolFile);
+      end;
     end;
   except
     on E: Exception do

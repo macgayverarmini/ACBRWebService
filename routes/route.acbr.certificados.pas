@@ -13,16 +13,13 @@ uses
   resource.strings.msg,
   resource.strings.routes;
 
-
 procedure GetModeloUploadCertificado(Req: THorseRequest; Res: THorseResponse;
   Next: TNextProc);
-
 
 procedure PostUploadCertificado(Req: THorseRequest; Res: THorseResponse;
   Next: TNextProc);
 procedure PostLerDadosCertificado(Req: THorseRequest; Res: THorseResponse;
   Next: TNextProc);
-
 
 procedure regRouter;
 
@@ -32,21 +29,15 @@ procedure GetModeloUploadCertificado(Req: THorseRequest; Res: THorseResponse;
   Next: TNextProc);
 var
   Ac: TACBRBridgeCertificados;
-  LJson: TJSONObject;
 begin
   Ac := TACBRBridgeCertificados.Create;
   try
-    LJson := Ac.ModeloUpload;
-    try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
-    finally
-      LJson.Free;
-    end;
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Send(TJSONTools.JsonAndFree(Ac.ModeloUpload));
   finally
     Ac.Free;
   end;
 end;
-
 
 procedure PostUploadCertificado(Req: THorseRequest; Res: THorseResponse;
   Next: TNextProc);
@@ -57,74 +48,70 @@ var
   CertificadoBase64, Senha, CNPJ, NomeArquivo: string;
   JsonStr: TJSONString;
 begin
-
   try
     LJsonBody := GetJSON(Req.Body);
   except
     on E: Exception do
     begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create(
-        [RSMessageField, RSJSONParseError + E.Message])));
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+         .Status(400)
+         .Send(TJSONTools.JsonAndFree(TJSONObject.Create(
+           [RSMessageField, RSJSONParseError + E.Message])));
       Exit;
     end;
   end;
 
   if not Assigned(LJsonBody) then
   begin
-    Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create(
-      [RSMessageField, RSInvalidJSONBodyError])));
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Status(400)
+       .Send(TJSONTools.JsonAndFree(TJSONObject.Create(
+         [RSMessageField, RSInvalidJSONBodyError])));
     Exit;
   end;
 
   if not (LJsonBody is TJSONObject) then
   begin
     LJsonBody.Free;
-    Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create(
-      [RSMessageField, RSNotJSONObjectError])));
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Status(400)
+       .Send(TJSONTools.JsonAndFree(TJSONObject.Create(
+         [RSMessageField, RSNotJSONObjectError])));
     Exit;
   end;
   O := LJsonBody as TJSONObject;
   try
     try
-      if O.Find(RSCertificadoBase64Field, JsonStr) then
+      if O.Find('DadosPFX', JsonStr) or O.Find(RSCertificadoBase64Field, JsonStr) then
       begin
         CertificadoBase64 := JsonStr.Value;
         if CertificadoBase64 = '' then
           raise Exception.Create(RSCertificadoBase64EmptyError);
       end
       else
-      begin
         raise Exception.Create(RSCertificadoBase64NotFoundError);
-      end;
 
-      // Campo: senha (obrigatório)
-      if O.Find(RSSenhaField, JsonStr) then
+      if O.Find('Senha', JsonStr) or O.Find(RSSenhaField, JsonStr) then
       begin
         Senha := JsonStr.Value;
         if Senha = '' then
           raise Exception.Create(RSSenhaEmptyError);
       end
       else
-      begin
         raise Exception.Create(RSSenhaNotFoundError);
-      end;
 
-      // Campo: cnpj (opcional)
-      if O.Find(RSCNPJField, JsonStr) then
+      if O.Find('CNPJ', JsonStr) or O.Find(RSCNPJField, JsonStr) then
         CNPJ := JsonStr.Value
       else
-        CNPJ := ''; // Valor padrão se não encontrado ou tipo incorreto
+        CNPJ := '';
 
-      // Campo: nome_arquivo (opcional)
-      if O.Find(RSNomeArquivoField, JsonStr) then
+      if O.Find('ArquivoPFX', JsonStr) or O.Find(RSNomeArquivoField, JsonStr) then
         NomeArquivo := JsonStr.Value
       else
-        NomeArquivo := ''; // Valor padrão
+        NomeArquivo := '';
 
-      // Cria a instância da Bridge
       Ac := TACBRBridgeCertificados.Create;
       try
-        // Chama o método para salvar o certificado
         LJsonBody := Ac.SalvarCertificado(CertificadoBase64, Senha, CNPJ, NomeArquivo);
         try
           Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJsonBody.AsJSON);
@@ -137,11 +124,13 @@ begin
     except
       on E: Exception do
       begin
-        Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, E.Message])));
+        Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+           .Status(400)
+           .Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, E.Message])));
       end;
     end;
   finally
-    O.Free; // Libera o JSON principal da requisição
+    O.Free;
   end;
 end;
 
@@ -152,69 +141,63 @@ var
   O: TJSONObject;
   Ac: TACBRBridgeCertificados;
   CertificadoBase64, Senha: string;
-
-  // Variável para receber o out-parameter do método Find
   JsonStr: TJSONString;
 begin
-  // 1. Obtenção mais robusta do TJSONObject
   try
     LJsonBody := GetJSON(Req.Body);
   except
     on E: Exception do
     begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create(
-        [RSMessageField, RSJSONParseError + E.Message])));
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+         .Status(400)
+         .Send(TJSONTools.JsonAndFree(TJSONObject.Create(
+           [RSMessageField, RSJSONParseError + E.Message])));
       Exit;
     end;
   end;
 
   if not Assigned(LJsonBody) then
   begin
-    Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create(
-      [RSMessageField, RSInvalidJSONBodyError])));
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Status(400)
+       .Send(TJSONTools.JsonAndFree(TJSONObject.Create(
+         [RSMessageField, RSInvalidJSONBodyError])));
     Exit;
   end;
 
   if not (LJsonBody is TJSONObject) then
   begin
     LJsonBody.Free;
-    Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create(
-      [RSMessageField, RSNotJSONObjectError])));
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Status(400)
+       .Send(TJSONTools.JsonAndFree(TJSONObject.Create(
+         [RSMessageField, RSNotJSONObjectError])));
     Exit;
   end;
   O := LJsonBody as TJSONObject;
 
   try
-
     try
-      // Campo: certificado_base64 (obrigatório)
-      if O.Find(RSCertificadoBase64Field, JsonStr) then
+      if O.Find('DadosPFX', JsonStr) or O.Find(RSCertificadoBase64Field, JsonStr) then
       begin
         CertificadoBase64 := JsonStr.Value;
         if CertificadoBase64 = '' then
           raise Exception.Create(RSCertificadoBase64EmptyError);
       end
       else
-      begin
         raise Exception.Create(RSCertificadoBase64NotFoundError);
-      end;
 
-      // Campo: senha (obrigatório)
-      if O.Find(RSSenhaField, JsonStr) then
+      if O.Find('Senha', JsonStr) or O.Find(RSSenhaField, JsonStr) then
       begin
         Senha := JsonStr.Value;
         if Senha = '' then
           raise Exception.Create(RSSenhaEmptyError);
       end
       else
-      begin
         raise Exception.Create(RSSenhaNotFoundError);
-      end;
 
-      // Cria a instância da Bridge
       Ac := TACBRBridgeCertificados.Create;
       try
-        // Chama o método para ler os dados do certificado
         LJsonBody := Ac.ObterDadosCertificado(CertificadoBase64, Senha);
         try
           Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJsonBody.AsJSON);
@@ -227,23 +210,21 @@ begin
     except
       on E: Exception do
       begin
-        Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, E.Message])));
+        Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+           .Status(400)
+           .Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, E.Message])));
       end;
     end;
-
   finally
-    O.Free; // Libera o JSON principal da requisição
+    O.Free;
   end;
 end;
 
-// --- Registro das Rotas ---
-
 procedure regRouter;
 begin
-  // Endpoints de Modelos (GET)
+  THorse.Get(RSModeloCertificadosUploadRoute, GetModeloUploadCertificado);
   THorse.Get(RSCertificadosUploadRoute, GetModeloUploadCertificado);
 
-  // Endpoints de Operações (POST)
   THorse.Post(RSCertificadosUploadRoute, PostUploadCertificado);
   THorse.Post(RSCertificadosLerDadosRoute, PostLerDadosCertificado);
 end;

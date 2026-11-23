@@ -13,7 +13,7 @@ type
   TTestDiversos = class(TTestBase)
   published
     procedure TestGetModeloExtenso;
-    procedure TestGetTraduzValor;
+    procedure TestGetModelosDiversosEBoleto;
     procedure TestPostTraduzValor;
     procedure TestGetModeloValidador;
     procedure TestPostValidar;
@@ -33,45 +33,31 @@ begin
   ExecuteGetTest('/modelo/diversos/extenso');
 end;
 
-procedure TTestDiversos.TestGetTraduzValor;
-var
-  Client: TFPHTTPClient;
-  Response: String;
-  Json: TJSONObject;
+procedure TTestDiversos.TestGetModelosDiversosEBoleto;
 begin
-  Client := TFPHTTPClient.Create(nil);
-  try
-    Client.AddHeader('Content-Type', 'application/json');
-    Json := TJSONObject.Create;
-    try
-      Json.Add('valor', 123.45);
-      Client.RequestBody := TStringStream.Create(Json.AsJSON);
-      try
-        Response := Client.Get(FBaseUrl + '/diversos/extenso');
-      finally
-        Client.RequestBody.Free;
-      end;
-      CheckResponse(Response, 200, Client.ResponseStatusCode);
-    finally
-      Json.Free;
-    end;
-  finally
-    Client.Free;
-  end;
+  ExecuteGetTest('/modelo/diversos/cmc7');
+  ExecuteGetTest('/modelo/diversos/balanca/instore');
+  ExecuteGetTest('/modelo/diversos/balanca/carga');
+  ExecuteGetTest('/modelo/diversos/ibpt/config');
+  ExecuteGetTest('/modelo/diversos/ead');
+  ExecuteGetTest('/modelo/diversos/calc-digito');
+  ExecuteGetTest('/modelo/diversos/mail');
+  ExecuteGetTest('/modelo/boleto/pix-qrcode');
+  ExecuteGetTest('/modelo/certificados/upload');
 end;
 
 procedure TTestDiversos.TestPostTraduzValor;
 var
   Client: TFPHTTPClient;
   Response: String;
-  Json: TJSONObject;
+  Json, RespJson: TJSONObject;
 begin
   Client := TFPHTTPClient.Create(nil);
   try
     Client.AddHeader('Content-Type', 'application/json');
     Json := TJSONObject.Create;
     try
-      Json.Add('valor', 123.45);
+      Json.Add('Valor', 123.45);
       Client.RequestBody := TStringStream.Create(Json.AsJSON);
       try
         Response := Client.Post(FBaseUrl + '/diversos/extenso');
@@ -79,6 +65,12 @@ begin
         Client.RequestBody.Free;
       end;
       CheckResponse(Response, 200, Client.ResponseStatusCode);
+      RespJson := GetJSON(Response) as TJSONObject;
+      try
+        AssertTrue('Texto por extenso nao deve ser vazio', RespJson.Get('Texto', '') <> '');
+      finally
+        RespJson.Free;
+      end;
     finally
       Json.Free;
     end;
@@ -135,13 +127,14 @@ begin
     Payload := TJSONObject.Create;
     try
       Payload.Add('Modelo', 'modToledoMGV6');
-      Payload.Add('RetirarAcentos', True);
       ArrProd := TJSONArray.Create;
       ProdItem := TJSONObject.Create;
       ProdItem.Add('Codigo', 101);
       ProdItem.Add('Descricao', 'PRODUTO EXEMPLO KG');
       ProdItem.Add('ValorVenda', 19.90);
       ProdItem.Add('Validade', 5);
+      ProdItem.Add('Tipo', 'tpvPeso');
+      ProdItem.Add('TipoValidade', 'tpvDias');
       ArrProd.Add(ProdItem);
       Payload.Add('Produtos', ArrProd);
 
@@ -155,7 +148,7 @@ begin
       CheckResponse(Response, 200, Client.ResponseStatusCode);
       RespJson := GetJSON(Response) as TJSONObject;
       try
-        AssertTrue('Carga balanca deve retornar sucesso', RespJson.Get('sucesso', False));
+        AssertEquals('Carga balanca deve retornar status sucesso', 'sucesso', RespJson.Get('status', ''));
         AssertNotNull('Deve retornar lista de arquivos gerados', RespJson.Find('arquivos'));
       finally
         RespJson.Free;
@@ -173,7 +166,7 @@ var
   Client: TFPHTTPClient;
   Response: String;
   Payload, RespJson: TJSONObject;
-  LinhasArr: TJSONArray;
+  BufferArr: TJSONArray;
 begin
   Client := TFPHTTPClient.Create(nil);
   try
@@ -182,12 +175,11 @@ begin
     try
       Payload.Add('Modelo', 'ppEscPosEpson');
       Payload.Add('PaginaDeCodigo', 'pc850');
-      Payload.Add('Porta', 'BUFFER');
-      Payload.Add('GerarSpool', True);
-      LinhasArr := TJSONArray.Create;
-      LinhasArr.Add('</zera><ce>EMPRESA EXEMPLO LTDA</ce>');
-      LinhasArr.Add('</corte_parcial>');
-      Payload.Add('Linhas', LinhasArr);
+      Payload.Add('Porta', '');
+      BufferArr := TJSONArray.Create;
+      BufferArr.Add('</zera><ce>EMPRESA EXEMPLO LTDA</ce>');
+      BufferArr.Add('</corte_parcial>');
+      Payload.Add('Buffer', BufferArr);
 
       Client.RequestBody := TStringStream.Create(Payload.AsJSON);
       try
@@ -199,7 +191,8 @@ begin
       CheckResponse(Response, 200, Client.ResponseStatusCode);
       RespJson := GetJSON(Response) as TJSONObject;
       try
-        AssertTrue('EscPos spool deve retornar sucesso', RespJson.Get('sucesso', False));
+        AssertEquals('EscPos spool deve retornar status sucesso', 'sucesso', RespJson.Get('status', ''));
+        AssertEquals('Modelo RTTI deve ser ppEscPosEpson', 'ppEscPosEpson', RespJson.Get('modelo', ''));
         AssertTrue('spool_base64 nao deve ser vazio', RespJson.Get('spool_base64', '') <> '');
       finally
         RespJson.Free;
@@ -215,26 +208,30 @@ end;
 procedure TTestDiversos.TestPostGNREToXML;
 var
   Client: TFPHTTPClient;
-  Response: String;
-  Payload, EmitObj, RespJson: TJSONObject;
+  Response, DecodedXml: String;
+  Payload, CfgObj, GeralObj, RespJson: TJSONObject;
 begin
   Client := TFPHTTPClient.Create(nil);
   try
     Client.AddHeader('Content-Type', 'application/json');
     Payload := TJSONObject.Create;
     try
-      Payload.Add('config', CreateConfigJSON);
-      Payload.Add('VersaoDF', 've200');
+      CfgObj := CreateConfigJSON;
+      GeralObj := CfgObj.Find('Geral') as TJSONObject;
+      if Assigned(GeralObj) then
+        GeralObj.Strings['VersaoDF'] := 've200';
+      Payload.Add('config', CfgObj);
+
       Payload.Add('c01_UfFavorecida', 'SP');
       Payload.Add('c02_receita', 100099);
-      EmitObj := TJSONObject.Create;
-      EmitObj.Add('CNPJ', '12345678000195');
-      Payload.Add('c03_idContribuinteEmitente', EmitObj);
+      Payload.Add('c27_tipoIdentificacaoEmitente', 1);
+      Payload.Add('c03_idContribuinteEmitente', '12345678000195');
       Payload.Add('c28_tipoDocOrigem', 10);
       Payload.Add('c04_docOrigem', '1001');
       Payload.Add('c06_valorPrincipal', 100.00);
       Payload.Add('c10_valorTotal', 100.00);
       Payload.Add('c14_dataVencimento', '2026-12-31');
+      Payload.Add('c33_dataPagamento', '2026-12-31');
       Payload.Add('c16_razaoSocialEmitente', 'EMPRESA EXEMPLO LTDA');
       Payload.Add('c18_enderecoEmitente', 'AVENIDA EXEMPLO, 1000');
       Payload.Add('c19_municipioEmitente', '50308');
@@ -251,8 +248,9 @@ begin
       CheckResponse(Response, 200, Client.ResponseStatusCode);
       RespJson := GetJSON(Response) as TJSONObject;
       try
-        AssertTrue('GNREToXML deve retornar sucesso', RespJson.Get('sucesso', False));
-        AssertTrue('XML GNRE deve conter TDadosGNRE', Pos('TDadosGNRE', RespJson.Get('xml_raw', '')) > 0);
+        AssertEquals('GNREToXML deve retornar status sucesso', 'sucesso', RespJson.Get('status', ''));
+        DecodedXml := DecodeStringBase64(RespJson.Get('xml', ''));
+        AssertTrue('XML GNRE deve conter TDadosGNRE', Pos('TDadosGNRE', DecodedXml) > 0);
       finally
         RespJson.Free;
       end;
@@ -277,12 +275,12 @@ begin
     Client.AddHeader('Content-Type', 'application/json');
     Payload := TJSONObject.Create;
     try
-      Payload.Add('RetirarAcentos', True);
+      Payload.Add('VersaoValidador', 'vv524');
       Reg10 := TJSONObject.Create;
       Reg10.Add('CNPJ', '12345678000195');
       Reg10.Add('Inscricao', '110042490114');
-      Reg10.Add('RazaoSocial', 'EMPRESA EXEMPLO COMÉRCIO E INDÚSTRIA LTDA');
-      Reg10.Add('Cidade', 'SÃO PAULO');
+      Reg10.Add('RazaoSocial', 'EMPRESA EXEMPLO COMERCIO E INDUSTRIA LTDA');
+      Reg10.Add('Cidade', 'SAO PAULO');
       Reg10.Add('Estado', 'SP');
       Reg10.Add('Telefone', '1130000000');
       Reg10.Add('DataInicial', '2026-01-01');
@@ -293,11 +291,11 @@ begin
       Payload.Add('Registro10', Reg10);
 
       Reg11 := TJSONObject.Create;
-      Reg11.Add('Endereco', 'AVENIDA EXEMPLO CONCEIÇÃO');
+      Reg11.Add('Endereco', 'AVENIDA EXEMPLO CONCEICAO');
       Reg11.Add('Numero', '1000');
       Reg11.Add('Bairro', 'CENTRO');
       Reg11.Add('Cep', '01001000');
-      Reg11.Add('Responsavel', 'RESPONSÁVEL TÉCNICO');
+      Reg11.Add('Responsavel', 'RESPONSAVEL TECNICO');
       Reg11.Add('Telefone', '1130000000');
       Payload.Add('Registro11', Reg11);
 
@@ -348,13 +346,18 @@ begin
     Payload := TJSONObject.Create;
     try
       CfgObj := TJSONObject.Create;
+      CfgObj.Add('LayoutRemessa', 'c240');
+      CfgObj.Add('RemoveAcentosArqRemessa', True);
+
       BancoObj := TJSONObject.Create;
       BancoObj.Add('Numero', 1);
+      BancoObj.Add('TipoCobranca', 'cobBancoDoBrasil');
       CfgObj.Add('Banco', BancoObj);
 
       CedenteObj := TJSONObject.Create;
       CedenteObj.Add('Nome', 'EMPRESA EXEMPLO LTDA');
       CedenteObj.Add('CNPJCPF', '12345678000195');
+      CedenteObj.Add('TipoInscricao', 'pJuridica');
       CedenteObj.Add('Agencia', '1234');
       CedenteObj.Add('AgenciaDigito', '5');
       CedenteObj.Add('Conta', '00012345');
@@ -371,9 +374,8 @@ begin
       CfgObj.Add('Cedente', CedenteObj);
       Payload.Add('config', CfgObj);
 
-      Payload.Add('LayoutRemessa', 240);
+      Payload.Add('LayoutRemessa', 'c240');
       Payload.Add('NumeroRemessa', 1);
-      Payload.Add('RetirarAcentos', True);
 
       ArrTit := TJSONArray.Create;
       TitObj := TJSONObject.Create;
@@ -384,6 +386,7 @@ begin
       TitObj.Add('DataDocumento', '2026-11-20');
       TitObj.Add('ValorDocumento', 250.00);
       TitObj.Add('EspecieDoc', 'DM');
+      TitObj.Add('Aceite', 'atNao');
 
       SacadoObj := TJSONObject.Create;
       SacadoObj.Add('NomeSacado', 'CLIENTE EXEMPLO LTDA');
@@ -408,7 +411,7 @@ begin
       CheckResponse(Response, 200, Client.ResponseStatusCode);
       RespJson := GetJSON(Response) as TJSONObject;
       try
-        AssertTrue('Remessa CNAB 240 deve retornar sucesso', RespJson.Get('sucesso', False));
+        AssertEquals('Remessa CNAB 240 deve retornar status sucesso', 'sucesso', RespJson.Get('status', ''));
         AssertTrue('remessa_base64 nao deve ser vazio', RespJson.Get('remessa_base64', '') <> '');
       finally
         RespJson.Free;

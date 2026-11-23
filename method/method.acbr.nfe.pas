@@ -88,22 +88,17 @@ Type
       // Envio de NF-e/NFC-e por E-mail via TACBrMail
       Function EnviarEmail(Const jEmail: TJSONObject): TJSONObject;
 
-      // Teste a configuraÃƒÂ§ÃƒÂ£o passada em JSON
+      // Teste a configuracao passada em JSON
       Function TesteConfig: boolean;
-      // Debug: retorna a config carregada como JSON
-      Function DebugConfig: TJSONObject;
       // Envio em lote (array de NFes)
       Function NFeLote(Const jLote: TJSONArray): TJSONObject;
   End;
 
-
-{ TACBRModelosJSON - Salva os retornos de modelo de requisiÃƒÂ§ÃƒÂµes, para facilitar
-  documentaÃƒÂ§ÃƒÂ£o ou consulta por parte do programador.}
+  { TACBRModelosJSON }
 
   TACBRModelosJSON = Class(TACBRBridgeNFe)
-    Private 
-    Public 
-      // Retorna as configuraÃƒÂ§ÃƒÂµes atuais do componente da ACBR.
+    Private
+    Public
       Function ModelConfig: TJSONObject;
       Function ModelEvento: TJSONObject;
       Function ModelDistribuicao: string;
@@ -114,149 +109,125 @@ Type
       Function ModelCancelamento: TJSONObject;
       Function ModelNFeFromXML: TJSONObject;
       Function ModelNFeToXML: TJSONObject;
+      Function ModelDanfeEvento: TJSONObject;
+      Function ModelDanfeEscPos: TJSONObject;
+      Function ModelConsultaCadastro: TJSONObject;
+      Function ModelEmail: TJSONObject;
   End;
 
 Implementation
-
-
 
 { TACBRModelosJSON }
 
 Function TACBRModelosJSON.ModelConfig: TJSONObject;
 Begin
-
-  With facbr.Configuracoes.Geral Do
-    Begin
-      FormaEmissao := TpcnTipoEmissao.teNormal;
-      ModeloDF := TpcnModeloDF.moNFe;
-      VersaoDF := TpcnVersaoDF.ve400;
-      RetirarAcentos := True;
-      IdCSC := '';
-      //cIdToken := '';
-
-      SSLLib := TSSLLib.libOpenSSL;
-      SSLCryptLib := TSSLCryptLib.cryOpenSSL;
-      SSLHttpLib := TSSLHttpLib.httpOpenSSL;
-      SSLXmlSignLib := TSSLXmlSignLib.xsLibXml2;
-    End;
-
-  With facbr.Configuracoes.WebServices Do
-    Begin
-      Ambiente := TpcnTipoAmbiente.taHomologacao;
-      UF := RSDefaultUF;
-      TimeOut := 5000;
-    End;
-
-  With facbr.Configuracoes.Certificados Do
-    Begin
-      ArquivoPFX := RSDefaultCertPath;
-      Senha := RSDefaultCertPassword;
-    End;
-
-
-  Result := TJSONTools.ObjToJson(facbr.Configuracoes);
+  Result := TJSONTools.SafeObjToJson(facbr.Configuracoes, 'Erro ao gerar modelo de configuracao da NF-e');
 End;
 
 Function TACBRModelosJSON.ModelEvento: TJSONObject;
 Begin
-  facbr.EventoNFe.Evento.New;
-  Result := TJSONTools.ObjToJson(facbr.EventoNFe);
   facbr.EventoNFe.Evento.Clear;
+  facbr.EventoNFe.Evento.New;
+  Try
+    Result := TJSONTools.SafeObjToJson(facbr.EventoNFe, 'Erro ao gerar modelo de evento da NF-e');
+  Finally
+    facbr.EventoNFe.Evento.Clear;
+  End;
 End;
 
-
 Function TACBRModelosJSON.ModelNFe: TJSONObject;
-
-Var 
+Var
   NF: NotaFiscal;
-  Det: TDetCollectionItem;
 Begin
-  NF := facbr.NotasFiscais.Add;
-  NF.NFe.Cobr.Dup.New;
-  Det := NF.NFe.Det.New;
-  Det.Prod.DI.New.adi.New;
-  Det.Prod.NVE.New;
-  Det.Prod.arma.New;
-  Det.Prod.detExport.New;
-  Det.Prod.med.New;
-  Det.Prod.rastro.New;
-
-  NF.NFe.Ide.NFref.New;
-  NF.NFe.InfAdic.obsCont.New;
-  NF.NFe.InfAdic.obsFisco.New;
-  NF.NFe.InfAdic.procRef.New;
-  NF.NFe.Transp.Reboque.New;
-  NF.NFe.Transp.Vol.New.Lacres.New;
-  NF.NFe.cana.fordia.New;
-  NF.Nfe.cana.deduc.New;
-  NF.NFe.pag.New.tBand := TpcnBandeiraCartao.bcAlelo;
-
-  Result := TJSONTools.ObjToJson(NF);
-  Result.Delete(RSXMLField);
-  Result.Delete(RSXMLOriginalField);
-  Result.Delete(RSNomeArqField);
-  Result.Delete(RSErroValidacaoCompletoField);
-  Result.Delete(RSErroValidacaoField);
-  Result.Delete(RSErroRegrasdeNegociosField);
-  Result.Delete(RSAlertasField);
-
   facbr.NotasFiscais.Clear;
+  NF := facbr.NotasFiscais.Add;
+  Try
+    Result := TJSONTools.SafeObjToJson(NF.NFe, 'Erro ao gerar modelo da NF-e');
+  Finally
+    facbr.NotasFiscais.Clear;
+  End;
 End;
 
 Function TACBRModelosJSON.ModelDistribuicao: string;
 Begin
-  //  Evento := facbr.WebServices.DistribuicaoDFe.new;
-  Result := TJSONTools.SafeObjToJsonString(facbr.WebServices.DistribuicaoDFe);
-  //  facbr.EventoNFe.Evento.Clear;
+  Result := TJSONTools.SafeObjToJsonString(facbr.WebServices.DistribuicaoDFe, 'Erro ao gerar modelo de distribuicao da NF-e');
 End;
 
 Function TACBRModelosJSON.ModelStatusServico: TJSONObject;
 Begin
-  Result := TJSONObject.Create;
+  Result := TJSONTools.SafeObjToJson(facbr.WebServices.StatusServico, 'Erro ao gerar modelo de status da NF-e');
 End;
 
 Function TACBRModelosJSON.ModelConsulta: TJSONObject;
 Begin
-  Result := TJSONObject.Create;
-  Result.Add('NFe_Chave', 'Preencha com a Chave de Acesso da NF-e');
+  Result := TJSONTools.SafeObjToJson(facbr.WebServices.Consulta, 'Erro ao gerar modelo de consulta da NF-e');
 End;
 
 Function TACBRModelosJSON.ModelInutilizacao: TJSONObject;
 Begin
-  facbr.WebServices.Inutilizacao.CNPJ := '00000000000000';
-  facbr.WebServices.Inutilizacao.Justificativa := 'Justificativa da Inutilizacao';
-  facbr.WebServices.Inutilizacao.Ano := 2023;
-  facbr.WebServices.Inutilizacao.Serie := 1;
-  facbr.WebServices.Inutilizacao.NumeroInicial := 100;
-  facbr.WebServices.Inutilizacao.NumeroFinal := 100;
-  facbr.WebServices.Inutilizacao.Modelo := 55;
-  Result := TJSONObject(TJSONTools.ObjToJson(facbr.WebServices.Inutilizacao));
+  Result := TJSONTools.SafeObjToJson(facbr.WebServices.Inutilizacao, 'Erro ao gerar modelo de inutilizacao da NF-e');
 End;
 
 Function TACBRModelosJSON.ModelCancelamento: TJSONObject;
+Var
+  LEvt: TInfEventoCollectionItem;
 Begin
   facbr.EventoNFe.Evento.Clear;
-  with facbr.EventoNFe.Evento.New.InfEvento do
-  begin
-    tpEvento := teCancelamento;
-    chNFe := 'Preencha com a Chave de Acesso';
-    detEvento.nProt := 'Preencha com o Protocolo';
-    detEvento.xJust := 'Justificativa do Cancelamento (min 15 caracteres)';
-  end;
-  Result := TJSONObject(TJSONTools.ObjToJson(facbr.EventoNFe.Evento.Items[0]));
-  facbr.EventoNFe.Evento.Clear;
+  LEvt := facbr.EventoNFe.Evento.New;
+  Try
+    Result := TJSONTools.SafeObjToJson(LEvt, 'Erro ao gerar modelo de cancelamento da NF-e');
+  Finally
+    facbr.EventoNFe.Evento.Clear;
+  End;
 End;
 
 Function TACBRModelosJSON.ModelNFeFromXML: TJSONObject;
 Begin
-  Result := TJSONObject.Create;
-  Result.Add(RSXmlKey, 'XML da NF-e em Base64 Ã¢â‚¬â€ retorna a NF-e como JSON');
+  Result := ModelNFe;
 End;
 
 Function TACBRModelosJSON.ModelNFeToXML: TJSONObject;
 Begin
   Result := ModelNFe;
-  // O modelo ÃƒÂ© o mesmo da NF-e Ã¢â‚¬â€  envie o JSON da NF-e e receba o XML gerado
+End;
+
+Function TACBRModelosJSON.ModelDanfeEvento: TJSONObject;
+Begin
+  Result := ModelEvento;
+End;
+
+Function TACBRModelosJSON.ModelDanfeEscPos: TJSONObject;
+Var
+  LEscPosDanfe: TACBrNFeDANFeESCPOS;
+  LPosPrinter: TACBrPosPrinter;
+Begin
+  LEscPosDanfe := TACBrNFeDANFeESCPOS.Create(Nil);
+  LPosPrinter := TACBrPosPrinter.Create(Nil);
+  Try
+    LEscPosDanfe.PosPrinter := LPosPrinter;
+    Result := TJSONTools.SafeObjToJson(LEscPosDanfe, 'Erro ao gerar modelo de DANFE EscPos');
+  Finally
+    LEscPosDanfe.PosPrinter := Nil;
+    LPosPrinter.Free;
+    LEscPosDanfe.Free;
+  End;
+End;
+
+Function TACBRModelosJSON.ModelConsultaCadastro: TJSONObject;
+Begin
+  Result := TJSONTools.SafeObjToJson(facbr.WebServices.ConsultaCadastro, 'Erro ao gerar modelo de consulta de cadastro da NF-e');
+End;
+
+Function TACBRModelosJSON.ModelEmail: TJSONObject;
+Var
+  LMail: TACBrMail;
+Begin
+  LMail := TACBrMail.Create(Nil);
+  Try
+    Result := TJSONTools.SafeObjToJson(LMail, 'Erro ao gerar modelo de e-mail da NF-e');
+  Finally
+    LMail.Free;
+  End;
 End;
 
 { TACBRBridgeNFe }
@@ -864,12 +835,6 @@ Begin
 End;
 End;
 
-Function TACBRBridgeNFe.DebugConfig: TJSONObject;
-Begin
-  CarregaConfig(True);
-  Result := TJSONTools.ObjToJson(facbr.Configuracoes);
-End;
-
 Function TACBRBridgeNFe.StatusServico(Const jStatus: TJSONObject): TJSONObject;
 Begin
   CarregaConfig;
@@ -885,20 +850,28 @@ End;
 Function TACBRBridgeNFe.Consulta(Const jConsulta: TJSONObject): TJSONObject;
 Var
   Chave, XmlNode: TJSONData;
-  xmlStr: string;
+  xmlStr, sChave: string;
 Begin
   CarregaConfig;
+  if Assigned(jConsulta) then
+    TJSONTools.JsonToObj(jConsulta, facbr.WebServices.Consulta);
 
-  Chave := jConsulta.Find('NFe_Chave');
-  if not Assigned(Chave) then Chave := jConsulta.Find(RSChaveField);
-  if not Assigned(Chave) then Chave := jConsulta.Find('Chave');
-  if not Assigned(Chave) then Chave := jConsulta.Find(RSChNFeField);
+  sChave := Trim(facbr.WebServices.Consulta.NFeChave);
+  if (sChave = '') and Assigned(jConsulta) then
+  begin
+    Chave := jConsulta.Find('NFe_Chave');
+    if not Assigned(Chave) then Chave := jConsulta.Find(RSChaveField);
+    if not Assigned(Chave) then Chave := jConsulta.Find('Chave');
+    if not Assigned(Chave) then Chave := jConsulta.Find(RSChNFeField);
+    if Assigned(Chave) then
+      sChave := Trim(Chave.AsString);
+  end;
 
-  If Assigned(Chave) and (Trim(Chave.AsString) <> '') Then
+  If sChave <> '' Then
   Begin
     Try
       facbr.NotasFiscais.Clear;
-      facbr.WebServices.Consulta.NFeChave := Trim(Chave.AsString);
+      facbr.WebServices.Consulta.NFeChave := sChave;
       facbr.WebServices.Consulta.Executar;
       Result := TJSONTools.SafeObjToJson(facbr.WebServices.Consulta, 'Erro na consulta');
     Except
@@ -1336,15 +1309,19 @@ Begin
         Exit;
       End;
 
-      posPrinter.IgnorarTags := xmlData.Get('IgnorarTags', False);
-      posPrinter.Modelo := TACBrPosPrinterModelo(xmlData.Get('ModeloImpressora', Integer(ppTexto)));
-      posPrinter.ColunasFonteNormal := xmlData.Get('ColunasFonteNormal', 48);
+      escPosDanfe.PosPrinter := posPrinter;
+      posPrinter.Modelo := ppTexto;
+      posPrinter.ColunasFonteNormal := 48;
+      if Assigned(xmlData) then
+      begin
+        TJSONTools.JsonToObj(xmlData, posPrinter);
+        TJSONTools.JsonToObj(xmlData, escPosDanfe);
+        if Assigned(xmlData.Find('ModeloImpressora')) and (xmlData.Find('ModeloImpressora').JSONType = jtNumber) then
+          posPrinter.Modelo := TACBrPosPrinterModelo(xmlData.Get('ModeloImpressora', Integer(ppTexto)));
+      end;
 
       tempFile := ExtractFilePath(ParamStr(0)) + 'escpos_' + IntToStr(GetTickCount64) + '.txt';
       posPrinter.Porta := tempFile;
-
-      escPosDanfe.PosPrinter := posPrinter;
-      escPosDanfe.ImprimeEmUmaLinha := xmlData.Get('ImprimeEmUmaLinha', False);
       facbr.DANFE := escPosDanfe;
 
       escPosDanfe.ImprimirDANFE;
@@ -1382,10 +1359,16 @@ Var
   porIE: Boolean;
 Begin
   CarregaConfig;
-  ufStr := Trim(jConsulta.Get('UF', jConsulta.Get('uf', '')));
-  cnpjStr := Trim(jConsulta.Get('CNPJ', jConsulta.Get('cnpj', '')));
-  cpfStr := Trim(jConsulta.Get('CPF', jConsulta.Get('cpf', '')));
-  ieStr := Trim(jConsulta.Get('IE', jConsulta.Get('ie', '')));
+  if Assigned(jConsulta) then
+    TJSONTools.JsonToObj(jConsulta, facbr.WebServices.ConsultaCadastro);
+  ufStr := Trim(facbr.WebServices.ConsultaCadastro.UF);
+  if ufStr = '' then ufStr := Trim(jConsulta.Get('uf', ''));
+  cnpjStr := Trim(facbr.WebServices.ConsultaCadastro.CNPJ);
+  if cnpjStr = '' then cnpjStr := Trim(jConsulta.Get('cnpj', ''));
+  cpfStr := Trim(facbr.WebServices.ConsultaCadastro.CPF);
+  if cpfStr = '' then cpfStr := Trim(jConsulta.Get('cpf', ''));
+  ieStr := Trim(facbr.WebServices.ConsultaCadastro.IE);
+  if ieStr = '' then ieStr := Trim(jConsulta.Get('ie', ''));
   docStr := Trim(jConsulta.Get('Documento', jConsulta.Get('documento', '')));
 
   if (docStr <> '') and (cnpjStr = '') and (cpfStr = '') and (ieStr = '') then

@@ -113,6 +113,7 @@ resourcestring
   RSNFSeDANFSeURLRoute = '/nfse/danfse-url';
   
   // Rotas - Certificados
+  RSModeloCertificadosUploadRoute = '/modelo/certificados/upload';
   RSCertificadosUploadRoute = '/certificados/upload';
   RSCertificadosLerDadosRoute = '/certificados/ler-dados';
   

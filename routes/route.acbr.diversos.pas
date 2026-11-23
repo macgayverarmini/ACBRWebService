@@ -6,11 +6,14 @@ interface
 
 uses
   method.acbr.diversos,
+  jsonconvert,
   fpjson,
   Horse,
   Horse.Commons,
   Classes,
   SysUtils,
+  resource.strings.global,
+  resource.strings.msg,
   resource.strings.routes;
 
 procedure GetModeloCMC7(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
@@ -32,19 +35,63 @@ procedure regRouter;
 
 implementation
 
+function TryParseJsonObject(const ABody: string; Res: THorseResponse; out AObj: TJSONObject): Boolean;
+var
+  LData: TJSONData;
+begin
+  Result := False;
+  AObj := nil;
+  LData := nil;
+  try
+    LData := GetJSON(ABody);
+  except
+    on E: Exception do
+    begin
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+         .Status(400)
+         .Send(TJSONTools.JsonAndFree(TJSONObject.Create([
+           RSStatusField, RSStatusErro,
+           RSMessageField, RSInvalidJSONBodyError + ' ' + E.Message
+         ])));
+      Exit;
+    end;
+  end;
+
+  if not Assigned(LData) then
+  begin
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Status(400)
+       .Send(TJSONTools.JsonAndFree(TJSONObject.Create([
+         RSStatusField, RSStatusErro,
+         RSMessageField, RSInvalidJSONBodyError
+       ])));
+    Exit;
+  end;
+
+  if not (LData is TJSONObject) then
+  begin
+    LData.Free;
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Status(400)
+       .Send(TJSONTools.JsonAndFree(TJSONObject.Create([
+         RSStatusField, RSStatusErro,
+         RSMessageField, RSNotJSONObjectError
+       ])));
+    Exit;
+  end;
+
+  AObj := TJSONObject(LData);
+  Result := True;
+end;
+
 procedure GetModeloCMC7(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   Ac: TACBRBridgeDiversos;
-  LJson: TJSONObject;
 begin
   Ac := TACBRBridgeDiversos.Create;
   try
-    LJson := Ac.ModelCMC7;
-    try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
-    finally
-      LJson.Free;
-    end;
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Send(TJSONTools.JsonAndFree(Ac.ModelCMC7));
   finally
     Ac.Free;
   end;
@@ -52,18 +99,15 @@ end;
 
 procedure PostCMC7(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O, LJson: TJSONObject;
+  O: TJSONObject;
   Ac: TACBRBridgeDiversos;
 begin
-  O := GetJSON(Req.Body) as TJSONObject;
+  if not TryParseJsonObject(Req.Body, Res, O) then
+    Exit;
   Ac := TACBRBridgeDiversos.Create;
   try
-    LJson := Ac.ProcessarCMC7(O);
-    try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
-    finally
-      LJson.Free;
-    end;
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Send(TJSONTools.JsonAndFree(Ac.ProcessarCMC7(O)));
   finally
     O.Free;
     Ac.Free;
@@ -73,16 +117,11 @@ end;
 procedure GetModeloInStore(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   Ac: TACBRBridgeDiversos;
-  LJson: TJSONObject;
 begin
   Ac := TACBRBridgeDiversos.Create;
   try
-    LJson := Ac.ModelInStore;
-    try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
-    finally
-      LJson.Free;
-    end;
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Send(TJSONTools.JsonAndFree(Ac.ModelInStore));
   finally
     Ac.Free;
   end;
@@ -90,18 +129,15 @@ end;
 
 procedure PostInStore(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O, LJson: TJSONObject;
+  O: TJSONObject;
   Ac: TACBRBridgeDiversos;
 begin
-  O := GetJSON(Req.Body) as TJSONObject;
+  if not TryParseJsonObject(Req.Body, Res, O) then
+    Exit;
   Ac := TACBRBridgeDiversos.Create;
   try
-    LJson := Ac.DesmembrarInStore(O);
-    try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
-    finally
-      LJson.Free;
-    end;
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Send(TJSONTools.JsonAndFree(Ac.DesmembrarInStore(O)));
   finally
     O.Free;
     Ac.Free;
@@ -111,16 +147,11 @@ end;
 procedure GetModeloCargaBal(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   Ac: TACBRBridgeDiversos;
-  LJson: TJSONObject;
 begin
   Ac := TACBRBridgeDiversos.Create;
   try
-    LJson := Ac.ModelCargaBal;
-    try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
-    finally
-      LJson.Free;
-    end;
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Send(TJSONTools.JsonAndFree(Ac.ModelCargaBal));
   finally
     Ac.Free;
   end;
@@ -128,18 +159,15 @@ end;
 
 procedure PostCargaBal(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O, LJson: TJSONObject;
+  O: TJSONObject;
   Ac: TACBRBridgeDiversos;
 begin
-  O := GetJSON(Req.Body) as TJSONObject;
+  if not TryParseJsonObject(Req.Body, Res, O) then
+    Exit;
   Ac := TACBRBridgeDiversos.Create;
   try
-    LJson := Ac.GerarCargaBalanca(O);
-    try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
-    finally
-      LJson.Free;
-    end;
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Send(TJSONTools.JsonAndFree(Ac.GerarCargaBalanca(O)));
   finally
     O.Free;
     Ac.Free;
@@ -149,16 +177,11 @@ end;
 procedure GetModeloIBPT(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   Ac: TACBRBridgeDiversos;
-  LJson: TJSONObject;
 begin
   Ac := TACBRBridgeDiversos.Create;
   try
-    LJson := Ac.ModelIBPT;
-    try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
-    finally
-      LJson.Free;
-    end;
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Send(TJSONTools.JsonAndFree(Ac.ModelIBPT));
   finally
     Ac.Free;
   end;
@@ -166,18 +189,15 @@ end;
 
 procedure PostIBPTLerTabela(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O, LJson: TJSONObject;
+  O: TJSONObject;
   Ac: TACBRBridgeDiversos;
 begin
-  O := GetJSON(Req.Body) as TJSONObject;
+  if not TryParseJsonObject(Req.Body, Res, O) then
+    Exit;
   Ac := TACBRBridgeDiversos.Create;
   try
-    LJson := Ac.LerTabelaIBPT(O);
-    try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
-    finally
-      LJson.Free;
-    end;
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Send(TJSONTools.JsonAndFree(Ac.LerTabelaIBPT(O)));
   finally
     O.Free;
     Ac.Free;
@@ -187,16 +207,11 @@ end;
 procedure GetModeloEAD(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   Ac: TACBRBridgeDiversos;
-  LJson: TJSONObject;
 begin
   Ac := TACBRBridgeDiversos.Create;
   try
-    LJson := Ac.ModelEAD;
-    try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
-    finally
-      LJson.Free;
-    end;
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Send(TJSONTools.JsonAndFree(Ac.ModelEAD));
   finally
     Ac.Free;
   end;
@@ -204,18 +219,15 @@ end;
 
 procedure PostEAD(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O, LJson: TJSONObject;
+  O: TJSONObject;
   Ac: TACBRBridgeDiversos;
 begin
-  O := GetJSON(Req.Body) as TJSONObject;
+  if not TryParseJsonObject(Req.Body, Res, O) then
+    Exit;
   Ac := TACBRBridgeDiversos.Create;
   try
-    LJson := Ac.ProcessarEAD(O);
-    try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
-    finally
-      LJson.Free;
-    end;
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Send(TJSONTools.JsonAndFree(Ac.ProcessarEAD(O)));
   finally
     O.Free;
     Ac.Free;
@@ -225,16 +237,11 @@ end;
 procedure GetModeloCalcDigito(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   Ac: TACBRBridgeDiversos;
-  LJson: TJSONObject;
 begin
   Ac := TACBRBridgeDiversos.Create;
   try
-    LJson := Ac.ModelCalcDigito;
-    try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
-    finally
-      LJson.Free;
-    end;
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Send(TJSONTools.JsonAndFree(Ac.ModelCalcDigito));
   finally
     Ac.Free;
   end;
@@ -242,18 +249,15 @@ end;
 
 procedure PostCalcDigito(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O, LJson: TJSONObject;
+  O: TJSONObject;
   Ac: TACBRBridgeDiversos;
 begin
-  O := GetJSON(Req.Body) as TJSONObject;
+  if not TryParseJsonObject(Req.Body, Res, O) then
+    Exit;
   Ac := TACBRBridgeDiversos.Create;
   try
-    LJson := Ac.CalcularDigito(O);
-    try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
-    finally
-      LJson.Free;
-    end;
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Send(TJSONTools.JsonAndFree(Ac.CalcularDigito(O)));
   finally
     O.Free;
     Ac.Free;
@@ -263,16 +267,11 @@ end;
 procedure GetModeloMail(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   Ac: TACBRBridgeDiversos;
-  LJson: TJSONObject;
 begin
   Ac := TACBRBridgeDiversos.Create;
   try
-    LJson := Ac.ModelMail;
-    try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
-    finally
-      LJson.Free;
-    end;
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Send(TJSONTools.JsonAndFree(Ac.ModelMail));
   finally
     Ac.Free;
   end;
@@ -280,18 +279,15 @@ end;
 
 procedure PostMail(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O, LJson: TJSONObject;
+  O: TJSONObject;
   Ac: TACBRBridgeDiversos;
 begin
-  O := GetJSON(Req.Body) as TJSONObject;
+  if not TryParseJsonObject(Req.Body, Res, O) then
+    Exit;
   Ac := TACBRBridgeDiversos.Create;
   try
-    LJson := Ac.EnviarEmail(O);
-    try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
-    finally
-      LJson.Free;
-    end;
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+       .Send(TJSONTools.JsonAndFree(Ac.EnviarEmail(O)));
   finally
     O.Free;
     Ac.Free;

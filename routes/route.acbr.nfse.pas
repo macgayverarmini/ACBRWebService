@@ -44,6 +44,30 @@ procedure regRouter;
 
 implementation
 
+function TryParseJSONObject(Req: THorseRequest; Res: THorseResponse; out O: TJSONObject): Boolean;
+var
+  LData: TJSONData;
+begin
+  Result := False;
+  O := nil;
+  try
+    LData := GetJSON(Req.Body);
+    if not (LData is TJSONObject) then
+    begin
+      LData.Free;
+      Res.Status(400).ContentType(TMimeTypes.ApplicationJSON.ToString)
+        .Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSStatusField, RSStatusErro, RSMessageField, RSNotJSONObjectError])));
+      Exit;
+    end;
+    O := TJSONObject(LData);
+    Result := True;
+  except
+    on E: Exception do
+      Res.Status(400).ContentType(TMimeTypes.ApplicationJSON.ToString)
+        .Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSStatusField, RSStatusErro, RSMessageField, RSJSONParseError + E.Message])));
+  end;
+end;
+
 procedure GetModeloConfig(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   Ac: TACBRModelosJSONNFSe;
@@ -51,7 +75,7 @@ var
 begin
   Ac := TACBRModelosJSONNFSe.Create('');
   try
-    LJson := AC.ModelConfig;
+    LJson := Ac.ModelConfig;
     try
       Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
     finally
@@ -69,7 +93,7 @@ var
 begin
   Ac := TACBRModelosJSONNFSe.Create('');
   try
-    LJson := AC.ModelEmitir;
+    LJson := Ac.ModelEmitir;
     try
       Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
     finally
@@ -87,7 +111,7 @@ var
 begin
   Ac := TACBRModelosJSONNFSe.Create('');
   try
-    LJson := AC.ModelConsultarSituacao;
+    LJson := Ac.ModelConsultarSituacao;
     try
       Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
     finally
@@ -105,7 +129,7 @@ var
 begin
   Ac := TACBRModelosJSONNFSe.Create('');
   try
-    LJson := AC.ModelConsultarLote;
+    LJson := Ac.ModelConsultarLote;
     try
       Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
     finally
@@ -123,7 +147,7 @@ var
 begin
   Ac := TACBRModelosJSONNFSe.Create('');
   try
-    LJson := AC.ModelConsultarNFSePorRps;
+    LJson := Ac.ModelConsultarNFSePorRps;
     try
       Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
     finally
@@ -141,7 +165,7 @@ var
 begin
   Ac := TACBRModelosJSONNFSe.Create('');
   try
-    LJson := AC.ModelConsultarNFSe;
+    LJson := Ac.ModelConsultarNFSe;
     try
       Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
     finally
@@ -159,7 +183,7 @@ var
 begin
   Ac := TACBRModelosJSONNFSe.Create('');
   try
-    LJson := AC.ModelCancelar;
+    LJson := Ac.ModelCancelar;
     try
       Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
     finally
@@ -177,7 +201,7 @@ var
 begin
   Ac := TACBRModelosJSONNFSe.Create('');
   try
-    LJson := AC.ModelSubstituir;
+    LJson := Ac.ModelSubstituir;
     try
       Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
     finally
@@ -190,11 +214,12 @@ end;
 
 procedure PostEmitir(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O: TJSONObject;
+  O, LJson: TJSONObject;
   Ac: TACBRBridgeNFSe;
-  LJson: TJSONObject;
 begin
-  O := GetJSON(Req.Body) as TJSONObject;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
+
   Ac := TACBRBridgeNFSe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.Emitir(O);
@@ -211,11 +236,12 @@ end;
 
 procedure PostGerar(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O: TJSONObject;
+  O, LJson: TJSONObject;
   Ac: TACBRBridgeNFSe;
-  LJson: TJSONObject;
 begin
-  O := GetJSON(Req.Body) as TJSONObject;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
+
   Ac := TACBRBridgeNFSe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.Gerar(O);
@@ -232,11 +258,12 @@ end;
 
 procedure PostConsultarSituacao(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O: TJSONObject;
+  O, LJson: TJSONObject;
   Ac: TACBRBridgeNFSe;
-  LJson: TJSONObject;
 begin
-  O := GetJSON(Req.Body) as TJSONObject;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
+
   Ac := TACBRBridgeNFSe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.ConsultarSituacao(O);
@@ -253,11 +280,12 @@ end;
 
 procedure PostConsultarLote(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O: TJSONObject;
+  O, LJson: TJSONObject;
   Ac: TACBRBridgeNFSe;
-  LJson: TJSONObject;
 begin
-  O := GetJSON(Req.Body) as TJSONObject;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
+
   Ac := TACBRBridgeNFSe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.ConsultarLote(O);
@@ -274,11 +302,12 @@ end;
 
 procedure PostConsultarNFSePorRps(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O: TJSONObject;
+  O, LJson: TJSONObject;
   Ac: TACBRBridgeNFSe;
-  LJson: TJSONObject;
 begin
-  O := GetJSON(Req.Body) as TJSONObject;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
+
   Ac := TACBRBridgeNFSe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.ConsultarNFSePorRps(O);
@@ -295,11 +324,12 @@ end;
 
 procedure PostConsultarNFSe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O: TJSONObject;
+  O, LJson: TJSONObject;
   Ac: TACBRBridgeNFSe;
-  LJson: TJSONObject;
 begin
-  O := GetJSON(Req.Body) as TJSONObject;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
+
   Ac := TACBRBridgeNFSe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.ConsultarNFSe(O);
@@ -316,11 +346,12 @@ end;
 
 procedure PostCancelar(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O: TJSONObject;
+  O, LJson: TJSONObject;
   Ac: TACBRBridgeNFSe;
-  LJson: TJSONObject;
 begin
-  O := GetJSON(Req.Body) as TJSONObject;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
+
   Ac := TACBRBridgeNFSe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.Cancelar(O);
@@ -337,11 +368,12 @@ end;
 
 procedure PostSubstituir(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O: TJSONObject;
+  O, LJson: TJSONObject;
   Ac: TACBRBridgeNFSe;
-  LJson: TJSONObject;
 begin
-  O := GetJSON(Req.Body) as TJSONObject;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
+
   Ac := TACBRBridgeNFSe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.Substituir(O);
@@ -358,11 +390,12 @@ end;
 
 procedure PostDANFSe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O: TJSONObject;
+  O, LJson: TJSONObject;
   Ac: TACBRBridgeNFSe;
-  LJson: TJSONObject;
 begin
-  O := GetJSON(Req.Body) as TJSONObject;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
+
   Ac := TACBRBridgeNFSe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.Danfse(O);
@@ -379,18 +412,19 @@ end;
 
 procedure PostDistribuicao(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O: TJSONObject;
+  O, LJson: TJSONObject;
   Ac: TACBRBridgeNFSe;
-  LJson: TJSONObject;
 begin
-  O := GetJSON(Req.Body) as TJSONObject;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
+
   Ac := TACBRBridgeNFSe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.Distribuicao(O);
     try
       Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
     finally
-       LJson.Free;
+      LJson.Free;
     end;
   finally
     O.Free;
@@ -405,7 +439,7 @@ var
 begin
   Ac := TACBRModelosJSONNFSe.Create('');
   try
-    LJson := AC.ModelNFSeFromXML;
+    LJson := Ac.ModelNFSeFromXML;
     try
       Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
     finally
@@ -423,7 +457,7 @@ var
 begin
   Ac := TACBRModelosJSONNFSe.Create('');
   try
-    LJson := AC.ModelNFSeToXML;
+    LJson := Ac.ModelNFSeToXML;
     try
       Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
     finally
@@ -436,11 +470,12 @@ end;
 
 procedure PostNFSeFromXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O: TJSONObject;
+  O, LJson: TJSONObject;
   Ac: TACBRBridgeNFSe;
-  LJson: TJSONObject;
 begin
-  O := GetJSON(Req.Body) as TJSONObject;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
+
   Ac := TACBRBridgeNFSe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.NFSeFromXML(O);
@@ -457,11 +492,12 @@ end;
 
 procedure PostNFSeToXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
-  O: TJSONObject;
+  O, LJson: TJSONObject;
   Ac: TACBRBridgeNFSe;
-  LJson: TJSONObject;
 begin
-  O := GetJSON(Req.Body) as TJSONObject;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
+
   Ac := TACBRBridgeNFSe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.NFSeToXML(O);
@@ -499,7 +535,9 @@ var
   O, LJson: TJSONObject;
   Ac: TACBRBridgeNFSe;
 begin
-  O := GetJSON(Req.Body) as TJSONObject;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
+
   Ac := TACBRBridgeNFSe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.EnviarEvento(O);
@@ -516,16 +554,19 @@ end;
 
 procedure GetModeloConsultarEventosNFSe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
+  Ac: TACBRModelosJSONNFSe;
   LJson: TJSONObject;
 begin
-  LJson := TJSONObject.Create;
+  Ac := TACBRModelosJSONNFSe.Create('');
   try
-    LJson.Add('Chave', '00000000000000000000000000000000000000000000000000');
-    LJson.Add('TipoEvento', 'e101101');
-    LJson.Add('nSeqEvento', 1);
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    LJson := Ac.ModelConsultarEventos;
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
+    finally
+      LJson.Free;
+    end;
   finally
-    LJson.Free;
+    Ac.Free;
   end;
 end;
 
@@ -534,15 +575,9 @@ var
   O, LJson: TJSONObject;
   Ac: TACBRBridgeNFSe;
 begin
-  try
-    O := GetJSON(Req.Body) as TJSONObject;
-  except
-    on E: Exception do
-    begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSJSONParseError + E.Message])));
-      Exit;
-    end;
-  end;
+  if not TryParseJSONObject(Req, Res, O) then
+    Exit;
+
   Ac := TACBRBridgeNFSe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.ConsultarEventos(O);

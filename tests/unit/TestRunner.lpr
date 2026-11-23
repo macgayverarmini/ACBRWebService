@@ -5,6 +5,7 @@ program TestRunner;
 uses
   {$ifdef unix}
   cthreads,
+  Math,
   {$endif}
   Interfaces, Classes, consoletestrunner, TestCTe, TestCTeRoundTrip, TestNFe, TestMDFe, TestDiversos, TestCertificados, TestNFSe, TestStreamTools, TestCTeModelosUnit, TestNFeModelosUnit;
 
@@ -22,6 +23,9 @@ end;
 var
   Application: TMyTestRunner;
 begin
+  {$ifdef unix}
+  SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision]);
+  {$endif}
   Application := TMyTestRunner.Create(nil);
   Application.Initialize;
   Application.Run;

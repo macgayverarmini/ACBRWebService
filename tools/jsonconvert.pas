@@ -31,7 +31,6 @@ type
 
     class procedure JsonStringToObj(const JsonString: string; const Obj: TObject);
     class procedure JsonToObj(const Json: TJSONObject; const Obj: TObject);
-    class procedure PopulateModelDefaults(const Obj: TObject; MaxDepth: Integer = 5);
 
     class function ExtractConfig(O: TJSONObject; const Field: string = ''): string;
     class function ExtractCertificadoPFX(O: TJSONObject): AnsiString;
@@ -43,11 +42,171 @@ type
 implementation
 
 uses
+  {$IFDEF UNIX}
+  ffi.manager,
+  {$ENDIF}
   Contnrs,
   DateUtils,
   Base64,
   synacode,
   Variants;
+
+function IsPlainStringsInstance(const AObj: TObject): Boolean;
+var
+  LCls: TClass;
+begin
+  if not (AObj is TStrings) then
+    Exit(False);
+  LCls := AObj.ClassType;
+  while Assigned(LCls) do
+  begin
+    { TACBrEMVList / TACBrPIXQRCodeDinamico inherit TStringList internally
+      but expose EMV/PIX fields as public RTTI properties. }
+    if SameText(LCls.ClassName, 'TACBrEMVList') then
+      Exit(False);
+    LCls := LCls.ClassParent;
+  end;
+  Result := True;
+end;
+
+function Cp1252ByteToUnicode(const B: Byte): Cardinal;
+begin
+  case B of
+    $80: Result := $20AC;
+    $82: Result := $201A;
+    $83: Result := $0192;
+    $84: Result := $201E;
+    $85: Result := $2026;
+    $86: Result := $2020;
+    $87: Result := $2021;
+    $88: Result := $02C6;
+    $89: Result := $2030;
+    $8A: Result := $0160;
+    $8B: Result := $2039;
+    $8C: Result := $0152;
+    $8E: Result := $017D;
+    $91: Result := $2018;
+    $92: Result := $2019;
+    $93: Result := $201C;
+    $94: Result := $201D;
+    $95: Result := $2022;
+    $96: Result := $2013;
+    $97: Result := $2014;
+    $98: Result := $02DC;
+    $99: Result := $2122;
+    $9A: Result := $0161;
+    $9B: Result := $203A;
+    $9C: Result := $0153;
+    $9E: Result := $017E;
+    $9F: Result := $0178;
+  else
+    Result := B;
+  end;
+end;
+
+function IsValidUtf8Bytes(const ARaw: RawByteString): Boolean;
+var
+  I, Len: Integer;
+  B, B2, B3, B4: Byte;
+begin
+  Result := True;
+  Len := Length(ARaw);
+  I := 1;
+  while I <= Len do
+  begin
+    B := Byte(ARaw[I]);
+    if B <= $7F then
+      Inc(I)
+    else if (B and $E0) = $C0 then
+    begin
+      if (B < $C2) or (I + 1 > Len) then
+        Exit(False);
+      B2 := Byte(ARaw[I + 1]);
+      if (B2 and $C0) <> $80 then
+        Exit(False);
+      Inc(I, 2);
+    end
+    else if (B and $F0) = $E0 then
+    begin
+      if I + 2 > Len then
+        Exit(False);
+      B2 := Byte(ARaw[I + 1]);
+      B3 := Byte(ARaw[I + 2]);
+      if ((B2 and $C0) <> $80) or ((B3 and $C0) <> $80) then
+        Exit(False);
+      if (B = $E0) and (B2 < $A0) then
+        Exit(False);
+      if (B = $ED) and (B2 >= $A0) then
+        Exit(False);
+      Inc(I, 3);
+    end
+    else if (B and $F8) = $F0 then
+    begin
+      if (B > $F4) or (I + 3 > Len) then
+        Exit(False);
+      B2 := Byte(ARaw[I + 1]);
+      B3 := Byte(ARaw[I + 2]);
+      B4 := Byte(ARaw[I + 3]);
+      if ((B2 and $C0) <> $80) or ((B3 and $C0) <> $80) or ((B4 and $C0) <> $80) then
+        Exit(False);
+      if (B = $F0) and (B2 < $90) then
+        Exit(False);
+      if (B = $F4) and (B2 > $8F) then
+        Exit(False);
+      Inc(I, 4);
+    end
+    else
+      Exit(False);
+  end;
+end;
+
+function EnsureValidUtf8(const S: RawByteString): UTF8String;
+var
+  I, OutLen: Integer;
+  CP: Cardinal;
+  OutRaw: RawByteString;
+begin
+  if S = '' then
+    Exit('');
+  if IsValidUtf8Bytes(S) then
+  begin
+    OutRaw := S;
+    SetCodePage(OutRaw, CP_UTF8, False);
+    Result := OutRaw;
+    Exit;
+  end;
+
+  SetLength(OutRaw, Length(S) * 3);
+  OutLen := 0;
+  for I := 1 to Length(S) do
+  begin
+    CP := Cp1252ByteToUnicode(Byte(S[I]));
+    if CP <= $7F then
+    begin
+      Inc(OutLen);
+      OutRaw[OutLen] := AnsiChar(CP);
+    end
+    else if CP <= $7FF then
+    begin
+      Inc(OutLen);
+      OutRaw[OutLen] := AnsiChar($C0 or ((CP shr 6) and $1F));
+      Inc(OutLen);
+      OutRaw[OutLen] := AnsiChar($80 or (CP and $3F));
+    end
+    else
+    begin
+      Inc(OutLen);
+      OutRaw[OutLen] := AnsiChar($E0 or ((CP shr 12) and $0F));
+      Inc(OutLen);
+      OutRaw[OutLen] := AnsiChar($80 or ((CP shr 6) and $3F));
+      Inc(OutLen);
+      OutRaw[OutLen] := AnsiChar($80 or (CP and $3F));
+    end;
+  end;
+  SetLength(OutRaw, OutLen);
+  SetCodePage(OutRaw, CP_UTF8, False);
+  Result := OutRaw;
+end;
 
 { TJSONTools }
 
@@ -59,13 +218,13 @@ var
   RttiType: TRttiType;
   LItemRttiType: TRttiInstanceType;
   RttiMethod, LCtorMethod: TRttiMethod;
-  LParams: TRttiParameterArray;
+  LParams, LCtorParams: TRttiParameterArray;
   LParamVal: TValue;
 begin
   if not Assigned(AListObj) then
     Exit;
 
-  if (AListObj.ClassType = TStringList) or (AListObj.ClassType = TStrings) then
+  if IsPlainStringsInstance(AListObj) then
   begin
     TStrings(AListObj).Clear;
     for I := 0 to AArray.Count - 1 do
@@ -116,8 +275,8 @@ begin
           begin
             LOwnerArg := AOwner;
             if Assigned(LOwnerArg) and Assigned(LParams[0].ParamType) and
-               (LParams[0].ParamType is TRttiInstanceType) and
-               not (LOwnerArg is TRttiInstanceType(LParams[0].ParamType).MetaclassType) then
+               LParams[0].ParamType.IsInstance and
+               not (LOwnerArg is LParams[0].ParamType.AsInstance.MetaclassType) then
               LOwnerArg := nil;
             if Assigned(LParams[0].ParamType) then
               TValue.Make(@LOwnerArg, LParams[0].ParamType.Handle, LParamVal)
@@ -137,18 +296,36 @@ begin
       begin
         LParams := RttiMethod.GetParameters;
         if (Length(LParams) = 1) and Assigned(LParams[0].ParamType) and
-           (LParams[0].ParamType is TRttiInstanceType) then
+           LParams[0].ParamType.IsInstance then
         begin
-          LItemRttiType := TRttiInstanceType(LParams[0].ParamType);
+          LItemRttiType := LParams[0].ParamType.AsInstance;
+          if LItemRttiType.MetaclassType = TObject then
+            Exit;
           LCtorMethod := LItemRttiType.GetMethod('Create');
           TObjectList(AListObj).Clear;
           for I := 0 to AArray.Count - 1 do
           begin
             if AArray.Items[I] is TJSONObject then
             begin
-              if Assigned(LCtorMethod) and (LCtorMethod.MethodKind = mkConstructor) and
-                 (Length(LCtorMethod.GetParameters) = 0) then
-                LNewItem := LCtorMethod.Invoke(LItemRttiType.MetaclassType, []).AsObject
+              LNewItem := nil;
+              if Assigned(LCtorMethod) then
+              begin
+                if LCtorMethod.MethodKind = mkConstructor then
+                begin
+                  LCtorParams := LCtorMethod.GetParameters;
+                  if Length(LCtorParams) = 0 then
+                    LNewItem := LCtorMethod.Invoke(LItemRttiType.MetaclassType, []).AsObject
+                  else if (Length(LCtorParams) = 1) and (AOwner <> nil) and
+                          Assigned(LCtorParams[0].ParamType) and
+                          LCtorParams[0].ParamType.IsInstance and
+                          (AOwner is LCtorParams[0].ParamType.AsInstance.MetaclassType) then
+                  begin
+                    LOwnerArg := AOwner;
+                    TValue.Make(@LOwnerArg, LCtorParams[0].ParamType.Handle, LParamVal);
+                    LNewItem := LCtorMethod.Invoke(LItemRttiType.MetaclassType, [LParamVal]).AsObject;
+                  end;
+                end;
+              end
               else
                 LNewItem := LItemRttiType.MetaclassType.Create;
               if Assigned(LNewItem) then
@@ -242,7 +419,7 @@ begin
           Result := TJSONFloatNumber.Create(Value.AsExtended);
       end;
     tkString, tkAString, tkWString, tkUString, tkChar, tkWChar, tkUChar:
-      Result := TJSONString.Create(Value.AsString);
+      Result := TJSONString.Create(EnsureValidUtf8(Value.AsString));
     tkEnumeration:
       begin
         if Value.TypeInfo = TypeInfo(Boolean) then
@@ -250,11 +427,11 @@ begin
         else
         begin
           EnumName := GetEnumName(Value.TypeInfo, Value.AsOrdinal);
-          Result := TJSONString.Create(EnumName);
+          Result := TJSONString.Create(EnsureValidUtf8(EnumName));
         end;
       end;
     tkSet:
-      Result := TJSONString.Create(SetToString(Value.TypeInfo, Value.AsOrdinal, True));
+      Result := TJSONString.Create(EnsureValidUtf8(SetToString(Value.TypeInfo, Value.AsOrdinal, True)));
     tkClass:
       begin
         Obj := Value.AsObject;
@@ -287,11 +464,11 @@ begin
 
   Visited.Add(Obj);
 
-  if (Obj.ClassType = TStringList) or (Obj.ClassType = TStrings) then
+  if IsPlainStringsInstance(Obj) then
   begin
     ArrJson := TJSONArray.Create;
     for I := 0 to TStrings(Obj).Count - 1 do
-      ArrJson.Add(TStrings(Obj)[I]);
+      ArrJson.Add(EnsureValidUtf8(TStrings(Obj)[I]));
     Exit(ArrJson);
   end;
 
@@ -332,16 +509,23 @@ begin
       for I := 0 to Length(Props) - 1 do
       begin
         Prop := Props[I];
-        if Prop.IsReadable and (Prop.Visibility in [mvPublic, mvPublished]) then
+        if (not Prop.IsClassProperty) and Prop.IsReadable and
+           (Prop.Visibility in [mvPublic, mvPublished]) and Assigned(Prop.PropertyType) then
         begin
           try
             if (Prop.PropertyType.TypeKind = tkVariant) and Assigned(Prop.Handle) then
               ObjJson.Add(Prop.Name, VariantToJson(GetVariantProp(Obj, PPropInfo(Prop.Handle))))
-            else
+            else if Prop.PropertyType.TypeKind in [
+              tkInteger, tkInt64, tkQWord, tkFloat,
+              tkString, tkAString, tkWString, tkUString, tkChar, tkWChar, tkUChar,
+              tkEnumeration, tkSet, tkClass
+            ] then
             begin
               Val := Prop.GetValue(Obj);
               ObjJson.Add(Prop.Name, ValueToJson(Val, Visited));
-            end;
+            end
+            else
+              ObjJson.Add(Prop.Name, TJSONNull.Create);
           except
           end;
         end;
@@ -431,13 +615,13 @@ begin
       Prop := RttiType.GetProperty(PropStr);
       if JsonVal.IsNull then
       begin
-        if Assigned(Prop) and Prop.IsWritable and
+        if Assigned(Prop) and (not Prop.IsClassProperty) and Prop.IsWritable and
            (Prop.PropertyType.TypeKind = tkVariant) and Assigned(Prop.Handle) then
           SetVariantProp(Obj, PPropInfo(Prop.Handle), Null);
         Continue;
       end;
 
-      if Assigned(Prop) then
+      if Assigned(Prop) and (not Prop.IsClassProperty) then
       begin
         if Prop.PropertyType.TypeKind = tkClass then
         begin
@@ -531,25 +715,27 @@ begin
               tkVariant:
                 if Assigned(Prop.Handle) then
                 begin
-                  if JsonVal is TJSONNumber then
-                    SetVariantProp(Obj, PPropInfo(Prop.Handle), Double(JsonVal.AsFloat))
+                  if JsonVal.IsNull then
+                    SetVariantProp(Obj, PPropInfo(Prop.Handle), Null)
+                  else if JsonVal is TJSONNumber then
+                  begin
+                    if TJSONNumber(JsonVal).NumberType = ntFloat then
+                      SetVariantProp(Obj, PPropInfo(Prop.Handle), Double(JsonVal.AsFloat))
+                    else
+                      SetVariantProp(Obj, PPropInfo(Prop.Handle), JsonVal.AsInt64);
+                  end
                   else if JsonVal is TJSONBoolean then
                     SetVariantProp(Obj, PPropInfo(Prop.Handle), JsonVal.AsBoolean)
-                  else
+                  else if JsonVal is TJSONString then
                   begin
-                    SVal := Trim(JsonVal.AsString);
-                    if SVal = '' then
+                    if JsonVal.AsString = '' then
                       SetVariantProp(Obj, PPropInfo(Prop.Handle), Null)
                     else
-                    begin
-                      System.Val(StringReplace(SVal, ',', '.', [rfReplaceAll]), LFloat, LValCode);
-                      if LValCode = 0 then
-                        SetVariantProp(Obj, PPropInfo(Prop.Handle), LFloat)
-                      else
-                        SetVariantProp(Obj, PPropInfo(Prop.Handle), JsonVal.AsString);
-                    end;
+                      SetVariantProp(Obj, PPropInfo(Prop.Handle), JsonVal.AsString);
                   end;
                 end;
+            else
+              ;
             end;
           except
           end;
@@ -558,80 +744,6 @@ begin
     end;
   finally
     Ctx.Free;
-  end;
-end;
-
-class procedure TJSONTools.PopulateModelDefaults(const Obj: TObject; MaxDepth: Integer);
-var
-  Visited: TList;
-  DummyArr: TJSONArray;
-
-  procedure Walk(const Cur: TObject; CurDepth: Integer);
-  var
-    Ctx: TRttiContext;
-    RttiType: TRttiType;
-    Props: TRttiPropertyArray;
-    Prop: TRttiProperty;
-    I: Integer;
-    ChildObj: TObject;
-  begin
-    if (Cur = nil) or (CurDepth <= 0) or (Visited.IndexOf(Cur) >= 0) then
-      Exit;
-    Visited.Add(Cur);
-    Ctx := TRttiContext.Create(False);
-    try
-      RttiType := Ctx.GetType(Cur.ClassType);
-      if not Assigned(RttiType) then
-        Exit;
-      Props := RttiType.GetProperties;
-      for I := 0 to Length(Props) - 1 do
-      begin
-        Prop := Props[I];
-        if Prop.IsReadable and (Prop.Visibility in [mvPublic, mvPublished]) and
-           (Prop.PropertyType.TypeKind = tkClass) then
-        begin
-          try
-            ChildObj := Prop.GetValue(Cur).AsObject;
-            if Assigned(ChildObj) and (Visited.IndexOf(ChildObj) < 0) then
-            begin
-              if ChildObj is TObjectList then
-              begin
-                if TObjectList(ChildObj).Count = 0 then
-                  PopulateObjectList(ChildObj, DummyArr, Cur);
-                if TObjectList(ChildObj).Count > 0 then
-                  Walk(TObjectList(ChildObj).Items[0], CurDepth - 1);
-              end
-              else if ChildObj is TCollection then
-              begin
-                if TCollection(ChildObj).Count = 0 then
-                  TCollection(ChildObj).Add;
-                if TCollection(ChildObj).Count > 0 then
-                  Walk(TCollection(ChildObj).Items[0], CurDepth - 1);
-              end
-              else if (ChildObj.ClassType <> TStringList) and
-                      (ChildObj.ClassType <> TStrings) and
-                      not (ChildObj is TComponent) then
-                Walk(ChildObj, CurDepth - 1);
-            end;
-          except
-          end;
-        end;
-      end;
-    finally
-      Ctx.Free;
-    end;
-  end;
-
-begin
-  if Obj = nil then
-    Exit;
-  Visited := TList.Create;
-  DummyArr := TJSONArray.Create([TJSONObject.Create]);
-  try
-    Walk(Obj, MaxDepth);
-  finally
-    DummyArr.Free;
-    Visited.Free;
   end;
 end;
 
@@ -662,7 +774,7 @@ class function TJSONTools.ExtractCertificadoPFX(O: TJSONObject): AnsiString;
 var
   LCertJson: TJSONData;
   LCertObj: TJSONObject;
-  LPFXB64: string;
+  LPFXRaw: RawByteString;
 begin
   Result := '';
   if not Assigned(O) then
@@ -671,11 +783,16 @@ begin
   if Assigned(LCertJson) and (LCertJson is TJSONObject) then
   begin
     LCertObj := TJSONObject(LCertJson);
-    LPFXB64 := LCertObj.Get('DadosPFXBase64', '');
-    if LPFXB64 = '' then
-      LPFXB64 := LCertObj.Get('DadosPFX', '');
-    if LPFXB64 <> '' then
-      Result := synacode.DecodeBase64(LPFXB64);
+    LPFXRaw := LCertObj.Get('DadosPFX', '');
+    if LPFXRaw = '' then
+      LPFXRaw := LCertObj.Get('DadosPFXBase64', '');
+    if LPFXRaw <> '' then
+    begin
+      if LPFXRaw[1] = #$30 then
+        Result := LPFXRaw
+      else
+        Result := synacode.DecodeBase64(Trim(LPFXRaw));
+    end;
   end;
 end;
 
@@ -743,10 +860,12 @@ begin
     Result := TJSONNull.Create
   else if VarIsType(V, varBoolean) then
     Result := TJSONBoolean.Create(Boolean(V))
+  else if VarIsOrdinal(V) then
+    Result := TJSONInt64Number.Create(Int64(V))
   else if VarIsNumeric(V) then
     Result := TJSONFloatNumber.Create(Double(V))
   else
-    Result := TJSONString.Create(VarToStr(V));
+    Result := TJSONString.Create(EnsureValidUtf8(VarToStr(V)));
 end;
 
 end.

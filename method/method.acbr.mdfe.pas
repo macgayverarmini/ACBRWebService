@@ -86,6 +86,7 @@ type
     function ModelCancelamento: TJSONObject;
     function ModelEncerramento: TJSONObject;
     function ModelNaoEncerrados: TJSONObject;
+    function ModelEmail: TJSONObject;
   end;
 
 implementation
@@ -94,180 +95,41 @@ implementation
 
 function TACBRModelosJSONMDFe.ModelConfig: TJSONObject;
 begin
-  with facbr.Configuracoes.Geral do
-  begin
-    VersaoDF := TVersaoMDFe.ve300;
-    RetirarAcentos := True;
-    SSLLib := TSSLLib.libOpenSSL;
-    SSLCryptLib := TSSLCryptLib.cryOpenSSL;
-    SSLHttpLib := TSSLHttpLib.httpOpenSSL;
-    SSLXmlSignLib := TSSLXmlSignLib.xsLibXml2;
-  end;
-
-  with facbr.Configuracoes.WebServices do
-  begin
-    Ambiente := TpcnTipoAmbiente.taHomologacao;
-    UF := RSDefaultUF;
-    TimeOut := 10000;
-    Visualizar := False;
-  end;
-
-  with facbr.Configuracoes.Certificados do
-  begin
-    ArquivoPFX := RSDefaultCertPath;
-    Senha := RSDefaultCertPassword;
-  end;
-
-  Result := TJSONTools.ObjToJson(facbr.Configuracoes);
+  Result := TJSONTools.SafeObjToJson(facbr.Configuracoes, 'Erro ao gerar modelo de configuracao do MDF-e');
 end;
 
 function TACBRModelosJSONMDFe.ModelEvento: TJSONObject;
 begin
-  facbr.EventoMDFe.Evento.New;
-  Result := TJSONTools.ObjToJson(facbr.EventoMDFe);
   facbr.EventoMDFe.Evento.Clear;
+  facbr.EventoMDFe.Evento.New;
+  try
+    Result := TJSONTools.SafeObjToJson(facbr.EventoMDFe, 'Erro ao gerar modelo de evento do MDF-e');
+  finally
+    facbr.EventoMDFe.Evento.Clear;
+  end;
 end;
 
 function TACBRModelosJSONMDFe.ModelMDFe: TJSONObject;
 var
-  MDFe: TManifesto;
-  MunDescarga: TinfMunDescargaCollectionItem;
-  infCTe: TinfCTeCollectionItem;
-  infUnidTranspCTe: TinfUnidTranspCollectionItem;
-  infUnidCargaCTe: TinfUnidCargaCollectionItem;
+  Manifesto: TManifesto;
 begin
-  // Cria um manifesto MDF-e vazio para gerar o modelo JSON
-  MDFe := facbr.Manifestos.Add;
-
-  // Bloco de Identificação do MDF-e (ide)
-  with MDFe.MDFe.Ide do
-  begin
-    cUF := 35;
-    tpAmb := taHomologacao;
-    // Padrão para modelo
-    tpEmit := teTransportadora;
-    modelo := '58';
-    serie := 1;
-    nMDF := 1;
-    cMDF := 1;
-    modal := moRodoviario;
-    dhEmi := Now;
-    tpEmis := teNormal;
-    procEmi := peAplicativoContribuinte;
-    verProc := '1.0';
-    UFIni := 'SP';
-    UFFim := 'SP';
-  end;
-
-  MDFe.MDFe.Ide.infMunCarrega.New;
-
-  // Bloco do Emitente (emit)
-  with MDFe.MDFe.Emit do
-  begin
-    CNPJCPF := '00000000000191';
-    IE := '123456789012';
-    xNome := 'RAZAO SOCIAL DO EMITENTE';
-    xFant := 'NOME FANTASIA DO EMITENTE';
-    with EnderEmit do
-    begin
-      xLgr := 'AVENIDA PRINCIPAL';
-      nro := '1234';
-      xBairro := 'CENTRO';
-      cMun := 3550308;
-      xMun := 'SAO PAULO';
-      CEP := 12345000;
-      UF := 'SP';
-    end;
-  end;
-
-  // Bloco Rodo (Modal Rodoviário)
-  with MDFe.MDFe.rodo do
-  begin
-    RNTRC := '12345678';
-
-    // Veículo de Tração
-    with veicTracao do
-    begin
-      placa := 'ABC1234';
-      RENAVAM := '123456789';
-      tara := 5000;
-      capKG := 4500;
-      tpRod := trTruck;
-      tpCar := tcFechada;
-      UF := 'SP';
-    end;
-
-    // Condutor
-    veicTracao.condutor.New;
-    // Veículo Reboque
-    veicReboque.New;
-    // Vale Pedágio
-    valePed.disp.New;
-    // CIOT
-    infANTT.infCIOT.New;
-  end;
-
-  // Bloco de Documentos (infDoc)
-  MunDescarga := MDFe.MDFe.infDoc.infMunDescarga.New;
-
-  // Informações do CT-e
-  infCTe := MunDescarga.infCTe.New;
-  infCTe.chCTe := '35110803911545000148570010000001011000001018';
-
-  // Unidade de Transporte
-  infUnidTranspCTe := infCTe.infUnidTransp.New;
-
-  infUnidTranspCTe.tpUnidTransp := utRodoTracao;
-  infUnidTranspCTe.idUnidTransp := 'ABC1234';
-  infUnidTranspCTe.lacUnidTransp.New;
-
-  // Unidade de Carga
-  infUnidCargaCte := infUnidTranspCTe.infUnidCarga.New;
-  infUnidCargaCte.tpUnidCarga := ucOutros;
-  infUnidCargaCte.idUnidCarga := 'AB45';
-  infUnidCargaCte.lacUnidCarga.New;
-
-  // Bloco de Totais (tot)
-  with MDFe.MDFe.Tot do
-  begin
-    qCTe := 1;
-    vCarga := 3500.00;
-    cUnid := uTon;
-    qCarga := 2.8000;
-  end;
-
-  // Lacres
-  MDFe.MDFe.lacres.New;
-
-  // Informações Adicionais
-  with MDFe.MDFe.infAdic do
-  begin
-    infCpl := 'INFORMACOES COMPLEMENTARES';
-    infAdFisco := 'INFORMACOES PARA O FISCO';
-  end;
-
-  // Converte o objeto populado para JSON
-  Result := TJSONTools.ObjToJson(MDFe);
-
-  // Remove campos internos desnecessários para o modelo
-  Result.Delete(RSXMLField);
-  Result.Delete(RSXMLOriginalField);
-  Result.Delete(RSNomeArqField);
-  Result.Delete(RSProtocoloField);
-
-  // Limpa o manifesto da memória do componente ACBr
   facbr.Manifestos.Clear;
+  Manifesto := facbr.Manifestos.Add;
+  try
+    Result := TJSONTools.SafeObjToJson(Manifesto.MDFe, 'Erro ao gerar modelo do MDF-e');
+  finally
+    facbr.Manifestos.Clear;
+  end;
 end;
 
 function TACBRModelosJSONMDFe.ModelDistribuicao: string;
 begin
-  Result := TJSONTools.SafeObjToJsonString(facbr.WebServices.DistribuicaoDFe);
+  Result := TJSONTools.SafeObjToJsonString(facbr.WebServices.DistribuicaoDFe, 'Erro ao gerar modelo de distribuicao do MDF-e');
 end;
 
 function TACBRModelosJSONMDFe.ModelMDFeFromXML: TJSONObject;
 begin
-  Result := TJSONObject.Create;
-  Result.Add(RSXmlKey, 'BASE64_DO_XML_MDFE_AQUI');
+  Result := ModelMDFe;
 end;
 
 function TACBRModelosJSONMDFe.ModelMDFeToXML: TJSONObject;
@@ -791,24 +653,19 @@ end;
 function TACBRBridgeMDFe.Distribuicao(const jDistribuicao: TJSONObject): TJSONObject;
 var
   objDistribuicao: TDistribuicaoDFe;
-  CNPJCPF, ultNSU, NSU, chMDFe: TJSONString;
 begin
   CarregaConfig;
 
   Result := nil;
   objDistribuicao := facbr.WebServices.DistribuicaoDFe;
 
-  if jDistribuicao.Find('CNPJCPF', CNPJCPF) then
-    objDistribuicao.CNPJCPF := CNPJCPF.ToString;
+  if Assigned(jDistribuicao) then
+    TJSONTools.JsonToObj(jDistribuicao, objDistribuicao);
 
-  if jDistribuicao.Find('ultNSU', ultNSU) then
-    objDistribuicao.ultNSU := ultNSU.ToString;
-
-  if jDistribuicao.Find('NSU', NSU) then
-    objDistribuicao.NSU := NSU.ToString;
-
-  if jDistribuicao.Find('chMDFe', chMDFe) then
-    objDistribuicao.chMDFe := chMDFe.ToString;
+  objDistribuicao.CNPJCPF := Trim(objDistribuicao.CNPJCPF);
+  objDistribuicao.ultNSU := Trim(objDistribuicao.ultNSU);
+  objDistribuicao.NSU := Trim(objDistribuicao.NSU);
+  objDistribuicao.chMDFe := Trim(objDistribuicao.chMDFe);
 
   try
     objDistribuicao.Executar;
@@ -1209,17 +1066,21 @@ var
   Chave: string;
 begin
   CarregaConfig;
-  Chave := jConsulta.Get('MDFeChave', '');
-  if Chave = '' then
-    Chave := jConsulta.Get('chMDFe', '');
-  if Chave = '' then
-    Chave := jConsulta.Get(RSChaveField, '');
+  if Assigned(jConsulta) then
+    TJSONTools.JsonToObj(jConsulta, facbr.WebServices.Consulta);
+
+  Chave := Trim(facbr.WebServices.Consulta.MDFeChave);
+  if (Chave = '') and Assigned(jConsulta) then
+  begin
+    Chave := Trim(jConsulta.Get('chMDFe', ''));
+    if Chave = '' then
+      Chave := Trim(jConsulta.Get(RSChaveField, ''));
+    facbr.WebServices.Consulta.MDFeChave := Chave;
+  end;
 
   if Chave <> '' then
   begin
     try
-      facbr.WebServices.Consulta.MDFeChave := Chave;
-      facbr.WebServices.Consulta.ExtrairEventos := jConsulta.Get('ExtrairEventos', False);
       facbr.WebServices.Consulta.Executar;
       Result := TJSONTools.SafeObjToJson(facbr.WebServices.Consulta, 'Erro na consulta de MDF-e');
     except
@@ -1364,9 +1225,12 @@ var
   cnpjCpf: string;
 begin
   CarregaConfig;
-  cnpjCpf := jConsulta.Get('CNPJCPF', '');
-  if cnpjCpf = '' then
-    cnpjCpf := jConsulta.Get('cnpj', '');
+  if Assigned(jConsulta) then
+    TJSONTools.JsonToObj(jConsulta, facbr.WebServices.ConsMDFeNaoEnc);
+
+  cnpjCpf := Trim(facbr.WebServices.ConsMDFeNaoEnc.CNPJCPF);
+  if (cnpjCpf = '') and Assigned(jConsulta) then
+    cnpjCpf := Trim(jConsulta.Get('cnpj', ''));
 
   if cnpjCpf = '' then
   begin
@@ -1383,52 +1247,57 @@ begin
   end;
 end;
 
-
-
 function TACBRModelosJSONMDFe.ModelStatusServico: TJSONObject;
 begin
-  Result := TJSONObject.Create;
+  Result := TJSONTools.SafeObjToJson(facbr.WebServices.StatusServico, 'Erro ao gerar modelo de status do MDF-e');
 end;
-
-
 
 function TACBRModelosJSONMDFe.ModelConsulta: TJSONObject;
 begin
-  Result := TJSONObject.Create;
-  Result.Add('MDFeChave', 'Preencha com a Chave de Acesso de 44 digitos do MDF-e');
-  Result.Add('ExtrairEventos', True);
+  Result := TJSONTools.SafeObjToJson(facbr.WebServices.Consulta, 'Erro ao gerar modelo de consulta do MDF-e');
 end;
-
-
 
 function TACBRModelosJSONMDFe.ModelCancelamento: TJSONObject;
+var
+  LEvt: TInfEventoCollectionItem;
 begin
-  Result := TJSONObject.Create;
-  Result.Add('chMDFe', 'Preencha com a Chave de Acesso do MDF-e');
-  Result.Add('nProt', 'Preencha com o Protocolo de Autorizacao');
-  Result.Add('CNPJCPF', '00000000000191');
-  Result.Add('xJust', 'Justificativa do Cancelamento (min 15 caracteres)');
+  facbr.EventoMDFe.Evento.Clear;
+  LEvt := facbr.EventoMDFe.Evento.New;
+  try
+    Result := TJSONTools.SafeObjToJson(LEvt, 'Erro ao gerar modelo de cancelamento do MDF-e');
+  finally
+    facbr.EventoMDFe.Evento.Clear;
+  end;
 end;
-
-
 
 function TACBRModelosJSONMDFe.ModelEncerramento: TJSONObject;
+var
+  LEvt: TInfEventoCollectionItem;
 begin
-  Result := TJSONObject.Create;
-  Result.Add('chMDFe', 'Preencha com a Chave de Acesso do MDF-e');
-  Result.Add('nProt', 'Preencha com o Protocolo de Autorizacao');
-  Result.Add('CNPJCPF', '00000000000191');
-  Result.Add('cUF', 32);
-  Result.Add('cMun', 3205002);
-  Result.Add('dtEnc', FormatDateTime('yyyy-mm-dd', Date));
+  facbr.EventoMDFe.Evento.Clear;
+  LEvt := facbr.EventoMDFe.Evento.New;
+  try
+    Result := TJSONTools.SafeObjToJson(LEvt, 'Erro ao gerar modelo de encerramento do MDF-e');
+  finally
+    facbr.EventoMDFe.Evento.Clear;
+  end;
 end;
-
-
 
 function TACBRModelosJSONMDFe.ModelNaoEncerrados: TJSONObject;
 begin
-  Result := TJSONObject.Create;
-  Result.Add('CNPJCPF', '00000000000191');
+  Result := TJSONTools.SafeObjToJson(facbr.WebServices.ConsMDFeNaoEnc, 'Erro ao gerar modelo de MDF-e nao encerrados');
+end;
+
+function TACBRModelosJSONMDFe.ModelEmail: TJSONObject;
+var
+  LMail: TACBrMail;
+begin
+  LMail := TACBrMail.Create(nil);
+  try
+    Result := TJSONTools.SafeObjToJson(LMail, 'Erro ao gerar modelo de e-mail do MDF-e');
+  finally
+    LMail.Free;
+  end;
 end;
 
 function TACBRModelosJSONMDFe.ModelValidarRegras: TJSONObject;
@@ -1608,6 +1477,7 @@ begin
       LAssinado := False;
       if HasUsableCertificate and (xmlOut <> '') then
       begin
+        facbr.SSL.CarregarCertificado;
         xmlOut := facbr.SSL.Assinar(xmlOut, 'eventoMDFe', 'infEvento');
         LAssinado := True;
       end;

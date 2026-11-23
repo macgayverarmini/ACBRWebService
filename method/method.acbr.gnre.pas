@@ -58,7 +58,6 @@ begin
   facbr.Guias.Clear;
   ItemGuia := facbr.Guias.Add;
   try
-    TJSONTools.PopulateModelDefaults(ItemGuia.GNRE, 3);
     Result := TJSONTools.SafeObjToJson(ItemGuia.GNRE, 'Erro ao gerar modelo de Guia GNRE');
   finally
     facbr.Guias.Clear;
@@ -138,7 +137,6 @@ var
   jArr: TJSONArray;
   I: Integer;
   ItemGuia: Guia;
-  LSanitize: Boolean;
 
   procedure PopularItem(const jSource: TJSONObject);
   begin
@@ -148,17 +146,13 @@ var
     ItemGuia.GNRE.referencia.mes := '';
     ItemGuia.GNRE.referencia.ano := 0;
     ItemGuia.GNRE.referencia.parcela := 0;
-    TJSONTools.JsonToObj(jSource, ItemGuia.GNRE, LSanitize);
-    if (ItemGuia.GNRE.c33_dataPagamento = 0) and (ItemGuia.GNRE.c14_dataVencimento > 0) then
-      ItemGuia.GNRE.c33_dataPagamento := ItemGuia.GNRE.c14_dataVencimento;
+    TJSONTools.JsonToObj(jSource, ItemGuia.GNRE);
   end;
 
 begin
   facbr.Guias.Clear;
   if not Assigned(jPayload) then
     Exit;
-
-  LSanitize := facbr.Configuracoes.Geral.RetirarAcentos;
 
   jNode := jPayload.Find('Guias');
   if not Assigned(jNode) then
@@ -278,18 +272,27 @@ var
   recibo: string;
 begin
   CarregaConfig(False);
-  recibo := jConsulta.Get('recibo', '');
-  if recibo = '' then
-    recibo := jConsulta.Get('nRec', '');
+  facbr.WebServices.Retorno.Clear;
+  if Assigned(jConsulta) then
+    TJSONTools.JsonToObj(jConsulta, facbr.WebServices.Retorno);
+
+  recibo := Trim(facbr.WebServices.Retorno.numeroRecibo);
+  if (recibo = '') and Assigned(jConsulta) then
+  begin
+    recibo := Trim(jConsulta.Get('recibo', ''));
+    if recibo = '' then
+      recibo := Trim(jConsulta.Get('nRec', ''));
+    facbr.WebServices.Retorno.numeroRecibo := recibo;
+  end;
 
   if recibo = '' then
   begin
-    Result := TJSONTools.SafeObjToJson(nil, 'Recibo (nRec) nao informado para consulta GNRE.');
+    Result := TJSONTools.SafeObjToJson(nil, 'Recibo (numeroRecibo) nao informado para consulta GNRE.');
     Exit;
   end;
 
   try
-    facbr.ConsultarResultadoLote(recibo);
+    facbr.WebServices.Retorno.Executar;
     Result := TJSONTools.SafeObjToJson(facbr.WebServices.Retorno, 'Retorno Consulta GNRE');
   except
     on E: Exception do

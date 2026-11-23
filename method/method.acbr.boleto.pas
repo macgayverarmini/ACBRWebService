@@ -6,13 +6,10 @@
 interface
 
 uses
-  RTTI,
   TypInfo,
-  Contnrs,
   ACBrBoleto,
   ACBrBoletoFPDF,
   ACBrBoletoConversao,
-  ACBrUtil.Strings,
   Variants,
   fpjson,
   jsonconvert,
@@ -35,7 +32,6 @@ type
     facbr: TACBrBoleto;
     fpdf: TACBrBoletoFPDF;
     procedure CarregaConfig(const AllowEmpty: Boolean = False);
-    procedure ConfigurarPixTitulo(Titulo: TACBrTitulo; const jTitulo: TJSONObject);
     procedure PopularTitulos(const jPayload: TJSONObject);
   public
     constructor Create(const Cfg: string);
@@ -44,7 +40,7 @@ type
     function GerarPDF(const jBoleto: TJSONObject): TJSONObject;
     function GerarRemessa(const jRemessa: TJSONObject): TJSONObject;
     function LerRetorno(const jRetorno: TJSONObject): TJSONObject;
-    function GerarPixBrCode(const jPix: TJSONObject): TJSONObject;
+    function GerarPixQRCode(const jPix: TJSONObject): TJSONObject;
     function EnviarWebService(const jPayload: TJSONObject): TJSONObject;
   end;
 
@@ -59,104 +55,13 @@ type
 
 implementation
 
-{ Normaliza genericamente strings via RTTI antes de PadRight em FPC UTF-8 quando RemoveAcentosArqRemessa = True }
-procedure NormalizeAsciiObjectTree(const Root: TObject);
-var
-  Visited: TList;
-
-  procedure Walk(const Cur: TObject);
-  var
-    Ctx: TRttiContext;
-    RttiType: TRttiType;
-    Props: TRttiPropertyArray;
-    Prop: TRttiProperty;
-    I: Integer;
-    ChildObj: TObject;
-    SVal, SClean: string;
-  begin
-    if (Cur = nil) or (Visited.IndexOf(Cur) >= 0) then
-      Exit;
-    Visited.Add(Cur);
-
-    if Cur is TStrings then
-    begin
-      for I := 0 to TStrings(Cur).Count - 1 do
-        TStrings(Cur)[I] := TiraAcentos(TStrings(Cur)[I]);
-      Exit;
-    end;
-
-    if Cur is TCollection then
-    begin
-      for I := 0 to TCollection(Cur).Count - 1 do
-        Walk(TCollection(Cur).Items[I]);
-      Exit;
-    end;
-
-    if Cur is TObjectList then
-    begin
-      for I := 0 to TObjectList(Cur).Count - 1 do
-        Walk(TObjectList(Cur).Items[I]);
-      Exit;
-    end;
-
-    Ctx := TRttiContext.Create(False);
-    try
-      RttiType := Ctx.GetType(Cur.ClassType);
-      if not Assigned(RttiType) then
-        Exit;
-      Props := RttiType.GetProperties;
-      for I := 0 to Length(Props) - 1 do
-      begin
-        Prop := Props[I];
-        if not Prop.IsReadable or not (Prop.Visibility in [mvPublic, mvPublished]) then
-          Continue;
-        try
-          if Prop.PropertyType.TypeKind = tkClass then
-          begin
-            ChildObj := Prop.GetValue(Cur).AsObject;
-            if Assigned(ChildObj) and not (ChildObj is TComponent) then
-              Walk(ChildObj);
-          end
-          else if Prop.IsWritable and
-                  (Prop.PropertyType.TypeKind in [tkString, tkUString, tkAString, tkWString]) then
-          begin
-            SVal := Prop.GetValue(Cur).AsString;
-            if SVal <> '' then
-            begin
-              SClean := TiraAcentos(SVal);
-              if SClean <> SVal then
-                Prop.SetValue(Cur, TValue.From<string>(SClean));
-            end;
-          end;
-        except
-        end;
-      end;
-    finally
-      Ctx.Free;
-    end;
-  end;
-
-begin
-  if Root = nil then
-    Exit;
-  Visited := TList.Create;
-  try
-    Walk(Root);
-  finally
-    Visited.Free;
-  end;
-end;
-
 { TACBRModelosJSONBoleto }
 
 function TACBRModelosJSONBoleto.ModelConfig: TJSONObject;
 begin
   Result := TJSONTools.SafeObjToJson(facbr, 'Erro ao gerar modelo de configuracao do Boleto');
   if Assigned(Result) then
-  begin
     Result.Delete('ListadeBoletos');
-    Result.Delete('ACBrBoletoFC');
-  end;
 end;
 
 function TACBRModelosJSONBoleto.ModelTitulo: TJSONObject;
@@ -175,13 +80,6 @@ var
 begin
   LEMV := TACBrPIXQRCodeDinamico.Create;
   try
-    LEMV.IgnoreErrors := True;
-    LEMV.MerchantName := 'EMPRESA RECEBEDORA LTDA';
-    LEMV.MerchantCity := 'VITORIA';
-    LEMV.PostalCode := '29010000';
-    LEMV.URL := 'pix.exemplo.com/qr/v2/123456';
-    LEMV.TxId := 'TXID123456789';
-    LEMV.TransactionAmount := 150.00;
     Result := TJSONTools.SafeObjToJson(LEMV, 'Erro ao gerar modelo PIX QRCode');
   finally
     LEMV.Free;
@@ -192,18 +90,21 @@ end;
 
 procedure TACBRBridgeBoleto.CarregaConfig(const AllowEmpty: Boolean);
 var
-  O: TJSONObject;
+  LData: TJSONData;
 begin
   if (Trim(fcfg) = '') and (not AllowEmpty) then
     raise Exception.Create(RSConfigEmptyError);
 
   if Trim(fcfg) <> '' then
   begin
-    O := GetJSON(fcfg) as TJSONObject;
+    LData := GetJSON(fcfg);
     try
-      TJSONTools.JsonToObj(O, facbr);
+      if LData is TJSONObject then
+        TJSONTools.JsonToObj(TJSONObject(LData), facbr)
+      else
+        raise Exception.Create(RSNotJSONObjectError);
     finally
-      O.Free;
+      LData.Free;
     end;
     fcfg := '';
   end;
@@ -217,10 +118,14 @@ var
   Titulo: TACBrTitulo;
 begin
   facbr.ListadeBoletos.Clear;
+  if not Assigned(jPayload) then
+    Exit;
 
   arrTitulos := jPayload.Find('Titulos');
   if not Assigned(arrTitulos) then
     arrTitulos := jPayload.Find('titulos');
+  if not Assigned(arrTitulos) then
+    arrTitulos := jPayload.Find('ListadeBoletos');
 
   if Assigned(arrTitulos) and (arrTitulos.JSONType = jtArray) then
   begin
@@ -231,7 +136,6 @@ begin
       begin
         Titulo := facbr.CriarTituloNaLista;
         TJSONTools.JsonToObj(TJSONObject(arr.Items[I]), Titulo);
-        ConfigurarPixTitulo(Titulo, TJSONObject(arr.Items[I]));
       end;
     end;
     Exit;
@@ -245,13 +149,11 @@ begin
   begin
     Titulo := facbr.CriarTituloNaLista;
     TJSONTools.JsonToObj(TJSONObject(objTitulo), Titulo);
-    ConfigurarPixTitulo(Titulo, TJSONObject(objTitulo));
   end
   else
   begin
     Titulo := facbr.CriarTituloNaLista;
     TJSONTools.JsonToObj(jPayload, Titulo);
-    ConfigurarPixTitulo(Titulo, jPayload);
   end;
 end;
 
@@ -279,10 +181,11 @@ var
   itemOut: TJSONObject;
   T: TACBrTitulo;
 begin
-  CarregaConfig;
   Result := TJSONObject.Create;
-
   try
+    CarregaConfig;
+    if Assigned(jBoleto) then
+      TJSONTools.JsonToObj(jBoleto, facbr);
     PopularTitulos(jBoleto);
 
     if facbr.ListadeBoletos.Count = 0 then
@@ -314,7 +217,7 @@ begin
     b64Pdf := FileToStringBase64(fileName, True, tamanho);
     Result.Add(RSStatusField, RSStatusSucesso);
     Result.Add(RSPDFField, b64Pdf);
-    Result.Add(RSTamanhoField, IntToStr(tamanho));
+    Result.Add(RSTamanhoField, tamanho);
 
     arrOut := TJSONArray.Create;
     for I := 0 to facbr.ListadeBoletos.Count - 1 do
@@ -357,19 +260,14 @@ var
   itemOut: TJSONObject;
   T: TACBrTitulo;
 begin
-  CarregaConfig;
   Result := TJSONObject.Create;
   Stream := TMemoryStream.Create;
   try
     try
+      CarregaConfig;
+      if Assigned(jRemessa) then
+        TJSONTools.JsonToObj(jRemessa, facbr);
       PopularTitulos(jRemessa);
-
-      if facbr.RemoveAcentosArqRemessa then
-      begin
-        NormalizeAsciiObjectTree(facbr.Banco);
-        NormalizeAsciiObjectTree(facbr.Cedente);
-        NormalizeAsciiObjectTree(facbr.ListadeBoletos);
-      end;
 
       numRemessa := jRemessa.Get('NumeroRemessa', 1);
       nomeArq := facbr.GerarRemessaStream(numRemessa, Stream);
@@ -379,6 +277,7 @@ begin
       Result.Add('tipo_cobranca', GetEnumName(TypeInfo(TACBrTipoCobranca), Ord(facbr.Banco.TipoCobranca)));
       Result.Add('nome_arquivo', ExtractFileName(nomeArq));
       Result.Add('remessa_base64', StreamToBase64String(Stream));
+      Result.Add(RSTamanhoField, Stream.Size);
       Result.Add('total_titulos', facbr.ListadeBoletos.Count);
 
       arrOut := TJSONArray.Create;
@@ -419,6 +318,8 @@ begin
   Result := TJSONObject.Create;
   try
     CarregaConfig;
+    if Assigned(jRetorno) then
+      TJSONTools.JsonToObj(jRetorno, facbr);
 
     b64Retorno := jRetorno.Get('arquivo_base64', '');
     if b64Retorno = '' then
@@ -431,7 +332,6 @@ begin
     rawRetorno := DecodeStringBase64(b64Retorno);
     Stream := TStringStream.Create(rawRetorno);
     try
-      facbr.LeCedenteRetorno := jRetorno.Get('LeCedenteRetorno', facbr.LeCedenteRetorno);
       facbr.LerRetorno(Stream);
 
       arrTitulos := TJSONArray.Create;
@@ -455,107 +355,38 @@ begin
   end;
 end;
 
-procedure TACBRBridgeBoleto.ConfigurarPixTitulo(Titulo: TACBrTitulo; const jTitulo: TJSONObject);
-var
-  jPixData: TJSONData;
-  LEMV: TACBrPIXQRCodeDinamico;
-  LIdx: Integer;
-begin
-  if not Assigned(Titulo) or not Assigned(jTitulo) then
-    Exit;
-
-  jPixData := jTitulo.Find('BRCode');
-  if not Assigned(jPixData) then
-    jPixData := jTitulo.Find('Pix');
-
-  if (Titulo.QrCode.emv <> '') then
-    Exit;
-
-  if Copy(Titulo.QrCode.url, 1, 4) = '0002' then
-  begin
-    Titulo.QrCode.emv := Titulo.QrCode.url;
-    Titulo.QrCode.url := '';
-    Exit;
-  end;
-
-  LEMV := TACBrPIXQRCodeDinamico.Create;
-  try
-    LEMV.IgnoreErrors := True;
-    LEMV.MerchantName := facbr.Cedente.Nome;
-    LEMV.MerchantCity := facbr.Cedente.Cidade;
-    LEMV.PostalCode := facbr.Cedente.CEP;
-    LEMV.URL := Titulo.QrCode.url;
-    LEMV.TxId := Titulo.QrCode.txId;
-    LEMV.TransactionAmount := Titulo.ValorDocumento;
-
-    if Assigned(jPixData) and (jPixData.JSONType = jtObject) then
-      TJSONTools.JsonToObj(TJSONObject(jPixData), LEMV);
-
-    if Copy(LEMV.URL, 1, 4) = '0002' then
-    begin
-      Titulo.QrCode.emv := LEMV.URL;
-      Titulo.QrCode.url := '';
-      Titulo.QrCode.txId := LEMV.TxId;
-      Exit;
-    end;
-
-    if LEMV.URL = '' then
-      Exit;
-
-    if Assigned(jPixData) and (jPixData.JSONType = jtObject) and
-       TJSONObject(jPixData).Get('RemoverTag01', True) then
-    begin
-      LIdx := LEMV.IndexOfName('01');
-      if LIdx >= 0 then
-        LEMV.Delete(LIdx);
-    end;
-
-    Titulo.QrCode.emv := LEMV.AsString;
-    Titulo.QrCode.url := LEMV.URL;
-    Titulo.QrCode.txId := LEMV.TxId;
-  finally
-    LEMV.Free;
-  end;
-end;
-
-function TACBRBridgeBoleto.GerarPixBrCode(const jPix: TJSONObject): TJSONObject;
+function TACBRBridgeBoleto.GerarPixQRCode(const jPix: TJSONObject): TJSONObject;
 var
   LEMV: TACBrPIXQRCodeDinamico;
-  LIdx: Integer;
+  emvStr: string;
 begin
   CarregaConfig(True);
   LEMV := TACBrPIXQRCodeDinamico.Create;
   try
     try
-      LEMV.IgnoreErrors := True;
-      LEMV.MerchantName := facbr.Cedente.Nome;
-      LEMV.MerchantCity := facbr.Cedente.Cidade;
-      LEMV.PostalCode := facbr.Cedente.CEP;
+      if facbr.Cedente.Nome <> '' then
+        LEMV.MerchantName := facbr.Cedente.Nome;
+      if facbr.Cedente.Cidade <> '' then
+        LEMV.MerchantCity := facbr.Cedente.Cidade;
+      if facbr.Cedente.CEP <> '' then
+        LEMV.PostalCode := facbr.Cedente.CEP;
       TJSONTools.JsonToObj(jPix, LEMV);
 
-      if Copy(LEMV.URL, 1, 4) = '0002' then
+      emvStr := LEMV.AsString;
+      Result := TJSONTools.SafeObjToJson(LEMV, 'Erro ao serializar PIX QRCode');
+      if Assigned(Result) then
       begin
-        LEMV.AsString := LEMV.URL;
-      end
-      else if jPix.Get('RemoverTag01', True) then
-      begin
-        LIdx := LEMV.IndexOfName('01');
-        if LIdx >= 0 then
-          LEMV.Delete(LIdx);
-      end;
-
-      Result := TJSONTools.SafeObjToJson(LEMV, 'Erro ao serializar PIX BRCode');
-      if Assigned(Result) and (Result.Find(RSStatusField) = nil) then
-      begin
-        Result.Add(RSStatusField, RSStatusSucesso);
-        Result.Add('emv', LEMV.AsString);
+        if Result.Find(RSStatusField) = nil then
+          Result.Add(RSStatusField, RSStatusSucesso);
+        if Result.Find('emv') = nil then
+          Result.Add('emv', emvStr);
       end;
     except
       on E: Exception do
       begin
         Result := TJSONObject.Create;
         Result.Add(RSStatusField, RSStatusErro);
-        Result.Add(RSErrorField, 'Erro ao gerar PIX BRCode: ' + E.Message);
+        Result.Add(RSErrorField, 'Erro ao gerar PIX QRCode: ' + E.Message);
       end;
     end;
   finally
@@ -572,10 +403,9 @@ var
   itemOut, retOut: TJSONObject;
   T: TACBrTitulo;
 begin
-  CarregaConfig;
   Result := TJSONObject.Create;
-
   try
+    CarregaConfig;
     TJSONTools.JsonToObj(jPayload, facbr.Configuracoes.WebService);
     PopularTitulos(jPayload);
 

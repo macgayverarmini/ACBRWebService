@@ -10,9 +10,10 @@ uses
   blcksock,
   synacode,
   fpjson,
+  jsonconvert,
   jsonparser,
   Classes, SysUtils,
-  ACBrDFeSSL, ACBrDFe,
+  ACBrDFeSSL, ACBrDFe, ACBrDFeConfiguracoes,
   resource.strings.global,
   resource.strings.msg;
 
@@ -285,13 +286,15 @@ end;
 
 
 function TACBRBridgeCertificados.ModeloUpload: TJSONObject;
+var
+  LConf: TConfiguracoes;
 begin
-  Result := TJSONObject.Create;
-  Result.Add(RSCertificadoBase64Field, RSExampleBase64String);
-  Result.Add(RSSenhaField, RSExamplePassword);
-  Result.Add(RSCNPJField, RSExampleCNPJ);
-  Result.Add(RSNomeArquivoField, RSExampleFileName);
-  Result.Add(RSObservacaoField, RSExampleObservation);
+  LConf := TConfiguracoes.Create(nil);
+  try
+    Result := TJSONTools.SafeObjToJson(LConf.Certificados, 'Erro ao gerar modelo de certificado');
+  finally
+    LConf.Free;
+  end;
 end;
 
 function TACBRBridgeCertificados.SalvarCertificado(const CertificadoBase64:

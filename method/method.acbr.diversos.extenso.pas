@@ -7,7 +7,6 @@ interface
 
 uses
   fpjson, jsonconvert, ACBrExtenso,
-  Horse.HandleException, jsonparser,
   Classes, SysUtils;
 
 type
@@ -31,18 +30,18 @@ implementation
 
 function TACBRBridgeExtenso.Modelo: TJSONObject;
 begin
-  Result := TJSONTools.ObjToJson(facbr);
+  Result := TJSONTools.SafeObjToJson(facbr, 'Erro ao gerar modelo Extenso');
 end;
 
 function TACBRBridgeExtenso.TraduzValor(const jExtenso: TJSONObject): TJSONObject;
 begin
   TJSONTools.JsonToObj(jExtenso, facbr);
-
-  Result := TJSONTools.ObjToJson(facbr);
+  Result := TJSONTools.SafeObjToJson(facbr, 'Erro ao traduzir valor por extenso');
 end;
 
 constructor TACBRBridgeExtenso.Create;
 begin
+  inherited Create;
   facbr := TACBrExtenso.Create(nil);
 end;
 

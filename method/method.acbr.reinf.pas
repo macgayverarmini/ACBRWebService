@@ -18,14 +18,15 @@ uses
   synacode,
   Classes, SysUtils,
   streamtools,
-  resource.strings.global;
+  resource.strings.global,
+  resource.strings.msg;
 
 type
   TACBRBridgeReinf = class
   private
     fcfg: string;
     facbr: TACBrReinf;
-    procedure CarregaConfig;
+    procedure CarregaConfig(const AllowEmpty: Boolean = False);
   public
     constructor Create(const Cfg: string);
     destructor Destroy; override;
@@ -36,6 +37,8 @@ type
   TACBRModelosJSONReinf = class(TACBRBridgeReinf)
   public
     function ModelConfig: TJSONObject;
+    function ModelEnviar: TJSONObject;
+    function ModelConsultar: TJSONObject;
   end;
 
 implementation
@@ -47,43 +50,67 @@ begin
   Result := TJSONTools.SafeObjToJson(facbr.Configuracoes, 'Erro ao gerar modelo de configuracao do EFD-Reinf');
 end;
 
+function TACBRModelosJSONReinf.ModelEnviar: TJSONObject;
+begin
+  Result := TJSONTools.SafeObjToJson(facbr.Eventos, 'Erro ao gerar modelo de envio do EFD-Reinf');
+end;
+
+function TACBRModelosJSONReinf.ModelConsultar: TJSONObject;
+begin
+  Result := TJSONTools.SafeObjToJson(facbr.WebServices.Consultar, 'Erro ao gerar modelo de consulta do EFD-Reinf');
+end;
+
 { TACBRBridgeReinf }
 
-procedure TACBRBridgeReinf.CarregaConfig;
+procedure TACBRBridgeReinf.CarregaConfig(const AllowEmpty: Boolean);
 var
+  LData: TJSONData;
   O: TJSONObject;
   LPfx: AnsiString;
+  LDefaultRootSchemas, LCurSchemas: string;
 begin
-  if fcfg = '' then
-    Exit;
-  try
-    O := GetJSON(fcfg) as TJSONObject;
+  if (Trim(fcfg) = '') and (not AllowEmpty) then
+    raise Exception.Create(RSConfigEmptyError);
+
+  LDefaultRootSchemas := ExcludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)) + RSSchemasDir);
+
+  if Trim(fcfg) <> '' then
+  begin
     try
-      TJSONTools.JsonToObj(O, facbr.Configuracoes);
-
-      LPfx := TJSONTools.ExtractCertificadoPFX(O);
-      if LPfx <> '' then
-        facbr.Configuracoes.Certificados.DadosPFX := LPfx;
-
-      with facbr.Configuracoes.Geral do
+      LData := GetJSON(fcfg);
+      if not (LData is TJSONObject) then
       begin
-        SSLLib := libOpenSSL;
-        SSLCryptLib := cryOpenSSL;
-        SSLHttpLib := httpOpenSSL;
-        SSLXmlSignLib := xsLibXml2;
+        LData.Free;
+        raise Exception.Create(RSNotJSONObjectError);
       end;
-    finally
-      O.Free;
+      O := TJSONObject(LData);
+      try
+        TJSONTools.JsonToObj(O, facbr.Configuracoes);
+
+        LPfx := TJSONTools.ExtractCertificadoPFX(O);
+        if LPfx <> '' then
+          facbr.Configuracoes.Certificados.DadosPFX := LPfx;
+      finally
+        O.Free;
+      end;
+    except
+      on E: Exception do
+        raise Exception.Create('Erro na leitura da configuracao do Reinf: ' + E.Message);
     end;
-  except
-    on E: Exception do
-      raise Exception.Create('Erro na leitura da configuracao do Reinf: ' + E.Message);
+    fcfg := '';
   end;
 
-  if facbr.Configuracoes.Arquivos.PathSchemas = '' then
-    facbr.Configuracoes.Arquivos.PathSchemas := ExtractFilePath(ParamStr(0)) + RSSchemasDir + PathDelim + 'Reinf';
+  with facbr.Configuracoes.Geral do
+  begin
+    SSLLib := libOpenSSL;
+    SSLCryptLib := cryOpenSSL;
+    SSLHttpLib := httpOpenSSL;
+    SSLXmlSignLib := xsLibXml2;
+  end;
 
-  fcfg := '';
+  LCurSchemas := ExcludeTrailingPathDelimiter(Trim(facbr.Configuracoes.Arquivos.PathSchemas));
+  if (LCurSchemas = '') or SameText(LCurSchemas, LDefaultRootSchemas) then
+    facbr.Configuracoes.Arquivos.PathSchemas := LDefaultRootSchemas + PathDelim + 'Reinf' + PathDelim;
 end;
 
 constructor TACBRBridgeReinf.Create(const Cfg: string);
@@ -103,7 +130,7 @@ function TACBRBridgeReinf.Enviar(const jReinf: TJSONObject): TJSONObject;
 var
   xmlBase64: string;
 begin
-  CarregaConfig;
+  CarregaConfig(False);
   try
     xmlBase64 := jReinf.Get(RSXmlKey, '');
     if xmlBase64 <> '' then
@@ -123,10 +150,18 @@ function TACBRBridgeReinf.Consultar(const jConsulta: TJSONObject): TJSONObject;
 var
   protocolo: string;
 begin
-  CarregaConfig;
-  protocolo := jConsulta.Get('protocolo', '');
-  if protocolo = '' then
-    protocolo := jConsulta.Get('nProt', '');
+  CarregaConfig(False);
+  facbr.WebServices.Consultar.Clear;
+  if Assigned(jConsulta) then
+    TJSONTools.JsonToObj(jConsulta, facbr.WebServices.Consultar);
+
+  protocolo := Trim(facbr.WebServices.Consultar.Protocolo);
+  if (protocolo = '') and Assigned(jConsulta) then
+  begin
+    protocolo := Trim(jConsulta.Get('protocolo', ''));
+    if protocolo = '' then
+      protocolo := Trim(jConsulta.Get('nProt', ''));
+  end;
 
   if protocolo = '' then
   begin

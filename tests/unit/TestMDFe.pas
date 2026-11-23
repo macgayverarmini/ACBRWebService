@@ -5,7 +5,8 @@
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, fphttpclient, fpjson, jsonparser, TestBase;
+  Classes, SysUtils, fpcunit, testutils, testregistry, fphttpclient, fpjson, jsonparser,
+  Base64, TestBase;
 
 type
   { TTestMDFe }
@@ -15,7 +16,8 @@ type
     procedure TestGetModeloConfig;
     procedure TestGetModeloEvento;
     procedure TestGetModeloMDFe;
-    procedure TestGetModeloDistribuicao;    procedure TestGetModeloMDFeFromXML;
+    procedure TestGetModeloDistribuicao;
+    procedure TestGetModeloMDFeFromXML;
     procedure TestGetModeloMDFeToXML;
     procedure TestGetModeloValidarRegras;
     procedure TestGetModeloEventoToXML;
@@ -28,7 +30,8 @@ type
     procedure TestPostEnviar;
     procedure TestPostEventos;
     procedure TestPostDACTE; // Actually Damdfe
-    procedure TestPostDistribuicao;    procedure TestPostDAMDFEEvento;
+    procedure TestPostDistribuicao;
+    procedure TestPostDAMDFEEvento;
     procedure TestGetPDF;
   end;
 
@@ -57,6 +60,7 @@ procedure TTestMDFe.TestGetModeloDistribuicao;
 begin
   ExecuteGetTest('/modelo/mdfe/distribuicao');
 end;
+
 procedure TTestMDFe.TestGetModeloMDFeFromXML;
 begin
   ExecuteGetTest('/modelo/mdfe/mdfe-from-xml');
@@ -95,7 +99,7 @@ end;
 procedure TTestMDFe.TestPostEventoToXML;
 var
   Client: TFPHTTPClient;
-  Response: String;
+  Response, DecodedXml: String;
   Payload, DetObj, RespJson: TJSONObject;
 begin
   Client := TFPHTTPClient.Create(nil);
@@ -106,7 +110,7 @@ begin
       Payload.Add('config', CreateConfigJSON);
       Payload.Add('chMDFe', '35260112345678000195580010000000011000000018');
       Payload.Add('CNPJCPF', '12345678000195');
-      Payload.Add('tpEvento', '110112');
+      Payload.Add('tpEvento', 'teEncerramento');
       Payload.Add('nSeqEvento', 1);
       DetObj := TJSONObject.Create;
       DetObj.Add('nProt', '935260000000001');
@@ -125,8 +129,9 @@ begin
       CheckResponse(Response, 200, Client.ResponseStatusCode);
       RespJson := GetJSON(Response) as TJSONObject;
       try
-        AssertTrue('Expected sucesso = true', RespJson.Get('sucesso', False));
-        AssertTrue('Expected eventoMDFe XML', Pos('eventoMDFe', RespJson.Get('xml_raw', '')) > 0);
+        AssertEquals('Expected status = sucesso', 'sucesso', RespJson.Get('status', ''));
+        DecodedXml := DecodeStringBase64(RespJson.Get('xml', ''));
+        AssertTrue('Expected eventoMDFe XML', Pos('eventoMDFe', DecodedXml) > 0);
       finally
         RespJson.Free;
       end;
@@ -151,19 +156,22 @@ begin
     Client.AddHeader('Content-Type', 'application/json');
     Json := TJSONObject.Create;
     try
-       Json.Add('config', CreateConfigJSON);
-       // Add 'mdfe' object if required for stricter validation, but 400 with message is also a valid response from server for partial data
-       Client.RequestBody := TStringStream.Create(Json.AsJSON);
-       Response := Client.Post(FBaseUrl + '/mdfe/mdfe');
-       if Client.ResponseStatusCode >= 400 then
-         CheckResponse(Response, Client.ResponseStatusCode, Client.ResponseStatusCode)       
-       else
-         CheckResponse(Response, 200, Client.ResponseStatusCode); 
+      Json.Add('config', CreateConfigJSON);
+      Client.RequestBody := TStringStream.Create(Json.AsJSON);
+      try
+        Response := Client.Post(FBaseUrl + '/mdfe/mdfe');
+      finally
+        Client.RequestBody.Free;
+      end;
+      if Client.ResponseStatusCode >= 400 then
+        CheckResponse(Response, Client.ResponseStatusCode, Client.ResponseStatusCode)
+      else
+        CheckResponse(Response, 200, Client.ResponseStatusCode);
     finally
-       Json.Free;
+      Json.Free;
     end;
   finally
-     Client.Free;
+    Client.Free;
   end;
 end;
 
@@ -181,6 +189,7 @@ procedure TTestMDFe.TestPostDistribuicao;
 begin
   ExecutePostTest('/mdfe/distribuicao');
 end;
+
 procedure TTestMDFe.TestPostDAMDFEEvento;
 begin
   ExecutePostTest('/mdfe/damdfe-evento');

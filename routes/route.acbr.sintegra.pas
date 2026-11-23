@@ -7,7 +7,12 @@ interface
 uses
   method.acbr.sintegra,
   jsonconvert,
-  fpjson, Horse, Horse.Commons, Classes, SysUtils,
+  fpjson,
+  jsonparser,
+  Horse,
+  Horse.Commons,
+  Classes,
+  SysUtils,
   resource.strings.global,
   resource.strings.msg,
   resource.strings.routes;
@@ -20,6 +25,53 @@ procedure PostGerar(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure regRouter;
 
 implementation
+
+procedure SendJsonError(Res: THorseResponse; const AStatus: Integer; const AMsg: string);
+var
+  LErr: TJSONObject;
+begin
+  LErr := TJSONObject.Create;
+  LErr.Add(RSStatusField, RSStatusErro);
+  LErr.Add(RSMessageField, AMsg);
+  Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
+     .Status(AStatus)
+     .Send(TJSONTools.JsonAndFree(LErr));
+end;
+
+function TryParseJsonObjectBody(Req: THorseRequest; Res: THorseResponse; out AObj: TJSONObject): Boolean;
+var
+  LData: TJSONData;
+begin
+  Result := False;
+  AObj := nil;
+  if Trim(Req.Body) = '' then
+  begin
+    SendJsonError(Res, 400, RSInvalidJSONBodyError);
+    Exit;
+  end;
+  try
+    LData := GetJSON(Req.Body);
+  except
+    on E: Exception do
+    begin
+      SendJsonError(Res, 400, RSInvalidJSONBodyError);
+      Exit;
+    end;
+  end;
+  if not Assigned(LData) then
+  begin
+    SendJsonError(Res, 400, RSInvalidJSONBodyError);
+    Exit;
+  end;
+  if not (LData is TJSONObject) then
+  begin
+    LData.Free;
+    SendJsonError(Res, 400, RSNotJSONObjectError);
+    Exit;
+  end;
+  AObj := TJSONObject(LData);
+  Result := True;
+end;
 
 procedure GetModeloConfigSintegra(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
@@ -50,19 +102,17 @@ var
   O: TJSONObject;
   Ac: TACBRBridgeSintegra;
 begin
-  try
-    O := GetJSON(Req.Body) as TJSONObject;
-  except
-    on E: Exception do
-    begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSInvalidJSONBodyError])));
-      Exit;
-    end;
-  end;
+  if not TryParseJsonObjectBody(Req, Res, O) then
+    Exit;
 
   Ac := TACBRBridgeSintegra.Create(TJSONTools.ExtractConfig(O));
   try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.Sintegra(O)));
+    try
+      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.Sintegra(O)));
+    except
+      on E: Exception do
+        SendJsonError(Res, 500, E.Message);
+    end;
   finally
     O.Free;
     Ac.Free;
@@ -74,15 +124,8 @@ var
   O: TJSONObject;
   Ac: TACBRBridgeSintegra;
 begin
-  try
-    O := GetJSON(Req.Body) as TJSONObject;
-  except
-    on E: Exception do
-    begin
-      Res.Status(400).Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSMessageField, RSInvalidJSONBodyError])));
-      Exit;
-    end;
-  end;
+  if not TryParseJsonObjectBody(Req, Res, O) then
+    Exit;
 
   Ac := TACBRBridgeSintegra.Create(TJSONTools.ExtractConfig(O));
   try
@@ -90,7 +133,7 @@ begin
       Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(TJSONTools.JsonAndFree(Ac.Gerar(O)));
     except
       on E: Exception do
-        Res.Status(500).Send(E.Message);
+        SendJsonError(Res, 500, E.Message);
     end;
   finally
     O.Free;
