@@ -23,6 +23,7 @@ type
     procedure TestPostSintegra126Colunas;
     procedure TestPostBoletoRemessaCNAB240;
     procedure TestPostSpedPisCofinsOmitBlocoPSemDados;
+    procedure TestPostSpedFiscalSinglePassRttiNullOptionalRecords;
     procedure TestPostCargaBalancaFilizolaSetorIndex;
   end;
 
@@ -443,7 +444,7 @@ var
   end;
 
 var
-  Bloco0, Reg0000, Reg0001: TJSONObject;
+  Bloco0, Reg0000, Reg0001, Reg0900, BlocoM, RegM001, BlocoP: TJSONObject;
 begin
   Client := TFPHTTPClient.Create(nil);
   try
@@ -469,7 +470,24 @@ begin
       Bloco0.Add('Registro0000', Reg0000);
 
       Reg0001 := TJSONObject.Create;
-      Reg0001.Add('IND_MOV', 'imSemDados');
+      Reg0001.Add('IND_MOV', 'imComDados');
+      Reg0001.Add('Registro0110', TJSONNull.Create);
+      Reg0900 := TJSONObject.Create;
+      Reg0900.Add('REC_TOTAL_BLOCO_A', 0.00);
+      Reg0900.Add('REC_NRB_BLOCO_A', TJSONNull.Create);
+      Reg0900.Add('REC_TOTAL_BLOCO_C', 1500.50);
+      Reg0900.Add('REC_NRB_BLOCO_C', TJSONNull.Create);
+      Reg0900.Add('REC_TOTAL_BLOCO_D', 0.00);
+      Reg0900.Add('REC_NRB_BLOCO_D', TJSONNull.Create);
+      Reg0900.Add('REC_TOTAL_BLOCO_F', 0.00);
+      Reg0900.Add('REC_NRB_BLOCO_F', TJSONNull.Create);
+      Reg0900.Add('REC_TOTAL_BLOCO_I', 0.00);
+      Reg0900.Add('REC_NRB_BLOCO_I', TJSONNull.Create);
+      Reg0900.Add('REC_TOTAL_BLOCO_1', 0.00);
+      Reg0900.Add('REC_NRB_BLOCO_1', TJSONNull.Create);
+      Reg0900.Add('REC_TOTAL_PERIODO', 1500.50);
+      Reg0900.Add('REC_TOTAL_NRB_PERIODO', TJSONNull.Create);
+      Reg0001.Add('Registro0900', Reg0900);
       Bloco0.Add('Registro0001', Reg0001);
       Payload.Add('Bloco_0', Bloco0);
 
@@ -478,7 +496,19 @@ begin
       Payload.Add('Bloco_D', MakeBlocoSemDados('RegistroD001'));
       Payload.Add('Bloco_F', MakeBlocoSemDados('RegistroF001'));
       Payload.Add('Bloco_I', MakeBlocoSemDados('RegistroI001'));
-      Payload.Add('Bloco_M', MakeBlocoSemDados('RegistroM001'));
+
+      BlocoM := TJSONObject.Create;
+      RegM001 := TJSONObject.Create;
+      RegM001.Add('IND_MOV', 'imComDados');
+      RegM001.Add('RegistroM200', TJSONNull.Create);
+      RegM001.Add('RegistroM600', TJSONNull.Create);
+      BlocoM.Add('RegistroM001', RegM001);
+      Payload.Add('Bloco_M', BlocoM);
+
+      BlocoP := TJSONObject.Create;
+      BlocoP.Add('Gravado', True);
+      Payload.Add('Bloco_P', BlocoP);
+
       Payload.Add('Bloco_1', MakeBlocoSemDados('Registro1001'));
 
       Client.RequestBody := TStringStream.Create(Payload.AsJSON);
@@ -493,6 +523,8 @@ begin
       try
         AssertEquals('SPED PisCofins status deve ser sucesso', 'sucesso', RespJson.Get('status', ''));
         RawTxt := DecodeStringBase64(RespJson.Get('arquivo_base64', ''));
+        AssertTrue('Deve auto-instanciar e emitir |0900| via RTTI', Pos('|0900|0,00||1500,50||', RawTxt) > 0);
+        AssertEquals('Nao deve conter |0110| quando Registro0110=null', 0, Pos('|0110|', RawTxt));
         AssertTrue('Deve conter |A001|1|', Pos('|A001|1|', RawTxt) > 0);
         AssertTrue('Deve conter |A990|2|', Pos('|A990|2|', RawTxt) > 0);
         AssertTrue('Deve conter |C001|1|', Pos('|C001|1|', RawTxt) > 0);
@@ -501,12 +533,98 @@ begin
         AssertTrue('Deve conter |D990|2|', Pos('|D990|2|', RawTxt) > 0);
         AssertTrue('Deve conter |F001|1|', Pos('|F001|1|', RawTxt) > 0);
         AssertTrue('Deve conter |F990|2|', Pos('|F990|2|', RawTxt) > 0);
-        AssertTrue('Deve conter |M001|1|', Pos('|M001|1|', RawTxt) > 0);
-        AssertTrue('Deve conter |M990|2|', Pos('|M990|2|', RawTxt) > 0);
+        AssertTrue('Deve conter |M001|0|', Pos('|M001|0|', RawTxt) > 0);
+        AssertEquals('Nao deve conter |M200| quando RegistroM200=null', 0, Pos('|M200|', RawTxt));
+        AssertEquals('Nao deve conter |M600| quando RegistroM600=null', 0, Pos('|M600|', RawTxt));
         AssertTrue('Deve conter |1001|1|', Pos('|1001|1|', RawTxt) > 0);
         AssertTrue('Deve conter |1990|2|', Pos('|1990|2|', RawTxt) > 0);
-        AssertEquals('Nao deve conter |P001| quando Bloco_P omitido', 0, Pos('|P001|', RawTxt));
-        AssertEquals('Nao deve conter |P990| quando Bloco_P omitido', 0, Pos('|P990|', RawTxt));
+        AssertEquals('Nao deve conter |P001| quando Bloco_P.Gravado=true', 0, Pos('|P001|', RawTxt));
+        AssertEquals('Nao deve conter |P990| quando Bloco_P.Gravado=true', 0, Pos('|P990|', RawTxt));
+      finally
+        RespJson.Free;
+      end;
+    finally
+      Payload.Free;
+    end;
+  finally
+    Client.Free;
+  end;
+end;
+
+procedure TTestDiversos.TestPostSpedFiscalSinglePassRttiNullOptionalRecords;
+var
+  Client: TFPHTTPClient;
+  Response, RawTxt: String;
+  Payload, Bloco0, Reg0000, Reg0001, Reg0190Item, BlocoE, RegE001, RegE100, RespJson: TJSONObject;
+  Arr0190, ArrE100: TJSONArray;
+begin
+  Client := TFPHTTPClient.Create(nil);
+  try
+    Client.AddHeader('Content-Type', 'application/json');
+    Payload := TJSONObject.Create;
+    try
+      Payload.Add('DT_INI', '2026-01-01');
+      Payload.Add('DT_FIN', '2026-01-31');
+
+      Bloco0 := TJSONObject.Create;
+      Reg0000 := TJSONObject.Create;
+      Reg0000.Add('COD_VER', 'vlVersao119');
+      Reg0000.Add('COD_FIN', 'raOriginal');
+      Reg0000.Add('DT_INI', '2026-01-01');
+      Reg0000.Add('DT_FIN', '2026-01-31');
+      Reg0000.Add('NOME', 'EMPRESA EXEMPLO LTDA');
+      Reg0000.Add('CNPJ', '12345678000195');
+      Reg0000.Add('UF', 'ES');
+      Reg0000.Add('IE', '080000000');
+      Reg0000.Add('COD_MUN', 3203205);
+      Reg0000.Add('IND_PERFIL', 'pfPerfilA');
+      Reg0000.Add('IND_ATIV', 'atOutros');
+      Bloco0.Add('Registro0000', Reg0000);
+
+      Reg0001 := TJSONObject.Create;
+      Reg0001.Add('IND_MOV', 'imComDados');
+      Reg0001.Add('Registro0005', TJSONNull.Create);
+      Reg0001.Add('Registro0100', TJSONNull.Create);
+      Arr0190 := TJSONArray.Create;
+      Reg0190Item := TJSONObject.Create;
+      Reg0190Item.Add('UNID', 'UN');
+      Reg0190Item.Add('DESCR', 'UNIDADE');
+      Arr0190.Add(Reg0190Item);
+      Reg0001.Add('Registro0190', Arr0190);
+      Bloco0.Add('Registro0001', Reg0001);
+      Payload.Add('Bloco_0', Bloco0);
+
+      BlocoE := TJSONObject.Create;
+      RegE001 := TJSONObject.Create;
+      RegE001.Add('IND_MOV', 'imComDados');
+      ArrE100 := TJSONArray.Create;
+      RegE100 := TJSONObject.Create;
+      RegE100.Add('DT_INI', '2026-01-01');
+      RegE100.Add('DT_FIN', '2026-01-31');
+      RegE100.Add('RegistroE110', TJSONNull.Create);
+      ArrE100.Add(RegE100);
+      RegE001.Add('RegistroE100', ArrE100);
+      BlocoE.Add('RegistroE001', RegE001);
+      Payload.Add('Bloco_E', BlocoE);
+
+      Client.RequestBody := TStringStream.Create(Payload.AsJSON);
+      try
+        Response := Client.Post(FBaseUrl + '/sped/gerar');
+      finally
+        Client.RequestBody.Free;
+      end;
+
+      CheckResponse(Response, 200, Client.ResponseStatusCode);
+      RespJson := GetJSON(Response) as TJSONObject;
+      try
+        AssertEquals('SPED Fiscal status deve ser sucesso', 'sucesso', RespJson.Get('status', ''));
+        RawTxt := DecodeStringBase64(RespJson.Get('arquivo_base64', ''));
+        AssertTrue('Deve emitir |0190|UN|UNIDADE|', Pos('|0190|UN|UNIDADE|', RawTxt) > 0);
+        AssertEquals('Nao deve emitir |0005| quando Registro0005=null', 0, Pos('|0005|', RawTxt));
+        AssertEquals('Nao deve emitir |0100| quando Registro0100=null', 0, Pos('|0100|', RawTxt));
+        AssertEquals('Nao deve emitir |9900|0100| quando Registro0100=null', 0, Pos('|9900|0100|', RawTxt));
+        AssertEquals('Nao deve emitir |E110| quando RegistroE110=null', 0, Pos('|E110|', RawTxt));
+        AssertEquals('Nao deve emitir |9900|E110| quando RegistroE110=null', 0, Pos('|9900|E110|', RawTxt));
       finally
         RespJson.Free;
       end;

@@ -16,9 +16,7 @@ uses
   SysUtils,
   streamtools,
   ACBrEPCImportar,
-  ACBrEPCBlocos,
   ACBrEFDImportar,
-  ACBrEFDBlocos,
   resource.strings.global,
   resource.strings.msg;
 
@@ -30,7 +28,6 @@ type
     fErrosValidacao: TStringList;
     procedure CarregaConfig(const AllowEmpty: Boolean = True);
     procedure DoAcbrError(const MsnError: string);
-    procedure PopularBlocosEFD(const jRoot: TJSONObject; out AOmit0100: Boolean);
   public
     constructor Create(const Cfg: string);
     destructor Destroy; override;
@@ -52,7 +49,6 @@ type
     fErrosValidacao: TStringList;
     procedure CarregaConfig(const AllowEmpty: Boolean = True);
     procedure DoAcbrError(const MsnError: string);
-    procedure PopularBlocosEPC(const jRoot: TJSONObject; out AOmitBlocoP: Boolean);
   public
     constructor Create(const Cfg: string);
     destructor Destroy; override;
@@ -366,17 +362,6 @@ begin
     Result := TJSONObject(D);
 end;
 
-function HasNonNullKey(const AParent: TJSONObject; const AKey: string): Boolean;
-var
-  D: TJSONData;
-begin
-  Result := False;
-  if not Assigned(AParent) then
-    Exit;
-  D := AParent.Find(AKey);
-  Result := Assigned(D) and not D.IsNull;
-end;
-
 { TACBRModelosJSONSPED }
 
 function TACBRModelosJSONSPED.ModelConfig: TJSONObject;
@@ -440,69 +425,17 @@ begin
   Result.Add(RSMessageField, 'ACBr SPED Fiscal inicializado com sucesso.');
 end;
 
-procedure TACBRBridgeSPED.PopularBlocosEFD(const jRoot: TJSONObject; out AOmit0100: Boolean);
-var
-  jB0, jR0001, jBK, jRK001: TJSONObject;
-begin
-  AOmit0100 := False;
-  if not Assigned(jRoot) then
-    Exit;
-
-  jB0 := GetJsonObj(jRoot, 'Bloco_0');
-  if Assigned(jB0) then
-  begin
-    jR0001 := GetJsonObj(jB0, 'Registro0001');
-    if Assigned(jR0001) then
-    begin
-      if not HasNonNullKey(jR0001, 'Registro0005') and Assigned(facbr.Bloco_0.Registro0001.Registro0005) then
-      begin
-        facbr.Bloco_0.Registro0001.Registro0005.Free;
-        facbr.Bloco_0.Registro0001.Registro0005 := nil;
-      end;
-      if not HasNonNullKey(jR0001, 'Registro0100') then
-      begin
-        AOmit0100 := True;
-        if Assigned(facbr.Bloco_0.Registro0001.Registro0100) then
-        begin
-          facbr.Bloco_0.Registro0001.Registro0100.Free;
-          facbr.Bloco_0.Registro0001.Registro0100 := nil;
-        end;
-      end;
-    end;
-  end;
-
-  TJSONTools.JsonToObj(jRoot, facbr);
-
-  if (facbr.DT_INI = 0) and (facbr.Bloco_0.Registro0000.DT_INI > 0) then
-    facbr.DT_INI := facbr.Bloco_0.Registro0000.DT_INI;
-  if (facbr.DT_FIN = 0) and (facbr.Bloco_0.Registro0000.DT_FIN > 0) then
-    facbr.DT_FIN := facbr.Bloco_0.Registro0000.DT_FIN;
-
-  if facbr.Bloco_0.Registro0001.IND_MOV <> ACBrEFDBlocos.imComDados then
-    AOmit0100 := False;
-
-  jBK := GetJsonObj(jRoot, 'Bloco_K');
-  jRK001 := GetJsonObj(jBK, 'RegistroK001');
-  if Assigned(jRK001) and
-     (facbr.Bloco_K.RegistroK001.IND_MOV = ACBrEFDBlocos.imComDados) and
-     (facbr.Bloco_0.Registro0000.COD_VER > ACBrEFDBlocos.vlVersao116) and
-     not HasNonNullKey(jRK001, 'RegistroK010') and
-     Assigned(facbr.Bloco_K.RegistroK001.RegistroK010) then
-    facbr.Bloco_K.RegistroK001.RegistroK010.IND_TIPO_LEIAUTE := ACBrEFDBlocos.itlCompleto;
-end;
-
 function TACBRBridgeSPED.Gerar(const jSPED: TJSONObject): TJSONObject;
 var
-  fullFile, reqArq, tmpDir: string;
+  fullFile, tmpDir: string;
   tamanho, I: Integer;
   jRoot: TJSONObject;
-  isTempFile, omit0100: Boolean;
+  isTempFile: Boolean;
   arrAvisos: TJSONArray;
 begin
   Result := TJSONObject.Create;
   fullFile := '';
   isTempFile := False;
-  omit0100 := False;
   try
     CarregaConfig(True);
     fErrosValidacao.Clear;
@@ -511,13 +444,9 @@ begin
     if not Assigned(jRoot) then
       jRoot := jSPED;
 
-    reqArq := Trim(facbr.Arquivo);
-    if (reqArq = '') and Assigned(jSPED) then
-      reqArq := Trim(jSPED.Get('Arquivo', ''));
-    if (reqArq = '') and Assigned(jRoot) and (jRoot <> jSPED) then
-      reqArq := Trim(jRoot.Get('Arquivo', ''));
+    TJSONTools.JsonToObj(jRoot, facbr);
 
-    isTempFile := (reqArq = '');
+    isTempFile := (Trim(facbr.Arquivo) = '');
     if isTempFile then
     begin
       tmpDir := ExtractFilePath(ParamStr(0)) + 'tmp' + PathDelim;
@@ -525,25 +454,9 @@ begin
       facbr.Path := tmpDir;
       facbr.Arquivo := 'sped_fiscal_' + IntToStr(GetTickCount64) + '_' + IntToStr(Random(1000000)) + '.txt';
     end
-    else
-    begin
-      if Trim(facbr.Path) = '' then
-        facbr.Path := ExtractFilePath(ParamStr(0));
-      facbr.Arquivo := reqArq;
-    end;
+    else if Trim(facbr.Path) = '' then
+      facbr.Path := ExtractFilePath(ParamStr(0));
 
-    PopularBlocosEFD(jRoot, omit0100);
-    if omit0100 then
-    begin
-      { TACBrSPEDFiscal.WriteRegistro0001 appends REG_BLC='0100' unconditionally to
-        Bloco_9.Registro9900 even when Registro0100=nil. Remove it in-memory before
-        SaveFileTXT writes Bloco_9 (IniciaGeracao/WriteBloco_0 guard against re-running). }
-      facbr.IniciaGeracao;
-      facbr.WriteBloco_0;
-      for I := facbr.Bloco_9.Registro9900.Count - 1 downto 0 do
-        if facbr.Bloco_9.Registro9900.Items[I].REG_BLC = '0100' then
-          facbr.Bloco_9.Registro9900.Delete(I);
-    end;
     facbr.SaveFileTXT;
 
     fullFile := IncludeTrailingPathDelimiter(facbr.Path) + facbr.Arquivo;
@@ -689,62 +602,12 @@ begin
   inherited Destroy;
 end;
 
-procedure TACBRBridgeSPEDPisCofins.PopularBlocosEPC(const jRoot: TJSONObject; out AOmitBlocoP: Boolean);
-var
-  jB0, jR0001, jBM, jRM001, jBP, jRP001: TJSONObject;
-begin
-  AOmitBlocoP := True;
-  if not Assigned(jRoot) then
-    Exit;
-
-  jB0 := GetJsonObj(jRoot, 'Bloco_0');
-  jR0001 := GetJsonObj(jB0, 'Registro0001');
-  if Assigned(jR0001) then
-  begin
-    if not HasNonNullKey(jR0001, 'Registro0110') and Assigned(facbr.Bloco_0.Registro0001.Registro0110) then
-    begin
-      facbr.Bloco_0.Registro0001.Registro0110.Free;
-      facbr.Bloco_0.Registro0001.Registro0110 := nil;
-    end;
-    if HasNonNullKey(jR0001, 'Registro0900') and not Assigned(facbr.Bloco_0.Registro0001.Registro0900) then
-      facbr.Bloco_0.Registro0900New;
-  end;
-
-  jBM := GetJsonObj(jRoot, 'Bloco_M');
-  jRM001 := GetJsonObj(jBM, 'RegistroM001');
-  if Assigned(jRM001) then
-  begin
-    if not HasNonNullKey(jRM001, 'RegistroM200') and Assigned(facbr.Bloco_M.RegistroM001.RegistroM200) then
-    begin
-      facbr.Bloco_M.RegistroM001.RegistroM200.Free;
-      facbr.Bloco_M.RegistroM001.RegistroM200 := nil;
-    end;
-    if not HasNonNullKey(jRM001, 'RegistroM600') and Assigned(facbr.Bloco_M.RegistroM001.RegistroM600) then
-    begin
-      facbr.Bloco_M.RegistroM001.RegistroM600.Free;
-      facbr.Bloco_M.RegistroM001.RegistroM600 := nil;
-    end;
-  end;
-
-  jBP := GetJsonObj(jRoot, 'Bloco_P');
-  jRP001 := GetJsonObj(jBP, 'RegistroP001');
-  if Assigned(jRP001) then
-    AOmitBlocoP := False;
-
-  TJSONTools.JsonToObj(jRoot, facbr);
-
-  if (facbr.DT_INI = 0) and (facbr.Bloco_0.Registro0000.DT_INI > 0) then
-    facbr.DT_INI := facbr.Bloco_0.Registro0000.DT_INI;
-  if (facbr.DT_FIN = 0) and (facbr.Bloco_0.Registro0000.DT_FIN > 0) then
-    facbr.DT_FIN := facbr.Bloco_0.Registro0000.DT_FIN;
-end;
-
 function TACBRBridgeSPEDPisCofins.Gerar(const jSPED: TJSONObject): TJSONObject;
 var
-  fullFile, reqArq, tmpDir: string;
+  fullFile, tmpDir: string;
   tamanho, I: Integer;
   jRoot: TJSONObject;
-  isTempFile, omitBlocoP: Boolean;
+  isTempFile: Boolean;
   arrAvisos: TJSONArray;
 begin
   Result := TJSONObject.Create;
@@ -758,13 +621,9 @@ begin
     if not Assigned(jRoot) then
       jRoot := jSPED;
 
-    reqArq := Trim(facbr.Arquivo);
-    if (reqArq = '') and Assigned(jSPED) then
-      reqArq := Trim(jSPED.Get('Arquivo', ''));
-    if (reqArq = '') and Assigned(jRoot) and (jRoot <> jSPED) then
-      reqArq := Trim(jRoot.Get('Arquivo', ''));
+    TJSONTools.JsonToObj(jRoot, facbr);
 
-    isTempFile := (reqArq = '');
+    isTempFile := (Trim(facbr.Arquivo) = '');
     if isTempFile then
     begin
       tmpDir := ExtractFilePath(ParamStr(0)) + 'tmp' + PathDelim;
@@ -772,32 +631,9 @@ begin
       facbr.Path := tmpDir;
       facbr.Arquivo := 'sped_piscofins_' + IntToStr(GetTickCount64) + '_' + IntToStr(Random(1000000)) + '.txt';
     end
-    else
-    begin
-      if Trim(facbr.Path) = '' then
-        facbr.Path := ExtractFilePath(ParamStr(0));
-      facbr.Arquivo := reqArq;
-    end;
+    else if Trim(facbr.Path) = '' then
+      facbr.Path := ExtractFilePath(ParamStr(0));
 
-    PopularBlocosEPC(jRoot, omitBlocoP);
-    if Assigned(jSPED) and jSPED.Get('omitirBlocoP', False) then
-      omitBlocoP := True;
-    if Assigned(jRoot) and jRoot.Get('omitirBlocoP', False) then
-      omitBlocoP := True;
-
-    if omitBlocoP then
-    begin
-      { IniciaGeracao resets Bloco_*.Gravado := False and sets FInicializado := True;
-        SaveFileTXT's internal IniciaGeracao exits immediately when FInicializado = True.
-        Execute native WriteBloco_0 / WriteBloco_I (when imComDados) / WriteBloco_M first
-        so WriteBloco_M cascades Bloco_A..F (including imSemDados) before Bloco_P.Gravado := True. }
-      facbr.IniciaGeracao;
-      facbr.WriteBloco_0;
-      if facbr.Bloco_I.RegistroI001.IND_MOV = ACBrEPCBlocos.imComDados then
-        facbr.WriteBloco_I;
-      facbr.WriteBloco_M;
-      facbr.Bloco_P.Gravado := True;
-    end;
     facbr.SaveFileTXT;
 
     fullFile := IncludeTrailingPathDelimiter(facbr.Path) + facbr.Arquivo;
@@ -874,14 +710,6 @@ begin
 
       if regerar then
       begin
-        if facbr.Bloco_0.Registro0000.DT_INI > 0 then
-          facbr.DT_INI := facbr.Bloco_0.Registro0000.DT_INI;
-        if facbr.Bloco_0.Registro0000.DT_FIN > 0 then
-          facbr.DT_FIN := facbr.Bloco_0.Registro0000.DT_FIN;
-
-        if (facbr.DT_INI <= 0) or (facbr.DT_FIN <= 0) then
-          raise Exception.Create('DT_INI e DT_FIN devem constar no Registro 0000 ou em config para regerar o TXT.');
-
         facbr.Path := tmpDir;
         facbr.Arquivo := 'sped_epcreg_' + IntToStr(GetTickCount64) + '_' + IntToStr(Random(1000000)) + '.txt';
         facbr.SaveFileTXT;

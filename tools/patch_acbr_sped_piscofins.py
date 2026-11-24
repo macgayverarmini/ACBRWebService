@@ -18,6 +18,13 @@ Upstream issues fixed:
    Ensure RegistroM200New / RegistroM600New allocate on demand if nil, and clear
    pre-allocated empty RegistroM200 / RegistroM600 on RegM001 so imported files
    without M200/M600 do not emit phantom zeroed M200/M600 records.
+5. ACBrSpedPisCofins.pas & ACBrEPCBloco_0_Importar.pas:
+   - Preserve pre-configured Bloco_P.Gravado across IniciaGeracao (and reset in
+     SaveFileTXT finally), exit WriteBloco_P immediately when Bloco_P.Gravado = True,
+     and ensure WriteBloco_1 cascades WriteBloco_M before checking Bloco_P.Gravado so
+     setting Bloco_P.Gravado = True via RTTI omits Bloco_P cleanly without skipping
+     empty/active Bloco_A..M.
+   - Sync ACBrSpedPisCofins.DT_INI / DT_FIN when importing Registro 0000.
 """
 
 from __future__ import annotations
@@ -136,80 +143,94 @@ def patch_bloco0_importar(imp_dir: pathlib.Path) -> None:
 
     if "procedure Reg0900;" in text:
         print(f"{path}: Reg0900 importer patch already applied (no-op).")
-        return
+    else:
+        old_decl = "    procedure Reg0600;\n  public"
+        new_decl = "    procedure Reg0600;\n    procedure Reg0900;\n  public"
 
-    old_decl = "    procedure Reg0600;\n  public"
-    new_decl = "    procedure Reg0600;\n    procedure Reg0900;\n  public"
+        old_dispatch = "  else if (vHead = '0600') then\n    Reg0600;\nend;"
+        new_dispatch = (
+            "  else if (vHead = '0600') then\n"
+            "    Reg0600\n"
+            "  else if (vHead = '0900') then\n"
+            "    Reg0900;\n"
+            "end;"
+        )
 
-    old_dispatch = "  else if (vHead = '0600') then\n    Reg0600;\nend;"
-    new_dispatch = (
-        "  else if (vHead = '0600') then\n"
-        "    Reg0600\n"
-        "  else if (vHead = '0900') then\n"
-        "    Reg0900;\n"
-        "end;"
+        old_tail = (
+            "procedure TACBrSpedPCImportar_Bloco0.Reg0600;\n"
+            "begin\n"
+            "\n"
+            "  with ACBrSpedPisCofins.Bloco_0.Registro0600New do\n"
+            "  begin\n"
+            "    DT_ALT := ValorD;\n"
+            "    COD_CCUS := Valor;\n"
+            "    CCUS := Valor;\n"
+            "  end;\n"
+            "end;\n"
+            "\n"
+            "end."
+        )
+        new_tail = (
+            "procedure TACBrSpedPCImportar_Bloco0.Reg0600;\n"
+            "begin\n"
+            "\n"
+            "  with ACBrSpedPisCofins.Bloco_0.Registro0600New do\n"
+            "  begin\n"
+            "    DT_ALT := ValorD;\n"
+            "    COD_CCUS := Valor;\n"
+            "    CCUS := Valor;\n"
+            "  end;\n"
+            "end;\n"
+            "\n"
+            "procedure TACBrSpedPCImportar_Bloco0.Reg0900;\n"
+            "begin\n"
+            "  with ACBrSpedPisCofins.Bloco_0.Registro0900New do\n"
+            "  begin\n"
+            "    REC_TOTAL_BLOCO_A := ValorF;\n"
+            "    REC_NRB_BLOCO_A := ValorFV;\n"
+            "    REC_TOTAL_BLOCO_C := ValorF;\n"
+            "    REC_NRB_BLOCO_C := ValorFV;\n"
+            "    REC_TOTAL_BLOCO_D := ValorF;\n"
+            "    REC_NRB_BLOCO_D := ValorFV;\n"
+            "    REC_TOTAL_BLOCO_F := ValorF;\n"
+            "    REC_NRB_BLOCO_F := ValorFV;\n"
+            "    REC_TOTAL_BLOCO_I := ValorF;\n"
+            "    REC_NRB_BLOCO_I := ValorFV;\n"
+            "    REC_TOTAL_BLOCO_1 := ValorF;\n"
+            "    REC_NRB_BLOCO_1 := ValorFV;\n"
+            "    REC_TOTAL_PERIODO := ValorF;\n"
+            "    REC_TOTAL_NRB_PERIODO := ValorFV;\n"
+            "  end;\n"
+            "end;\n"
+            "\n"
+            "end."
+        )
+
+        if old_decl not in text or old_dispatch not in text or old_tail not in text:
+            raise RuntimeError(f"Could not locate target anchors in {path}")
+
+        text = (
+            text.replace(old_decl, new_decl, 1)
+            .replace(old_dispatch, new_dispatch, 1)
+            .replace(old_tail, new_tail, 1)
+        )
+        write_pas(path, text, enc, crlf)
+        print(f"{path}: Added Reg0900 to TACBrSpedPCImportar_Bloco0.")
+
+    new_dt_sync = (
+        "    DT_INI := ValorD;\n"
+        "    DT_FIN := ValorD;\n"
+        "    ACBrSpedPisCofins.DT_INI := DT_INI;\n"
+        "    ACBrSpedPisCofins.DT_FIN := DT_FIN;"
     )
-
-    old_tail = (
-        "procedure TACBrSpedPCImportar_Bloco0.Reg0600;\n"
-        "begin\n"
-        "\n"
-        "  with ACBrSpedPisCofins.Bloco_0.Registro0600New do\n"
-        "  begin\n"
-        "    DT_ALT := ValorD;\n"
-        "    COD_CCUS := Valor;\n"
-        "    CCUS := Valor;\n"
-        "  end;\n"
-        "end;\n"
-        "\n"
-        "end."
-    )
-    new_tail = (
-        "procedure TACBrSpedPCImportar_Bloco0.Reg0600;\n"
-        "begin\n"
-        "\n"
-        "  with ACBrSpedPisCofins.Bloco_0.Registro0600New do\n"
-        "  begin\n"
-        "    DT_ALT := ValorD;\n"
-        "    COD_CCUS := Valor;\n"
-        "    CCUS := Valor;\n"
-        "  end;\n"
-        "end;\n"
-        "\n"
-        "procedure TACBrSpedPCImportar_Bloco0.Reg0900;\n"
-        "begin\n"
-        "  with ACBrSpedPisCofins.Bloco_0.Registro0900New do\n"
-        "  begin\n"
-        "    REC_TOTAL_BLOCO_A := ValorF;\n"
-        "    REC_NRB_BLOCO_A := ValorFV;\n"
-        "    REC_TOTAL_BLOCO_C := ValorF;\n"
-        "    REC_NRB_BLOCO_C := ValorFV;\n"
-        "    REC_TOTAL_BLOCO_D := ValorF;\n"
-        "    REC_NRB_BLOCO_D := ValorFV;\n"
-        "    REC_TOTAL_BLOCO_F := ValorF;\n"
-        "    REC_NRB_BLOCO_F := ValorFV;\n"
-        "    REC_TOTAL_BLOCO_I := ValorF;\n"
-        "    REC_NRB_BLOCO_I := ValorFV;\n"
-        "    REC_TOTAL_BLOCO_1 := ValorF;\n"
-        "    REC_NRB_BLOCO_1 := ValorFV;\n"
-        "    REC_TOTAL_PERIODO := ValorF;\n"
-        "    REC_TOTAL_NRB_PERIODO := ValorFV;\n"
-        "  end;\n"
-        "end;\n"
-        "\n"
-        "end."
-    )
-
-    if old_decl not in text or old_dispatch not in text or old_tail not in text:
-        raise RuntimeError(f"Could not locate target anchors in {path}")
-
-    updated = (
-        text.replace(old_decl, new_decl, 1)
-        .replace(old_dispatch, new_dispatch, 1)
-        .replace(old_tail, new_tail, 1)
-    )
-    write_pas(path, updated, enc, crlf)
-    print(f"{path}: Added Reg0900 to TACBrSpedPCImportar_Bloco0.")
+    if new_dt_sync in text:
+        print(f"{path}: Reg0000 DT_INI/DT_FIN sync already applied (no-op).")
+    else:
+        old_dt_sync = "    DT_INI := ValorD;\n    DT_FIN := ValorD;"
+        if old_dt_sync not in text:
+            raise RuntimeError(f"Could not locate Reg0000 DT_INI/DT_FIN in {path}")
+        write_pas(path, text.replace(old_dt_sync, new_dt_sync, 1), enc, crlf)
+        print(f"{path}: Patched Reg0000 to sync ACBrSpedPisCofins.DT_INI/DT_FIN.")
 
 
 def patch_bloco_m(epc_dir: pathlib.Path, imp_dir: pathlib.Path) -> None:
@@ -297,6 +318,117 @@ def patch_bloco_m(epc_dir: pathlib.Path, imp_dir: pathlib.Path) -> None:
         print(f"{imp_path}: Patched RegM001 to clear pre-allocated M200/M600 until imported.")
 
 
+def patch_bloco_p_gravado(epc_dir: pathlib.Path) -> None:
+    path = epc_dir / "ACBrSpedPisCofins.pas"
+    text, enc, crlf = read_pas(path)
+    changed = False
+
+    # 1. Preserve Bloco_P.Gravado across IniciaGeracao when pre-set via RTTI
+    new_inicia = (
+        "procedure TACBrSPEDPisCofins.IniciaGeracao;\n"
+        "var\n"
+        "  LBlocoPGravado: Boolean;\n"
+        "begin\n"
+        "  if FInicializado then exit ;"
+    )
+    if new_inicia not in text:
+        old_inicia = (
+            "procedure TACBrSPEDPisCofins.IniciaGeracao;\n"
+            "begin\n"
+            "  if FInicializado then exit ;"
+        )
+        if old_inicia not in text:
+            raise RuntimeError(f"Could not locate IniciaGeracao header in {path}")
+        text = text.replace(old_inicia, new_inicia, 1)
+        changed = True
+
+    new_init_p = (
+        "  LBlocoPGravado := Bloco_P.Gravado;\n"
+        "  InicializaBloco( Bloco_P ) ;\n"
+        "  Bloco_P.Gravado := LBlocoPGravado;"
+    )
+    if new_init_p not in text:
+        old_init_p = "  InicializaBloco( Bloco_P ) ;"
+        if old_init_p not in text:
+            raise RuntimeError(f"Could not locate InicializaBloco(Bloco_P) in {path}")
+        text = text.replace(old_init_p, new_init_p, 1)
+        changed = True
+
+    # 2. Reset Bloco_P.Gravado in SaveFileTXT finally block
+    new_save_finally = (
+        "    FACBrTXT.Conteudo.Clear;\n"
+        "\n"
+        "    Bloco_P.Gravado := False ;\n"
+        "    FInicializado := False ;"
+    )
+    if new_save_finally not in text:
+        old_save_finally = (
+            "    FACBrTXT.Conteudo.Clear;\n"
+            "\n"
+            "    FInicializado := False ;"
+        )
+        if old_save_finally not in text:
+            raise RuntimeError(f"Could not locate SaveFileTXT finally block in {path}")
+        text = text.replace(old_save_finally, new_save_finally, 1)
+        changed = True
+
+    # 3. Exit WriteBloco_P immediately when Bloco_P.Gravado = True (even if IND_MOV = imSemDados)
+    new_write_p = (
+        "procedure TACBrSPEDPisCofins.WriteBloco_P;\n"
+        "begin\n"
+        "   if not Bloco_M.Gravado then\n"
+        "      WriteBloco_M;\n"
+        "\n"
+        "   if Bloco_P.Gravado then exit ;\n"
+        "\n"
+        "   if (Bloco_0.Registro0145Count = 0) and"
+    )
+    if new_write_p not in text:
+        old_write_p = (
+            "procedure TACBrSPEDPisCofins.WriteBloco_P;\n"
+            "begin\n"
+            "   if not Bloco_M.Gravado then\n"
+            "      WriteBloco_M;\n"
+            "\n"
+            "   if ((Bloco_P.Gravado) or (Bloco_0.Registro0145Count = 0)) and"
+        )
+        if old_write_p not in text:
+            raise RuntimeError(f"Could not locate WriteBloco_P guard in {path}")
+        text = text.replace(old_write_p, new_write_p, 1)
+        changed = True
+
+    # 4. Ensure WriteBloco_1 cascades WriteBloco_M before checking Bloco_P.Gravado
+    new_write_1 = (
+        "procedure TACBrSPEDPisCofins.WriteBloco_1;\n"
+        "begin\n"
+        "   if Bloco_1.Gravado then exit ;\n"
+        "\n"
+        "   if not Bloco_M.Gravado then\n"
+        "      WriteBloco_M ;\n"
+        "\n"
+        "   if not Bloco_P.Gravado then"
+    )
+    if new_write_1 not in text:
+        old_write_1 = (
+            "procedure TACBrSPEDPisCofins.WriteBloco_1;\n"
+            "begin\n"
+            "   if Bloco_1.Gravado then exit ;\n"
+            "\n"
+            "   if not Bloco_P.Gravado then"
+        )
+        if old_write_1 not in text:
+            raise RuntimeError(f"Could not locate WriteBloco_1 guard in {path}")
+        text = text.replace(old_write_1, new_write_1, 1)
+        changed = True
+
+    if not changed:
+        print(f"{path}: Bloco_P.Gravado RTTI omission patch already applied (no-op).")
+        return
+
+    write_pas(path, text, enc, crlf)
+    print(f"{path}: Patched IniciaGeracao/SaveFileTXT/WriteBloco_P/WriteBloco_1 for RTTI Bloco_P.Gravado.")
+
+
 def main() -> int:
     here = pathlib.Path(__file__).resolve()
     sped_root = (
@@ -315,6 +447,7 @@ def main() -> int:
     patch_blocos_enums(epc_dir)
     patch_bloco0_importar(imp_dir)
     patch_bloco_m(epc_dir, imp_dir)
+    patch_bloco_p_gravado(epc_dir)
     return 0
 
 

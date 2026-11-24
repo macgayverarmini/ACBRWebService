@@ -20,6 +20,9 @@ type
   TJSONTools = class
   private
     class procedure PopulateObjectList(AListObj: TObject; AArray: TJSONArray; AOwner: TObject = nil);
+    class function InstantiateClassProperty(var Ctx: TRttiContext; const ParentType: TRttiType;
+      const Prop: TRttiProperty; const Obj: TObject; const AOwner: TObject): TObject;
+    class procedure InternalJsonToObj(const Json: TJSONObject; const Obj: TObject; const AOwner: TObject = nil);
     class function InternalObjToJson(const Obj: TObject; Visited: TList): TJSONData;
     class function ValueToJson(const Value: TValue; Visited: TList): TJSONData;
   public
@@ -241,7 +244,7 @@ begin
       begin
         LNewItem := TCollection(AListObj).Add;
         if Assigned(LNewItem) then
-          JsonToObj(TJSONObject(AArray.Items[I]), LNewItem);
+          InternalJsonToObj(TJSONObject(AArray.Items[I]), LNewItem, AListObj);
       end;
     end;
     Exit;
@@ -285,7 +288,7 @@ begin
             LNewItem := RttiMethod.Invoke(AListObj, [LParamVal]).AsObject;
           end;
           if Assigned(LNewItem) then
-            JsonToObj(TJSONObject(AArray.Items[I]), LNewItem);
+            InternalJsonToObj(TJSONObject(AArray.Items[I]), LNewItem, AListObj);
         end;
       end;
     end
@@ -330,7 +333,7 @@ begin
                 LNewItem := LItemRttiType.MetaclassType.Create;
               if Assigned(LNewItem) then
               begin
-                JsonToObj(TJSONObject(AArray.Items[I]), LNewItem);
+                InternalJsonToObj(TJSONObject(AArray.Items[I]), LNewItem, AListObj);
                 TObjectList(AListObj).Add(LNewItem);
               end;
             end;
@@ -420,6 +423,8 @@ begin
       end;
     tkString, tkAString, tkWString, tkUString, tkChar, tkWChar, tkUChar:
       Result := TJSONString.Create(EnsureValidUtf8(Value.AsString));
+    tkBool:
+      Result := TJSONBoolean.Create(Value.AsBoolean);
     tkEnumeration:
       begin
         if Value.TypeInfo = TypeInfo(Boolean) then
@@ -518,7 +523,7 @@ begin
             else if Prop.PropertyType.TypeKind in [
               tkInteger, tkInt64, tkQWord, tkFloat,
               tkString, tkAString, tkWString, tkUString, tkChar, tkWChar, tkUChar,
-              tkEnumeration, tkSet, tkClass
+              tkBool, tkEnumeration, tkSet, tkClass
             ] then
             begin
               Val := Prop.GetValue(Obj);
@@ -582,16 +587,137 @@ begin
   end;
 end;
 
+class function TJSONTools.InstantiateClassProperty(var Ctx: TRttiContext;
+  const ParentType: TRttiType; const Prop: TRttiProperty;
+  const Obj: TObject; const AOwner: TObject): TObject;
+var
+  LFactoryName: string;
+  LFactoryMethod, LCtor, LM: TRttiMethod;
+  LOwnerType: TRttiType;
+  LInstType: TRttiInstanceType;
+  LMethods: TRttiMethodArray;
+  LParams: TRttiParameterArray;
+  LCreated, LOwnerArg: TObject;
+  LPropVal, LParamVal: TValue;
+  I: Integer;
+begin
+  Result := nil;
+  if (not Assigned(Prop)) or (not Assigned(Prop.PropertyType)) or
+     (not Prop.PropertyType.IsInstance) then
+    Exit;
+
+  LFactoryName := Prop.Name + 'New';
+  if Assigned(ParentType) then
+  begin
+    LFactoryMethod := ParentType.GetMethod(LFactoryName);
+    if Assigned(LFactoryMethod) and (Length(LFactoryMethod.GetParameters) = 0) and
+       Assigned(LFactoryMethod.ReturnType) and LFactoryMethod.ReturnType.IsInstance then
+    begin
+      LCreated := LFactoryMethod.Invoke(Obj, []).AsObject;
+      Result := Prop.GetValue(Obj).AsObject;
+      if (not Assigned(Result)) and Assigned(LCreated) and Prop.IsWritable then
+      begin
+        TValue.Make(@LCreated, Prop.PropertyType.Handle, LPropVal);
+        Prop.SetValue(Obj, LPropVal);
+        Result := LCreated;
+      end;
+      if Assigned(Result) then
+        Exit;
+    end;
+  end;
+
+  if Assigned(AOwner) then
+  begin
+    LOwnerType := Ctx.GetType(AOwner.ClassType);
+    if Assigned(LOwnerType) then
+    begin
+      LFactoryMethod := LOwnerType.GetMethod(LFactoryName);
+      if Assigned(LFactoryMethod) and (Length(LFactoryMethod.GetParameters) = 0) and
+         Assigned(LFactoryMethod.ReturnType) and LFactoryMethod.ReturnType.IsInstance then
+      begin
+        LCreated := LFactoryMethod.Invoke(AOwner, []).AsObject;
+        Result := Prop.GetValue(Obj).AsObject;
+        if (not Assigned(Result)) and Assigned(LCreated) and Prop.IsWritable then
+        begin
+          TValue.Make(@LCreated, Prop.PropertyType.Handle, LPropVal);
+          Prop.SetValue(Obj, LPropVal);
+          Result := LCreated;
+        end;
+        if Assigned(Result) then
+          Exit;
+      end;
+    end;
+  end;
+
+  if not Prop.IsWritable then
+    Exit;
+
+  LInstType := Prop.PropertyType.AsInstance;
+  if (LInstType.MetaclassType = TObject) or
+     LInstType.MetaclassType.InheritsFrom(TComponent) or
+     LInstType.MetaclassType.InheritsFrom(TStrings) or
+     LInstType.MetaclassType.InheritsFrom(TCollection) then
+    Exit;
+
+  LCtor := nil;
+  LMethods := LInstType.GetMethods;
+  for I := 0 to Length(LMethods) - 1 do
+  begin
+    LM := LMethods[I];
+    if (LM.MethodKind = mkConstructor) and SameText(LM.Name, 'Create') then
+    begin
+      LParams := LM.GetParameters;
+      if Length(LParams) = 0 then
+      begin
+        LCtor := LM;
+        Break;
+      end
+      else if (not Assigned(LCtor)) and (Length(LParams) = 1) and
+              Assigned(LParams[0].ParamType) and LParams[0].ParamType.IsInstance and
+              (Obj is LParams[0].ParamType.AsInstance.MetaclassType) then
+        LCtor := LM;
+    end;
+  end;
+
+  LCreated := nil;
+  if Assigned(LCtor) then
+  begin
+    LParams := LCtor.GetParameters;
+    if Length(LParams) = 0 then
+      LCreated := LCtor.Invoke(LInstType.MetaclassType, []).AsObject
+    else
+    begin
+      LOwnerArg := Obj;
+      TValue.Make(@LOwnerArg, LParams[0].ParamType.Handle, LParamVal);
+      LCreated := LCtor.Invoke(LInstType.MetaclassType, [LParamVal]).AsObject;
+    end;
+  end
+  else
+    LCreated := LInstType.MetaclassType.Create;
+
+  if Assigned(LCreated) then
+  begin
+    TValue.Make(@LCreated, Prop.PropertyType.Handle, LPropVal);
+    Prop.SetValue(Obj, LPropVal);
+    Result := LCreated;
+  end;
+end;
+
 class procedure TJSONTools.JsonToObj(const Json: TJSONObject; const Obj: TObject);
+begin
+  InternalJsonToObj(Json, Obj, nil);
+end;
+
+class procedure TJSONTools.InternalJsonToObj(const Json: TJSONObject; const Obj: TObject; const AOwner: TObject);
 var
   Ctx: TRttiContext;
   RttiType: TRttiType;
   Prop: TRttiProperty;
   I: Integer;
-  Val: TValue;
+  Val, LPropVal: TValue;
   JsonVal: TJSONData;
   PropStr, SVal: string;
-  ObjRef: TObject;
+  ObjRef, LNilObj: TObject;
   EnumVal: Integer;
   LDate: TDateTime;
   LOk: Boolean;
@@ -615,9 +741,27 @@ begin
       Prop := RttiType.GetProperty(PropStr);
       if JsonVal.IsNull then
       begin
-        if Assigned(Prop) and (not Prop.IsClassProperty) and Prop.IsWritable and
-           (Prop.PropertyType.TypeKind = tkVariant) and Assigned(Prop.Handle) then
-          SetVariantProp(Obj, PPropInfo(Prop.Handle), Null);
+        if Assigned(Prop) and (not Prop.IsClassProperty) and Prop.IsWritable then
+        begin
+          if (Prop.PropertyType.TypeKind = tkVariant) and Assigned(Prop.Handle) then
+            SetVariantProp(Obj, PPropInfo(Prop.Handle), Null)
+          else if Prop.PropertyType.TypeKind = tkClass then
+          begin
+            ObjRef := Prop.GetValue(Obj).AsObject;
+            if Assigned(ObjRef) and
+               not (ObjRef is TComponent) and
+               not (ObjRef is TStrings) and
+               not (ObjRef is TCollection) and
+               not (ObjRef is TObjectList) and
+               not (ObjRef is TList) then
+            begin
+              LNilObj := nil;
+              TValue.Make(@LNilObj, Prop.PropertyType.Handle, LPropVal);
+              Prop.SetValue(Obj, LPropVal);
+              ObjRef.Free;
+            end;
+          end;
+        end;
         Continue;
       end;
 
@@ -627,10 +771,12 @@ begin
         begin
           Val := Prop.GetValue(Obj);
           ObjRef := Val.AsObject;
+          if (not Assigned(ObjRef)) and (JsonVal is TJSONObject) then
+            ObjRef := InstantiateClassProperty(Ctx, RttiType, Prop, Obj, AOwner);
           if Assigned(ObjRef) then
           begin
             if JsonVal is TJSONObject then
-              JsonToObj(TJSONObject(JsonVal), ObjRef)
+              InternalJsonToObj(TJSONObject(JsonVal), ObjRef, Obj)
             else if JsonVal is TJSONArray then
               PopulateObjectList(ObjRef, TJSONArray(JsonVal), Obj);
           end;
@@ -680,6 +826,16 @@ begin
                 begin
                   if not (JsonVal is TJSONObject) and not (JsonVal is TJSONArray) then
                     Prop.SetValue(Obj, TValue.From<string>(JsonVal.AsString));
+                end;
+              tkBool:
+                begin
+                  if JsonVal is TJSONBoolean then
+                    LOk := JsonVal.AsBoolean
+                  else if JsonVal is TJSONNumber then
+                    LOk := (JsonVal.AsInteger <> 0)
+                  else
+                    LOk := SameText(JsonVal.AsString, 'true') or (JsonVal.AsString = '1');
+                  Prop.SetValue(Obj, TValue.FromOrdinal(Prop.PropertyType.Handle, Ord(LOk)));
                 end;
               tkEnumeration:
                 if Prop.PropertyType.Handle = TypeInfo(Boolean) then
