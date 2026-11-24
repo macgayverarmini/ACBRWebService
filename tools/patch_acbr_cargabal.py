@@ -1,18 +1,11 @@
 #!/usr/bin/env python3
 """
-Idempotent upstream fix for TACBrCargaBal DOS CRLF line endings in ACBrCargaBal.pas.
-
-Upstream issue:
-  TACBrCargaBal instantiates 14 output TStringList buffers in GerarArquivos plus 3
-  helper LTXTeclas TStringLists in PreencherToledo, PreencherToledoMGV7, and
-  PreencherTriunfoRdc429 without setting LineBreak := #13#10. On Unix/Linux,
-  TStringList.LineBreak defaults to LF (#10), producing scale load files (.TXT)
-  (including TXTECLAS.TXT via stlTeclado.Text := LTXTeclas.Text + stlTeclado.Text)
-  without pure DOS CRLF (#13#10) line endings required by scale importers.
-
-Fix:
-  Explicitly configure LineBreak := #13#10 on all 3 LTXTeclas helper TStringLists
-  and all 14 output TStringList instances in TACBrCargaBal.GerarArquivos.
+Idempotent upstream fixes for TACBrCargaBal in ACBrCargaBal.pas:
+1. DOS CRLF (#13#10) line endings on all 3 LTXTeclas helper TStringLists and all 14
+   output TStringLists in GerarArquivos.
+2. Int64 overload for TACBrCargaBal.LFIll so 64-bit Free Pascal expressions such as
+   LFIll(i + 1, 4) in PreencherFilizola resolve to integer zero-padding ('0001')
+   instead of widening Int64 -> Currency (Decimais=2 -> '0100').
 """
 
 from __future__ import annotations
@@ -111,13 +104,44 @@ def patch_file(target: pathlib.Path) -> int:
         normalized = normalized.replace(old_block, old_block + "\n" + linebreak_lines, 1)
         changed = True
 
+    # 3. Int64 overload for TACBrCargaBal.LFIll (64-bit FPC i + 1 resolution)
+    decl_int64 = "    function LFIll(Valor: Int64; Tamanho: Integer; Caracter: Char = '0'): string; overload;"
+    if decl_int64 not in normalized:
+        decl_int32 = "    function LFIll(Valor: Integer; Tamanho: Integer; Caracter: Char = '0'): string; overload;"
+        if decl_int32 not in normalized:
+            print(f"ERROR: Could not locate LFIll(Valor: Integer) declaration in {target}", file=sys.stderr)
+            return 1
+        normalized = normalized.replace(decl_int32, decl_int32 + "\n" + decl_int64, 1)
+        changed = True
+
+    impl_int64 = (
+        "function TACBrCargaBal.LFill(Valor: Int64; Tamanho: Integer;\n"
+        "  Caracter: Char = '0'): string;\n"
+        "begin\n"
+        "  Result := LFill(IntToStr(Valor), Tamanho, Caracter);\n"
+        "end;"
+    )
+    if impl_int64 not in normalized:
+        impl_int32 = (
+            "function TACBrCargaBal.LFill(Valor: Integer; Tamanho: Integer;\n"
+            "  Caracter: Char = '0'): string;\n"
+            "begin\n"
+            "  Result := LFill(IntToStr(Valor), Tamanho, Caracter);\n"
+            "end;"
+        )
+        if impl_int32 not in normalized:
+            print(f"ERROR: Could not locate TACBrCargaBal.LFill(Valor: Integer) implementation in {target}", file=sys.stderr)
+            return 1
+        normalized = normalized.replace(impl_int32, impl_int32 + "\n\n" + impl_int64, 1)
+        changed = True
+
     if not changed:
-        print(f"{target}: TACBrCargaBal CRLF patch already applied (no-op).")
+        print(f"{target}: TACBrCargaBal CRLF + Int64 LFIll patches already applied (no-op).")
         return 0
 
     updated = normalized.replace("\n", "\r\n") if use_crlf else normalized
     target.write_bytes(updated.encode(encoding))
-    print(f"{target}: Patched TACBrCargaBal (3x LTXTeclas + 14x GerarArquivos TStringLists) with CRLF LineBreak.")
+    print(f"{target}: Patched TACBrCargaBal (CRLF LineBreak + Int64 LFIll overload).")
     return 0
 
 

@@ -22,6 +22,8 @@ type
     procedure TestPostGNREToXML;
     procedure TestPostSintegra126Colunas;
     procedure TestPostBoletoRemessaCNAB240;
+    procedure TestPostSpedPisCofinsOmitBlocoPSemDados;
+    procedure TestPostCargaBalancaFilizolaSetorIndex;
   end;
 
 implementation
@@ -413,6 +415,161 @@ begin
       try
         AssertEquals('Remessa CNAB 240 deve retornar status sucesso', 'sucesso', RespJson.Get('status', ''));
         AssertTrue('remessa_base64 nao deve ser vazio', RespJson.Get('remessa_base64', '') <> '');
+      finally
+        RespJson.Free;
+      end;
+    finally
+      Payload.Free;
+    end;
+  finally
+    Client.Free;
+  end;
+end;
+
+procedure TTestDiversos.TestPostSpedPisCofinsOmitBlocoPSemDados;
+var
+  Client: TFPHTTPClient;
+  Response, RawTxt: String;
+  Payload, RespJson: TJSONObject;
+
+  function MakeBlocoSemDados(const ARegKey: String): TJSONObject;
+  var
+    RegObj: TJSONObject;
+  begin
+    Result := TJSONObject.Create;
+    RegObj := TJSONObject.Create;
+    RegObj.Add('IND_MOV', 'imSemDados');
+    Result.Add(ARegKey, RegObj);
+  end;
+
+var
+  Bloco0, Reg0000, Reg0001: TJSONObject;
+begin
+  Client := TFPHTTPClient.Create(nil);
+  try
+    Client.AddHeader('Content-Type', 'application/json');
+    Payload := TJSONObject.Create;
+    try
+      Payload.Add('DT_INI', '2026-01-01');
+      Payload.Add('DT_FIN', '2026-01-31');
+
+      Bloco0 := TJSONObject.Create;
+      Reg0000 := TJSONObject.Create;
+      Reg0000.Add('COD_VER', 'vlVersao320');
+      Reg0000.Add('TIPO_ESCRIT', 'tpEscrOriginal');
+      Reg0000.Add('IND_SIT_ESP', 'indNenhum');
+      Reg0000.Add('DT_INI', '2026-01-01');
+      Reg0000.Add('DT_FIN', '2026-01-31');
+      Reg0000.Add('NOME', 'EMPRESA EXEMPLO LTDA');
+      Reg0000.Add('CNPJ', '12345678000195');
+      Reg0000.Add('UF', 'ES');
+      Reg0000.Add('COD_MUN', 3203205);
+      Reg0000.Add('IND_NAT_PJ', 'indNatPJSocEmpresariaGeral');
+      Reg0000.Add('IND_ATIV', 'indAtivOutros');
+      Bloco0.Add('Registro0000', Reg0000);
+
+      Reg0001 := TJSONObject.Create;
+      Reg0001.Add('IND_MOV', 'imSemDados');
+      Bloco0.Add('Registro0001', Reg0001);
+      Payload.Add('Bloco_0', Bloco0);
+
+      Payload.Add('Bloco_A', MakeBlocoSemDados('RegistroA001'));
+      Payload.Add('Bloco_C', MakeBlocoSemDados('RegistroC001'));
+      Payload.Add('Bloco_D', MakeBlocoSemDados('RegistroD001'));
+      Payload.Add('Bloco_F', MakeBlocoSemDados('RegistroF001'));
+      Payload.Add('Bloco_I', MakeBlocoSemDados('RegistroI001'));
+      Payload.Add('Bloco_M', MakeBlocoSemDados('RegistroM001'));
+      Payload.Add('Bloco_1', MakeBlocoSemDados('Registro1001'));
+
+      Client.RequestBody := TStringStream.Create(Payload.AsJSON);
+      try
+        Response := Client.Post(FBaseUrl + '/sped/piscofins/gerar');
+      finally
+        Client.RequestBody.Free;
+      end;
+
+      CheckResponse(Response, 200, Client.ResponseStatusCode);
+      RespJson := GetJSON(Response) as TJSONObject;
+      try
+        AssertEquals('SPED PisCofins status deve ser sucesso', 'sucesso', RespJson.Get('status', ''));
+        RawTxt := DecodeStringBase64(RespJson.Get('arquivo_base64', ''));
+        AssertTrue('Deve conter |A001|1|', Pos('|A001|1|', RawTxt) > 0);
+        AssertTrue('Deve conter |A990|2|', Pos('|A990|2|', RawTxt) > 0);
+        AssertTrue('Deve conter |C001|1|', Pos('|C001|1|', RawTxt) > 0);
+        AssertTrue('Deve conter |C990|2|', Pos('|C990|2|', RawTxt) > 0);
+        AssertTrue('Deve conter |D001|1|', Pos('|D001|1|', RawTxt) > 0);
+        AssertTrue('Deve conter |D990|2|', Pos('|D990|2|', RawTxt) > 0);
+        AssertTrue('Deve conter |F001|1|', Pos('|F001|1|', RawTxt) > 0);
+        AssertTrue('Deve conter |F990|2|', Pos('|F990|2|', RawTxt) > 0);
+        AssertTrue('Deve conter |M001|1|', Pos('|M001|1|', RawTxt) > 0);
+        AssertTrue('Deve conter |M990|2|', Pos('|M990|2|', RawTxt) > 0);
+        AssertTrue('Deve conter |1001|1|', Pos('|1001|1|', RawTxt) > 0);
+        AssertTrue('Deve conter |1990|2|', Pos('|1990|2|', RawTxt) > 0);
+        AssertEquals('Nao deve conter |P001| quando Bloco_P omitido', 0, Pos('|P001|', RawTxt));
+        AssertEquals('Nao deve conter |P990| quando Bloco_P omitido', 0, Pos('|P990|', RawTxt));
+      finally
+        RespJson.Free;
+      end;
+    finally
+      Payload.Free;
+    end;
+  finally
+    Client.Free;
+  end;
+end;
+
+procedure TTestDiversos.TestPostCargaBalancaFilizolaSetorIndex;
+var
+  Client: TFPHTTPClient;
+  Response, SetorTxt: String;
+  Payload, ProdItem, SetorObj, TecladoObj, RespJson, FileObj: TJSONObject;
+  ArrProd, ArrFiles: TJSONArray;
+  I: Integer;
+begin
+  Client := TFPHTTPClient.Create(nil);
+  try
+    Client.AddHeader('Content-Type', 'application/json');
+    Payload := TJSONObject.Create;
+    try
+      Payload.Add('Modelo', 'modFilizola');
+      ArrProd := TJSONArray.Create;
+      ProdItem := TJSONObject.Create;
+      ProdItem.Add('Codigo', 101);
+      ProdItem.Add('Descricao', 'ALCATRA KG');
+      ProdItem.Add('ValorVenda', 49.90);
+      ProdItem.Add('Validade', 3);
+      ProdItem.Add('Tipo', 'tpvPeso');
+      SetorObj := TJSONObject.Create;
+      SetorObj.Add('Codigo', 1);
+      SetorObj.Add('Descricao', 'ACOUGUE');
+      ProdItem.Add('Setor', SetorObj);
+      TecladoObj := TJSONObject.Create;
+      TecladoObj.Add('Tecla', 1);
+      ProdItem.Add('Teclado', TecladoObj);
+      ArrProd.Add(ProdItem);
+      Payload.Add('Produtos', ArrProd);
+
+      Client.RequestBody := TStringStream.Create(Payload.AsJSON);
+      try
+        Response := Client.Post(FBaseUrl + '/diversos/balanca/carga');
+      finally
+        Client.RequestBody.Free;
+      end;
+
+      CheckResponse(Response, 200, Client.ResponseStatusCode);
+      RespJson := GetJSON(Response) as TJSONObject;
+      try
+        AssertEquals('Carga Filizola deve retornar status sucesso', 'sucesso', RespJson.Get('status', ''));
+        ArrFiles := RespJson.Arrays['arquivos'];
+        SetorTxt := '';
+        for I := 0 to ArrFiles.Count - 1 do
+        begin
+          FileObj := ArrFiles.Objects[I];
+          if UpperCase(FileObj.Get('nome', '')) = 'SETORTXT.TXT' then
+            SetorTxt := DecodeStringBase64(FileObj.Get('conteudo_base64', ''));
+        end;
+        AssertTrue('SETORTXT.TXT deve ser gerado para modFilizola', SetorTxt <> '');
+        AssertTrue('SETORTXT.TXT deve formatar indice 1 como 0001 (nao 0100)', Pos('ACOUGUE     0001010001001', SetorTxt) > 0);
       finally
         RespJson.Free;
       end;

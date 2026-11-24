@@ -16,6 +16,7 @@ uses
   SysUtils,
   streamtools,
   ACBrEPCImportar,
+  ACBrEPCBlocos,
   ACBrEFDImportar,
   ACBrEFDBlocos,
   resource.strings.global,
@@ -786,9 +787,15 @@ begin
 
     if omitBlocoP then
     begin
-      { IniciaGeracao resets Bloco_P.Gravado := False and sets FInicializado := True;
-        SaveFileTXT's internal IniciaGeracao exits immediately when FInicializado = True. }
+      { IniciaGeracao resets Bloco_*.Gravado := False and sets FInicializado := True;
+        SaveFileTXT's internal IniciaGeracao exits immediately when FInicializado = True.
+        Execute native WriteBloco_0 / WriteBloco_I (when imComDados) / WriteBloco_M first
+        so WriteBloco_M cascades Bloco_A..F (including imSemDados) before Bloco_P.Gravado := True. }
       facbr.IniciaGeracao;
+      facbr.WriteBloco_0;
+      if facbr.Bloco_I.RegistroI001.IND_MOV = ACBrEPCBlocos.imComDados then
+        facbr.WriteBloco_I;
+      facbr.WriteBloco_M;
       facbr.Bloco_P.Gravado := True;
     end;
     facbr.SaveFileTXT;
