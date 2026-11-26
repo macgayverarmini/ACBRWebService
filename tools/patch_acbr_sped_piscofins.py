@@ -9,9 +9,10 @@ Upstream issues fixed:
    a custom mask, causing CurMascara='#0.00' to truncate 3/4-decimal fields to 2
    decimals. Switch those 6 fields to VDFill(..., 3|4), matching WriteRegistroC170,
    C181, C191, C381, C481, and C491 in the same unit.
-2. ACBrEPCBlocos.pas (StrToIndSitEsp & StrToIndNatPJ):
+2. ACBrEPCBlocos.pas (StrToIndSitEsp, StrToIndNatPJ & StrToIndNatRec):
    Empty pipe fields ('||') mapped via StrToIntDef('', 0) to ordinal 0
-   (indSitAbertura / indNatPJSocEmpresariaGeral) instead of indNenhum / indNatPJNenhum.
+   (indSitAbertura / indNatPJSocEmpresariaGeral / inrNaoCumulativa) instead of
+   indNenhum / indNatPJNenhum / inrNenhum.
 3. ACBrEPCBloco_0_Importar.pas (TACBrSpedPCImportar_Bloco0):
    Added missing Reg0900 handler in AnalisaRegistro + Reg0900 implementation.
 4. ACBrEPCBloco_M_Class.pas & ACBrEPCBloco_M_Importar.pas:
@@ -112,9 +113,15 @@ def patch_blocos_enums(epc_dir: pathlib.Path) -> None:
         "end;"
     )
 
-    if new_sit in text and new_nat in text:
-        print(f"{path}: StrToIndSitEsp/StrToIndNatPJ patch already applied (no-op).")
-        return
+    new_nat_rec = (
+        "function StrToIndNatRec(const AValue: string):TACBrIndNatRec;\n"
+        "begin\n"
+        "  if Trim(AValue) = '' then\n"
+        "    Result := inrNenhum\n"
+        "  else\n"
+        "    Result := TACBrIndNatRec(StrToIntDef(AValue, Integer(inrNenhum)));\n"
+        "end;"
+    )
 
     old_sit = (
         "function StrToIndSitEsp(const AValue: string): TACBrIndSitEsp;\n"
@@ -128,13 +135,31 @@ def patch_blocos_enums(epc_dir: pathlib.Path) -> None:
         "   Result := TACBrIndNatPJ( StrToIntDef( AValue, 0) );\n"
         "end;"
     )
+    old_nat_rec = (
+        "function StrToIndNatRec(const AValue: string):TACBrIndNatRec;\n"
+        "begin\n"
+        "  Result := TACBrIndNatRec(StrToIntDef(AValue, 0));\n"
+        "end;"
+    )
 
-    if old_sit not in text or old_nat not in text:
-        raise RuntimeError(f"Could not locate StrToIndSitEsp/StrToIndNatPJ in {path}")
+    if new_sit in text and new_nat in text and new_nat_rec in text:
+        print(f"{path}: StrToIndSitEsp/StrToIndNatPJ/StrToIndNatRec patch already applied (no-op).")
+        return
 
-    updated = text.replace(old_sit, new_sit, 1).replace(old_nat, new_nat, 1)
+    updated = text
+    for label, old_fn, new_fn in (
+        ("StrToIndSitEsp", old_sit, new_sit),
+        ("StrToIndNatPJ", old_nat, new_nat),
+        ("StrToIndNatRec", old_nat_rec, new_nat_rec),
+    ):
+        if new_fn in updated:
+            continue
+        if old_fn not in updated:
+            raise RuntimeError(f"Could not locate {label} in {path}")
+        updated = updated.replace(old_fn, new_fn, 1)
+
     write_pas(path, updated, enc, crlf)
-    print(f"{path}: Patched StrToIndSitEsp and StrToIndNatPJ empty-field handling.")
+    print(f"{path}: Patched StrToIndSitEsp, StrToIndNatPJ and StrToIndNatRec empty-field handling.")
 
 
 def patch_bloco0_importar(imp_dir: pathlib.Path) -> None:
