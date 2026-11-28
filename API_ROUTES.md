@@ -26,6 +26,11 @@ Este documento cataloga todos os endpoints HTTP expostos pelo **ACBRWebService**
 ## 1. Convenções Gerais e Objeto `config` (`TACBrDFeConfiguracoes`)
 
 - **Content-Type:** `application/json; charset=utf-8` em todas as requisições `POST`.
+- **Healthchecks:** `GET /status`, `HEAD /status`, `GET /health` e `HEAD /health` retornam `200 OK` (`{"status":"ok"}` em `GET`) e são isentos de autenticação interna.
+- **Autenticação Interna & Rede (Variáveis de Ambiente):**
+  - `ACBR_INTERNAL_API_KEY`: quando definida, todas as rotas (exceto `GET`/`HEAD` em `/status` e `/health`) exigem o header `X-Internal-API-Key` (comparação em tempo constante; retorna `401 Unauthorized` se inválido/ausente).
+  - Modo *fail-closed* (`503 ServiceUnavailable` quando `ACBR_INTERNAL_API_KEY` está ausente): ativado se `ACBR_ENV`, `APP_ENV` ou `NODE_ENV` for `production`/`prod`, se `ACBR_REQUIRE_API_KEY` for `true`/`1`, ou se `ACBR_ALLOW_UNAUTHENTICATED_DEV` for `false`/`0`.
+  - `ACBR_LISTEN_QUEUE`: backlog TCP do servidor Horse (padrão `512`, piso mínimo `> 15`).
 - **Descoberta Dinâmica Pura de Esquema (`GET /modelo/<modulo>/<operacao>`):** Instancia a classe real do componente ACBr sem valores fictícios ou chaves extras e retorna `TJSONTools.SafeObjToJson(...)` diretamente via Extended RTTI do Free Pascal `3.3.1`.
 - **Chave `"config"`:** Nos endpoints DF-e (`nfe`, `cte`, `mdfe`, `nfse`, `gnre`, `reinf`, `bpe`, `ciot`, `esocial`) e componentes (`boleto`, `escpos`, `sintegra`, `sped`), o servidor extrai `"config"` da raiz do JSON (`TJSONTools.ExtractConfig`) e popula a configuração do componente via RTTI antes de executar a operação. Operações online exigem `config` não vazio (`RSConfigEmptyError`).
 - **Resolução Automática de `PathSchemas`:** Quando `config.Arquivos.PathSchemas` está vazio (`""`) ou aponta para a pasta raiz `Schemas/` do servidor, a ponte anexa automaticamente a subpasta do documento (`NFe`, `CTe`, `MDFe`, `NFSe` ou `GNRe`) relativa ao executável (`ExtractFilePath(ParamStr(0))`).
@@ -132,8 +137,7 @@ curl -X POST http://localhost:9002/certificados/ler-dados \
 | `POST` | `/nfe/eventos` | `/modelo/nfe/evento` | Envia eventos gerais (`TInfEventoCollectionItem`: Carta de Correção, Manifestação, eventos RTC). |
 | `POST` | `/nfe/inutilizacao` | `/modelo/nfe/inutilizacao` | Inutiliza faixa de numeração na SEFAZ (`TNFeInutilizacao`). |
 | `POST` | `/nfe/distribuicao` | `/modelo/nfe/distribuicao` | Distribuição DF-e por último NSU, NSU específico ou chave. |
-| `POST` | `/nfe/danfe` | — | Renderiza DANFE A4 (modelo 55) ou DANFE NFC-e 80mm (modelo 65) em PDF Base64 (`FPDF`). |
-| `GET` | `/nfe/pdf/:chave` | — | Download direto do PDF gerado pela chave de 44 dígitos. |
+| `POST` | `/nfe/danfe` | — | Renderiza DANFE A4 (modelo 55) ou DANFE NFC-e 80mm (modelo 65) em PDF Base64 (`FPDF`), com limpeza imediata do diretório temporário isolado. |
 | `POST` | `/nfe/danfe-evento` | `/modelo/nfe/danfe-evento` | Renderiza PDF de evento (Cancelamento / CC-e) a partir do XML do evento e da nota. |
 | `POST` | `/nfe/danfe-escpos` | `/modelo/nfe/danfe-escpos` | Gera comandos/bobina térmica EscPos para NFC-e (`TACBrNFeDANFeESCPOS`). |
 | `POST` | `/nfe/consulta-cadastro` | `/modelo/nfe/consulta-cadastro` | Consulta Cadastro de Contribuintes na SEFAZ (`TNFeConsultaCadastro`). |
@@ -155,9 +159,7 @@ curl -X POST http://localhost:9002/certificados/ler-dados \
 | `POST` | `/cte/eventos` | `/modelo/cte/evento` | Eventos de CT-e (CC-e, Prestação em Desacordo, Insucesso de Entrega). |
 | `POST` | `/cte/inutilizacao` | `/modelo/cte/inutilizacao` | Inutilização de numeração de CT-e (`TCTeInutilizacao`). |
 | `POST` | `/cte/distribuicao` | `/modelo/cte/distribuicao` | Distribuição DF-e do ambiente nacional CT-e. |
-| `POST` | `/cte/dacte` | — | Gera PDF do DACTE em Base64 (`ACBr_CTe_DACTeFPDF`). |
-| `POST` | `/cte/dacte-url` | — | Gera o PDF no servidor e retorna a URL `/cte/pdf/:chave`. |
-| `GET` | `/cte/pdf/:chave` | — | Download direto do PDF do DACTE pela chave. |
+| `POST` | `/cte/dacte` | — | Gera PDF do DACTE em Base64 (`ACBr_CTe_DACTeFPDF`), com limpeza imediata do diretório temporário isolado. |
 | `POST` | `/cte/dacte-evento` | `/modelo/cte/dacte-evento` | Gera PDF de evento do CT-e em Base64. |
 
 ---
@@ -178,9 +180,7 @@ curl -X POST http://localhost:9002/certificados/ler-dados \
 | `POST` | `/mdfe/nao-encerrados` | `/modelo/mdfe/nao-encerrados` | Consulta MDF-es não encerrados (`TMDFeConsultaMDFeNaoEnc`). |
 | `POST` | `/mdfe/eventos` | `/modelo/mdfe/evento` | Envio de eventos (`teInclusaoCondutor`, `teInclusaoDFe`, `tePagamentoOperacao`). |
 | `POST` | `/mdfe/distribuicao` | `/modelo/mdfe/distribuicao` | Distribuição DF-e MDF-e. |
-| `POST` | `/mdfe/damdfe` | — | Gera PDF do DAMDFE em Base64. |
-| `POST` | `/mdfe/damdfe-url` | — | Gera o DAMDFE e retorna a URL `/mdfe/pdf/:chave`. |
-| `GET` | `/mdfe/pdf/:chave` | — | Download direto do PDF do DAMDFE. |
+| `POST` | `/mdfe/damdfe` | — | Gera PDF do DAMDFE em Base64, com limpeza imediata do diretório temporário isolado. |
 | `POST` | `/mdfe/damdfe-evento` | — | Gera PDF de evento do MDF-e (aceita XML base do MDF-e + XML do evento). |
 | `POST` | `/mdfe/email` | `/modelo/mdfe/email` | Envia o XML e o DAMDFE PDF por e-mail via SMTP (`TACBrMail`). |
 

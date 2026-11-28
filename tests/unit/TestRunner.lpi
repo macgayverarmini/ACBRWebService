@@ -143,6 +143,10 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
+        <Filename Value="TestInternalApiKey.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
         <Filename Value="TestCTeRoundTrip.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
@@ -164,7 +168,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="..\..\method;..\..\routes;..\..\resources;..\..\tools;..\..\..\horse-master\src;..\..\..\handle-exception\src;..\..\..\jhonson\src;..\..\..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFCe\FPDF;..\..\..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFCe\EscPos;..\..\..\acbr\Fontes\ACBrTXT\ACBrSPED\ACBrSPEDPisCofinsImportar"/>
+      <OtherUnitFiles Value="..\..\middleware;..\..\method;..\..\routes;..\..\resources;..\..\tools;..\..\..\horse-master\src;..\..\..\handle-exception\src;..\..\..\jhonson\src;..\..\..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFCe\FPDF;..\..\..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFCe\EscPos;..\..\..\acbr\Fontes\ACBrTXT\ACBrSPED\ACBrSPEDPisCofinsImportar"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <CodeGeneration>

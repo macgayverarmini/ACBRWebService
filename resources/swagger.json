@@ -6,6 +6,58 @@
     "version": "1.0.0"
   },
   "paths": {
+    "/status": {
+      "get": {
+        "tags": [
+          "HEALTH"
+        ],
+        "summary": "GET GetServiceHealth",
+        "description": "Healthcheck do serviço (isento de X-Internal-API-Key)",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          }
+        }
+      },
+      "head": {
+        "tags": [
+          "HEALTH"
+        ],
+        "summary": "HEAD HeadServiceHealth",
+        "description": "Healthcheck HEAD do serviço (isento de X-Internal-API-Key)",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "HEALTH"
+        ],
+        "summary": "GET GetServiceHealth",
+        "description": "Healthcheck do serviço (isento de X-Internal-API-Key)",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          }
+        }
+      },
+      "head": {
+        "tags": [
+          "HEALTH"
+        ],
+        "summary": "HEAD HeadServiceHealth",
+        "description": "Healthcheck HEAD do serviço (isento de X-Internal-API-Key)",
+        "responses": {
+          "200": {
+            "description": "Sucesso"
+          }
+        }
+      }
+    },
     "/modelo/bpe/config": {
       "get": {
         "tags": [
@@ -681,61 +733,6 @@
         }
       }
     },
-    "/cte/dacte-url": {
-      "post": {
-        "tags": [
-          "CTE"
-        ],
-        "summary": "POST PostDACTEURL",
-        "description": "Endpoint handled by PostDACTEURL",
-        "responses": {
-          "200": {
-            "description": "Sucesso"
-          },
-          "500": {
-            "description": "Erro interno do servidor"
-          }
-        },
-        "requestBody": {
-          "description": "Payload com as configurações do ACBr e dados do documento",
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "config": {
-                    "type": "object",
-                    "description": "Configurações do ACBr (Certificado, Arquivos, etc)"
-                  },
-                  "dados": {
-                    "type": "string",
-                    "description": "XML ou dados estruturados em Base64 ou Texto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/cte/pdf/:chave": {
-      "get": {
-        "tags": [
-          "CTE"
-        ],
-        "summary": "GET GetCTePDFFile",
-        "description": "Endpoint handled by GetCTePDFFile",
-        "responses": {
-          "200": {
-            "description": "Sucesso"
-          },
-          "500": {
-            "description": "Erro interno do servidor"
-          }
-        }
-      }
-    },
     "/cte/cte": {
       "post": {
         "tags": [
@@ -1392,23 +1389,6 @@
         }
       }
     },
-    "/mdfe/pdf/:chave": {
-      "get": {
-        "tags": [
-          "MDFE"
-        ],
-        "summary": "GET GetMDFePDFFile",
-        "description": "Endpoint handled by GetMDFePDFFile",
-        "responses": {
-          "200": {
-            "description": "Sucesso"
-          },
-          "500": {
-            "description": "Erro interno do servidor"
-          }
-        }
-      }
-    },
     "/mdfe/mdfe": {
       "post": {
         "tags": [
@@ -1492,44 +1472,6 @@
         ],
         "summary": "POST PostDamdfeMDFe",
         "description": "Endpoint handled by PostDamdfeMDFe",
-        "responses": {
-          "200": {
-            "description": "Sucesso"
-          },
-          "500": {
-            "description": "Erro interno do servidor"
-          }
-        },
-        "requestBody": {
-          "description": "Payload com as configurações do ACBr e dados do documento",
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "config": {
-                    "type": "object",
-                    "description": "Configurações do ACBr (Certificado, Arquivos, etc)"
-                  },
-                  "dados": {
-                    "type": "string",
-                    "description": "XML ou dados estruturados em Base64 ou Texto"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/mdfe/damdfe-url": {
-      "post": {
-        "tags": [
-          "MDFE"
-        ],
-        "summary": "POST PostDamdfeURLMDFe",
-        "description": "Endpoint handled by PostDamdfeURLMDFe",
         "responses": {
           "200": {
             "description": "Sucesso"

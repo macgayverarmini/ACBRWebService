@@ -7,7 +7,7 @@ uses
   cthreads,
   Math,
   {$endif}
-  Interfaces, Classes, consoletestrunner, TestCTe, TestCTeRoundTrip, TestNFe, TestMDFe, TestDiversos, TestCertificados, TestNFSe, TestStreamTools, TestCTeModelosUnit, TestNFeModelosUnit;
+  Interfaces, Classes, consoletestrunner, TestCTe, TestCTeRoundTrip, TestNFe, TestMDFe, TestDiversos, TestCertificados, TestNFSe, TestStreamTools, TestInternalApiKey, TestCTeModelosUnit, TestNFeModelosUnit;
 
 type
   TMyTestRunner = class(consoletestrunner.TTestRunner)

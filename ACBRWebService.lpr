@@ -10,7 +10,9 @@ uses
   SysUtils,
   Classes,
   Horse,
+  Horse.Commons,
   Horse.HandleException,
+  middleware.internal.apikey in 'middleware/middleware.internal.apikey.pas',
   route.acbr.nfe,
   route.acbr.nfse,
   route.acbr.diversos.extenso,
@@ -36,8 +38,22 @@ uses
     WriteLn(AMessage);
   end;
 
+  procedure GetServiceHealth(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+  begin
+    Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send('{"status":"ok"}');
+  end;
+
+  procedure HeadServiceHealth(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
+  begin
+    Res.Status(THTTPStatus.OK).ContentType(TMimeTypes.ApplicationJSON.ToString).Send('');
+  end;
+
 const
   cAppPort = 9002;
+  cDefaultListenQueue = 512;
+
+var
+  LConfiguredListenQueue: Integer;
 
 {$DEFINE UseGenerics}
 
@@ -54,10 +70,16 @@ begin
 
   LogInfo(RSInitializingMiddleware);
   THorse.Use(HandleException);
+  THorse.Use(InternalApiKeyMiddleware);
   LogInfo(RSHandleExceptionMiddlewareInitialized);
   WriteLn(RSSeparatorLine);
 
   LogInfo(RSInitializingRoutes);
+
+  THorse.Get('/status', GetServiceHealth);
+  THorse.Head('/status', HeadServiceHealth);
+  THorse.Get('/health', GetServiceHealth);
+  THorse.Head('/health', HeadServiceHealth);
 
   route.acbr.nfe.regRouter;
   LogInfo(RSACBRNFeRoutesMapped);
@@ -110,11 +132,15 @@ begin
   route.acbr.diversos.regRouter;
   LogInfo(RSACBRDiversosRoutesMapped);
 
+  LConfiguredListenQueue := StrToIntDef(Trim(GetEnvironmentVariable('ACBR_LISTEN_QUEUE')), cDefaultListenQueue);
+  if LConfiguredListenQueue <= 15 then
+    LConfiguredListenQueue := cDefaultListenQueue;
+  THorse.ListenQueue := LConfiguredListenQueue;
+
   WriteLn(RSSeparatorLine);
   LogInfo(RSHorseApplicationStarted);
   LogInfo(Format(RSListeningOnPort, [cAppPort]));
   WriteLn(RSSeparatorLine);
-
 
   THorse.Listen(cAppPort);
   LogInfo(RSApplicationStopped);

@@ -12,6 +12,7 @@ type
   { TTestDiversos }
   TTestDiversos = class(TTestBase)
   published
+    procedure TestGetServiceHealth;
     procedure TestGetModeloExtenso;
     procedure TestGetModelosDiversosEBoleto;
     procedure TestPostTraduzValor;
@@ -30,6 +31,27 @@ type
 implementation
 
 { TTestDiversos }
+
+procedure TTestDiversos.TestGetServiceHealth;
+var
+  Client: TFPHTTPClient;
+  Resp: TStringStream;
+begin
+  ExecuteGetTest('/status');
+  ExecuteGetTest('/health');
+
+  Client := TFPHTTPClient.Create(nil);
+  Resp := TStringStream.Create('');
+  try
+    Client.HTTPMethod('HEAD', FBaseUrl + '/status', Resp, [200]);
+    AssertEquals('HEAD /status deve retornar 200', 200, Client.ResponseStatusCode);
+    Client.HTTPMethod('HEAD', FBaseUrl + '/health', Resp, [200]);
+    AssertEquals('HEAD /health deve retornar 200', 200, Client.ResponseStatusCode);
+  finally
+    Resp.Free;
+    Client.Free;
+  end;
+end;
 
 procedure TTestDiversos.TestGetModeloExtenso;
 begin

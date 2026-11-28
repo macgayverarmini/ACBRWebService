@@ -217,6 +217,9 @@
       <Unit>
         <Filename Value="routes/route.acbr.diversos.pas"/>
       </Unit>
+      <Unit>
+        <Filename Value="middleware/middleware.internal.apikey.pas"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -227,7 +230,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="..\horse-master\src;routes;method;..\handle-exception\src;tools;..\jhonson\src;resources;..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFCe\FPDF;..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFCe\EscPos;..\acbr\Fontes\ACBrTXT\ACBrSPED\ACBrSPEDPisCofinsImportar"/>
+      <OtherUnitFiles Value="..\horse-master\src;middleware;routes;method;..\handle-exception\src;tools;..\jhonson\src;resources;..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFCe\FPDF;..\acbr\Fontes\ACBrDFe\ACBrNFe\DANFE\NFCe\EscPos;..\acbr\Fontes\ACBrTXT\ACBrSPED\ACBrSPEDPisCofinsImportar"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <CodeGeneration>
