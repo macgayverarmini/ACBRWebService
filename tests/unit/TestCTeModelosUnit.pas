@@ -5,7 +5,7 @@ unit TestCTeModelosUnit;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testregistry, fpjson, Base64, method.acbr.cte;
+  Classes, SysUtils, fpcunit, testregistry, fpjson, jsonparser, Base64, method.acbr.cte;
 
 type
   { TTestCTeModelosUnit }
@@ -20,6 +20,7 @@ type
     procedure TestModelConfigCTe;
     procedure TestModelCTe;
     procedure TestModelEvento;
+    procedure TestRttiNt2026005SnXml;
     procedure TestMassXmlFiles;
   end;
 
@@ -95,6 +96,60 @@ begin
     AssertJSONHasField(Json, 'Evento');
   finally
     Json.Free;
+  end;
+end;
+
+procedure TTestCTeModelosUnit.TestRttiNt2026005SnXml;
+var
+  Payload, Res: TJSONObject;
+  XmlBase64, XmlStr, PayloadStr: String;
+begin
+  PayloadStr :=
+    '{' +
+      '"infCTe": { "versao": 4.00 },' +
+      '"ide": {' +
+        '"cUF": 32, "cCT": 12345678, "CFOP": 5353, "natOp": "TRANSPORTE SN", "modelo": 57, "serie": 1, "nCT": 100,' +
+        '"dhEmi": "2027-03-15T10:00:00-03:00", "tpCTe": "tcNormal", "tpAmb": "taHomologacao", "modal": "mdRodoviario",' +
+        '"tpServ": "tsNormal", "cMunEnv": 3205309, "xMunEnv": "VITORIA", "UFEnv": "ES",' +
+        '"cMunIni": 3205309, "xMunIni": "VITORIA", "UFIni": "ES",' +
+        '"cMunFim": 3205309, "xMunFim": "VITORIA", "UFFim": "ES",' +
+        '"toma03": { "Toma": "tmRemetente" }' +
+      '},' +
+      '"emit": {' +
+        '"CNPJ": "12345678000199", "IE": "123456789", "xNome": "TRANSPORTADORA SN", "xFant": "TRANSP SN",' +
+        '"CRT": "crtSimplesNacional", "tpRegimeIBSCBS": "trSNRegimeRegular",' +
+        '"enderEmit": { "xLgr": "RUA A", "nro": "10", "xBairro": "CENTRO", "cMun": 3205309, "xMun": "VITORIA", "UF": "ES", "CEP": 29010000 }' +
+      '},' +
+      '"vPrest": { "vTPrest": 1000, "vRec": 1000 },' +
+      '"imp": {' +
+        '"ICMS": { "SituTrib": "cstICMSSN", "ICMSSN": { "indSN": 1 } },' +
+        '"IBSCBS": {' +
+          '"CST": "cst000", "cClassTrib": "000001",' +
+          '"gTribSN": { "gIBSSN": { "pIBSSN": 1.25, "vIBSSN": 12.50 }, "gCBSSN": { "pCBSSN": 2.15, "vCBSSN": 21.50 } }' +
+        '},' +
+        '"vTotDFe": 1000' +
+      '}' +
+    '}';
+  Payload := GetJSON(PayloadStr) as TJSONObject;
+  try
+    Res := FAcbrCTeModels.CTeToXML(Payload);
+    try
+      AssertNotNull('CTeToXML retornou nil', Res);
+      XmlBase64 := Res.Get('xml', '');
+      if XmlBase64 = '' then
+        XmlBase64 := Res.Get('xml_cte', '');
+      AssertTrue('CTeToXML deveria retornar xml Base64: ' + Res.AsJSON, XmlBase64 <> '');
+      XmlStr := DecodeStringBase64(XmlBase64);
+      AssertTrue('XML CTe deveria conter <tpRegimeIBSCBS>1</tpRegimeIBSCBS>: ' + XmlStr, Pos('<tpRegimeIBSCBS>1</tpRegimeIBSCBS>', XmlStr) > 0);
+      AssertTrue('XML CTe deveria conter <gTribSN>', Pos('<gTribSN>', XmlStr) > 0);
+      AssertTrue('XML CTe deveria conter <vIBSSN>12.50</vIBSSN>', Pos('<vIBSSN>12.50</vIBSSN>', XmlStr) > 0);
+      AssertTrue('XML CTe deveria conter <vCBSSN>21.50</vCBSSN>', Pos('<vCBSSN>21.50</vCBSSN>', XmlStr) > 0);
+      AssertTrue('XML CTe Simples Puro nao deveria conter <gIBSCBS>', Pos('<gIBSCBS>', XmlStr) = 0);
+    finally
+      Res.Free;
+    end;
+  finally
+    Payload.Free;
   end;
 end;
 
