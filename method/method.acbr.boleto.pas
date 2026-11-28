@@ -195,26 +195,31 @@ begin
       Exit;
     end;
 
-    pdfDir := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim;
-    if not DirectoryExists(pdfDir) then
-      CreateDir(pdfDir);
+    pdfDir := CreateIsolatedTempDir(ExtractFilePath(ParamStr(0)) + RSPDFDir);
+    fileName := BuildUniqueTempFilePath(pdfDir, 'boleto_', '.pdf');
+    try
+      fpdf.MostrarPreview := False;
+      fpdf.MostrarSetup := False;
+      fpdf.MostrarProgresso := False;
+      fpdf.NomeArquivo := fileName;
 
-    fileName := pdfDir + 'boleto_' + IntToStr(GetTickCount64) + '.pdf';
-    fpdf.MostrarPreview := False;
-    fpdf.MostrarSetup := False;
-    fpdf.MostrarProgresso := False;
-    fpdf.NomeArquivo := fileName;
+      facbr.GerarPDF;
 
-    facbr.GerarPDF;
+      if not FileExists(fileName) then
+      begin
+        Result.Add(RSStatusField, RSStatusErro);
+        Result.Add(RSErrorField, 'Arquivo PDF do boleto nao foi gerado.');
+        Exit;
+      end;
 
-    if not FileExists(fileName) then
-    begin
-      Result.Add(RSStatusField, RSStatusErro);
-      Result.Add(RSErrorField, 'Arquivo PDF do boleto nao foi gerado.');
-      Exit;
+      b64Pdf := FileToStringBase64(fileName, True, tamanho);
+    finally
+      fpdf.NomeArquivo := '';
+      if (fileName <> '') and FileExists(fileName) then
+        SysUtils.DeleteFile(fileName);
+      CleanupTempDir(pdfDir);
     end;
 
-    b64Pdf := FileToStringBase64(fileName, True, tamanho);
     Result.Add(RSStatusField, RSStatusSucesso);
     Result.Add(RSPDFField, b64Pdf);
     Result.Add(RSTamanhoField, tamanho);

@@ -65,7 +65,6 @@ resourcestring
   RSCTeDACTEEventoRoute = '/cte/dacte-evento';
   RSModeloCTeValidarRegrasRoute = '/modelo/cte/validar-regras';
   RSModeloCTeDACTEEventoRoute = '/modelo/cte/dacte-evento';
-  RSCTePDFRoute = '/cte/pdf/:chave';
   RSCTeDebugConfigRoute = '/cte/debug-config';
   RSCTeDebugCTeRoute = '/cte/debug-cte';
   
@@ -106,12 +105,7 @@ resourcestring
   RSMDFeMDFeFromXMLRoute = '/mdfe/mdfe-from-xml';
   RSMDFeMDFeToXMLRoute = '/mdfe/mdfe-to-xml';
   RSMDFeDAMDFeEventoRoute = '/mdfe/damdfe-evento';
-  RSMDFePDFRoute = '/mdfe/pdf/:chave';
-  RSMDFeDAMDFeURLRoute = '/mdfe/damdfe-url';
-  RSCTeDACTEURLRoute = '/cte/dacte-url';
-  RSNFeDANFeURLRoute = '/nfe/danfe-url';
-  RSNFSeDANFSeURLRoute = '/nfse/danfse-url';
-  
+
   // Rotas - Certificados
   RSModeloCertificadosUploadRoute = '/modelo/certificados/upload';
   RSCertificadosUploadRoute = '/certificados/upload';
@@ -212,7 +206,6 @@ resourcestring
   RSDiversosCargaBalRoute = '/diversos/balanca/carga';
   RSModeloDiversosIBPTRoute = '/modelo/diversos/ibpt/config';
   RSDiversosIBPTLerTabelaRoute = '/diversos/ibpt/ler-tabela';
-  RSNFePDFRoute = '/nfe/pdf/:chave';
   RSNFSeEventoRoute = '/nfse/evento';
   RSModeloNFSeEventoRoute = '/modelo/nfse/evento';
   RSModeloSPEDPisCofinsImportarRoute = '/modelo/sped/piscofins/importar';

@@ -452,33 +452,37 @@ begin
       tmpDir := ExtractFilePath(ParamStr(0)) + 'tmp' + PathDelim;
       ForceDirectories(tmpDir);
       facbr.Path := tmpDir;
-      facbr.Arquivo := 'sped_fiscal_' + IntToStr(GetTickCount64) + '_' + IntToStr(Random(1000000)) + '.txt';
+      facbr.Arquivo := 'sped_fiscal_' + GenerateUniqueTempToken + '.txt';
+      fullFile := IncludeTrailingPathDelimiter(facbr.Path) + facbr.Arquivo;
     end
     else if Trim(facbr.Path) = '' then
       facbr.Path := ExtractFilePath(ParamStr(0));
 
-    facbr.SaveFileTXT;
+    try
+      facbr.SaveFileTXT;
 
-    fullFile := IncludeTrailingPathDelimiter(facbr.Path) + facbr.Arquivo;
-    ConvertFileUtf8ToCp1252(fullFile);
+      fullFile := IncludeTrailingPathDelimiter(facbr.Path) + facbr.Arquivo;
+      ConvertFileUtf8ToCp1252(fullFile);
 
-    Result.Add(RSStatusField, RSStatusSucesso);
-    Result.Add(RSMessageField, 'SPED gerado com sucesso.');
-    Result.Add('arquivo', fullFile);
-    if FileExists(fullFile) then
-    begin
-      Result.Add('arquivo_base64', FileToStringBase64(fullFile, isTempFile, tamanho));
-      Result.Add(RSTamanhoField, tamanho);
+      Result.Add(RSStatusField, RSStatusSucesso);
+      Result.Add(RSMessageField, 'SPED gerado com sucesso.');
+      Result.Add('arquivo', fullFile);
+      if FileExists(fullFile) then
+      begin
+        Result.Add('arquivo_base64', FileToStringBase64(fullFile, isTempFile, tamanho));
+        Result.Add(RSTamanhoField, tamanho);
+      end;
+      arrAvisos := TJSONArray.Create;
+      for I := 0 to fErrosValidacao.Count - 1 do
+        arrAvisos.Add(fErrosValidacao[I]);
+      Result.Add('avisos_acbr', arrAvisos);
+    finally
+      if isTempFile and (fullFile <> '') and FileExists(fullFile) then
+        SysUtils.DeleteFile(fullFile);
     end;
-    arrAvisos := TJSONArray.Create;
-    for I := 0 to fErrosValidacao.Count - 1 do
-      arrAvisos.Add(fErrosValidacao[I]);
-    Result.Add('avisos_acbr', arrAvisos);
   except
     on E: Exception do
     begin
-      if isTempFile and (fullFile <> '') and FileExists(fullFile) then
-        SysUtils.DeleteFile(fullFile);
       Result.Add(RSStatusField, RSStatusErro);
       Result.Add(RSMessageField, 'Erro ao gerar SPED: ' + E.Message);
     end;
@@ -502,8 +506,7 @@ begin
       if b64 <> '' then
       begin
         tmpDir := ExtractFilePath(ParamStr(0)) + 'tmp' + PathDelim;
-        ForceDirectories(tmpDir);
-        tmpFile := tmpDir + 'sped_efdimp_' + IntToStr(GetTickCount64) + '_' + IntToStr(Random(1000000)) + '.txt';
+        tmpFile := BuildUniqueTempFilePath(tmpDir, 'sped_efdimp_', '.txt');
         WriteUtf8TempFile(tmpFile, EnsureUtf8FromBytes(DecodeStringBase64(b64)));
         Imp.Arquivo := tmpFile;
       end;
@@ -629,33 +632,37 @@ begin
       tmpDir := ExtractFilePath(ParamStr(0)) + 'tmp' + PathDelim;
       ForceDirectories(tmpDir);
       facbr.Path := tmpDir;
-      facbr.Arquivo := 'sped_piscofins_' + IntToStr(GetTickCount64) + '_' + IntToStr(Random(1000000)) + '.txt';
+      facbr.Arquivo := 'sped_piscofins_' + GenerateUniqueTempToken + '.txt';
+      fullFile := IncludeTrailingPathDelimiter(facbr.Path) + facbr.Arquivo;
     end
     else if Trim(facbr.Path) = '' then
       facbr.Path := ExtractFilePath(ParamStr(0));
 
-    facbr.SaveFileTXT;
+    try
+      facbr.SaveFileTXT;
 
-    fullFile := IncludeTrailingPathDelimiter(facbr.Path) + facbr.Arquivo;
-    ConvertFileUtf8ToCp1252(fullFile);
+      fullFile := IncludeTrailingPathDelimiter(facbr.Path) + facbr.Arquivo;
+      ConvertFileUtf8ToCp1252(fullFile);
 
-    Result.Add(RSStatusField, RSStatusSucesso);
-    Result.Add(RSMessageField, 'SPED Contribuicoes (PIS/COFINS) gerado com sucesso.');
-    Result.Add('arquivo', fullFile);
-    if FileExists(fullFile) then
-    begin
-      Result.Add('arquivo_base64', FileToStringBase64(fullFile, isTempFile, tamanho));
-      Result.Add(RSTamanhoField, tamanho);
+      Result.Add(RSStatusField, RSStatusSucesso);
+      Result.Add(RSMessageField, 'SPED Contribuicoes (PIS/COFINS) gerado com sucesso.');
+      Result.Add('arquivo', fullFile);
+      if FileExists(fullFile) then
+      begin
+        Result.Add('arquivo_base64', FileToStringBase64(fullFile, isTempFile, tamanho));
+        Result.Add(RSTamanhoField, tamanho);
+      end;
+      arrAvisos := TJSONArray.Create;
+      for I := 0 to fErrosValidacao.Count - 1 do
+        arrAvisos.Add(fErrosValidacao[I]);
+      Result.Add('avisos_acbr', arrAvisos);
+    finally
+      if isTempFile and (fullFile <> '') and FileExists(fullFile) then
+        SysUtils.DeleteFile(fullFile);
     end;
-    arrAvisos := TJSONArray.Create;
-    for I := 0 to fErrosValidacao.Count - 1 do
-      arrAvisos.Add(fErrosValidacao[I]);
-    Result.Add('avisos_acbr', arrAvisos);
   except
     on E: Exception do
     begin
-      if isTempFile and (fullFile <> '') and FileExists(fullFile) then
-        SysUtils.DeleteFile(fullFile);
       Result.Add(RSStatusField, RSStatusErro);
       Result.Add(RSMessageField, 'Erro ao gerar SPED Contribuicoes: ' + E.Message);
     end;
@@ -689,7 +696,7 @@ begin
 
       if b64 <> '' then
       begin
-        tmpFile := tmpDir + 'sped_epcimp_' + IntToStr(GetTickCount64) + '_' + IntToStr(Random(1000000)) + '.txt';
+        tmpFile := BuildUniqueTempFilePath(tmpDir, 'sped_epcimp_', '.txt');
         WriteUtf8TempFile(tmpFile, EnsureUtf8FromBytes(DecodeStringBase64(b64)));
         Imp.Arquivo := tmpFile;
       end;
@@ -711,10 +718,10 @@ begin
       if regerar then
       begin
         facbr.Path := tmpDir;
-        facbr.Arquivo := 'sped_epcreg_' + IntToStr(GetTickCount64) + '_' + IntToStr(Random(1000000)) + '.txt';
+        facbr.Arquivo := 'sped_epcreg_' + GenerateUniqueTempToken + '.txt';
+        outFile := IncludeTrailingPathDelimiter(facbr.Path) + facbr.Arquivo;
         facbr.SaveFileTXT;
 
-        outFile := IncludeTrailingPathDelimiter(facbr.Path) + facbr.Arquivo;
         ConvertFileUtf8ToCp1252(outFile);
         if FileExists(outFile) then
           Result.Add('arquivo_base64', FileToStringBase64(outFile, True, tamanho));
@@ -727,13 +734,13 @@ begin
     except
       on E: Exception do
       begin
-        if (outFile <> '') and FileExists(outFile) then
-          SysUtils.DeleteFile(outFile);
         Result.Add(RSStatusField, RSStatusErro);
         Result.Add(RSMessageField, 'Erro ao importar SPED Contribuicoes: ' + E.Message);
       end;
     end;
   finally
+    if (outFile <> '') and FileExists(outFile) then
+      SysUtils.DeleteFile(outFile);
     if (b64 <> '') and (tmpFile <> '') and FileExists(tmpFile) then
       SysUtils.DeleteFile(tmpFile);
     Imp.Free;

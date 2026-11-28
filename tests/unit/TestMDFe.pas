@@ -32,7 +32,6 @@ type
     procedure TestPostDACTE; // Actually Damdfe
     procedure TestPostDistribuicao;
     procedure TestPostDAMDFEEvento;
-    procedure TestGetPDF;
   end;
 
 implementation
@@ -193,11 +192,6 @@ end;
 procedure TTestMDFe.TestPostDAMDFEEvento;
 begin
   ExecutePostTest('/mdfe/damdfe-evento');
-end;
-
-procedure TTestMDFe.TestGetPDF;
-begin
-  ExecuteGetTest('/mdfe/pdf/35110803911545000148570010000001011000001018', 404);
 end;
 
 initialization

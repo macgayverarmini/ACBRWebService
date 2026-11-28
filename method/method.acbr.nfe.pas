@@ -742,87 +742,83 @@ Begin
   Exit;
 End;
 
-pdfDir := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim;
-If Not DirectoryExists(pdfDir) Then
-  CreateDir(pdfDir);
+pdfDir := CreateIsolatedTempDir(ExtractFilePath(ParamStr(0)) + RSPDFDir);
+Try
+  chClean := StringReplace(facbr.NotasFiscais.Items[0].NFe.infNFe.ID, 'NFe', '', [rfIgnoreCase]);
+  fileName := pdfDir + chClean + '-nfe.pdf';
+  isNFCe := (facbr.NotasFiscais.Items[0].NFe.Ide.modelo = 65) or
+            (facbr.NotasFiscais.Items[0].NFe.Ide.tpImp = TpcnTipoImpressao.tiNFCe);
 
-chClean := StringReplace(facbr.NotasFiscais.Items[0].NFe.infNFe.ID, 'NFe', '', [rfIgnoreCase]);
-fileName := pdfDir + chClean + '-nfe.pdf';
-If FileExists(fileName) Then
-  SysUtils.DeleteFile(fileName);
-isNFCe := (facbr.NotasFiscais.Items[0].NFe.Ide.modelo = 65) or
-          (facbr.NotasFiscais.Items[0].NFe.Ide.tpImp = TpcnTipoImpressao.tiNFCe);
-
-If isNFCe Then
-Begin
-  danfeNFCe := TACBrNFCeDANFeFPDF.Create(Nil);
-  Try
-    danfeNFCe.MostraPreview := False;
-    danfeNFCe.MostraStatus := False;
-    danfeNFCe.MostraSetup := False;
-    danfeNFCe.PathPDF := pdfDir;
-    facbr.DANFE := danfeNFCe;
+  If isNFCe Then
+  Begin
+    danfeNFCe := TACBrNFCeDANFeFPDF.Create(Nil);
     Try
+      danfeNFCe.MostraPreview := False;
+      danfeNFCe.MostraStatus := False;
+      danfeNFCe.MostraSetup := False;
+      danfeNFCe.PathPDF := pdfDir;
+      facbr.DANFE := danfeNFCe;
+      Try
+        facbr.NotasFiscais.ImprimirPDF;
+        filename := danfeNFCe.ArquivoPDF;
+      Except
+        Begin
+          facbr.DANFE := fdanfe;
+          Result.Add(RSErrorField, RSPDFGenerationError);
+          Exit;
+        End;
+      End;
+    Finally
+      facbr.DANFE := fdanfe;
+      danfeNFCe.Free;
+    End;
+  End
+  Else
+  Begin
+    If facbr.NotasFiscais.Items[0].NFe.Ide.tpImp <> TpcnTipoImpressao.tiPaisagem Then
+      fdanfe.TipoDANFE := tiRetrato
+    Else
+      fdanfe.TipoDANFE := tiPaisagem;
+
+    fdanfe.MostraPreview := False;
+    fdanfe.MostraStatus := False;
+    fdanfe.MostraSetup := False;
+
+    Try
+      fDAnFe.PathPDF := pdfDir;
+      facbr.DANFE := fdanfe;
       facbr.NotasFiscais.ImprimirPDF;
-      filename := danfeNFCe.ArquivoPDF;
+      filename := fdanfe.ArquivoPDF;
     Except
       Begin
-        facbr.DANFE := fdanfe;
         Result.Add(RSErrorField, RSPDFGenerationError);
         Exit;
       End;
     End;
-  Finally
-    facbr.DANFE := fdanfe;
-    danfeNFCe.Free;
   End;
-End
-Else
-Begin
-  If facbr.NotasFiscais.Items[0].NFe.Ide.tpImp <> TpcnTipoImpressao.tiPaisagem Then
-    fdanfe.TipoDANFE := tiRetrato
-  Else
-    fdanfe.TipoDANFE := tiPaisagem;
 
-  fdanfe.MostraPreview := False;
-  fdanfe.MostraStatus := False;
-  fdanfe.MostraSetup := False;
+  If (filename = '') or (Not FileExists(filename)) Then
+    filename := pdfDir + chClean + '-nfe.pdf';
 
   Try
-    fDAnFe.PathPDF := pdfDir;
-    facbr.DANFE := fdanfe;
-    facbr.NotasFiscais.ImprimirPDF;
-    filename := fdanfe.ArquivoPDF;
+    arquivofinal := FileToStringBase64(filename, True, tamanho);
   Except
+    on E: Exception Do
     Begin
-      Result.Add(RSErrorField, RSPDFGenerationError);
+      Result.Add(RSErrorField, E.Message);
       Exit;
     End;
   End;
+
+  Result.Add(RSPDFField, arquivofinal);
+  Result.Add(RSChaveField, chClean);
+  Result.Add(RSTamanhoField, tamanho.ToString);
+  If xmlData.Find(RSIDField, id) Then
+    Result.Add(RSIDField, id);
+Finally
+  CleanupTempDir(pdfDir);
+  facbr.NotasFiscais.Clear;
 End;
-
-If (filename = '') or (Not FileExists(filename)) Then
-  filename := pdfDir + chClean + '-nfe.pdf';
-
-// Converte o arquivo para base64 preservando em disco para GET /nfe/pdf/:chave
-Try
-  arquivofinal := FileToStringBase64(filename, False, tamanho);
-Except
-  on E: Exception Do
-        Begin
-          Result.Add(RSErrorField, E.Message);
-          Exit;
-        End;
-End;
-
-Result.Add(RSPDFField, arquivofinal);
-Result.Add(RSChaveField, chClean);
-Result.Add(RSURLField, '/nfe/pdf/' + chClean);
-Result.Add(RSTamanhoField, tamanho.ToString);
-If xmlData.Find(RSIDField, id) Then
-  Result.Add(RSIDField, id);
-
-facbr.NotasFiscais.Clear;
 End;
 
 Function TACBRBridgeNFe.TesteConfig: boolean;
@@ -1189,12 +1185,13 @@ End;
 Function TACBRBridgeNFe.DanfeEvento(Const xmlEvento: TJSONObject): TJSONObject;
 Var
   arquivofinal: string;
-  stringXml, nfeXmlStr, fileName: string;
+  stringXml, nfeXmlStr, fileName, pdfDir: string;
   evtXmlNode, nfeXmlNode: TJSONData;
   tamanho: integer;
 Begin
   CarregaConfig(True);
   Result := TJSONObject.Create;
+  pdfDir := '';
 
   Try
     evtXmlNode := xmlEvento.Find('XMLEvento');
@@ -1217,60 +1214,67 @@ Begin
   End;
 
   Try
-    facbr.NotasFiscais.Clear;
-    nfeXmlNode := xmlEvento.Find('XMLNFe');
-    if not Assigned(nfeXmlNode) then nfeXmlNode := xmlEvento.Find('xml_nfe');
-    if not Assigned(nfeXmlNode) then nfeXmlNode := xmlEvento.Find('NFeXML');
-    if not Assigned(nfeXmlNode) then nfeXmlNode := xmlEvento.Find(RSXMLField);
-    if not Assigned(nfeXmlNode) then nfeXmlNode := xmlEvento.Find(RSXmlKey);
-    if Assigned(nfeXmlNode) and (Trim(nfeXmlNode.AsString) <> '') then
-    begin
-      nfeXmlStr := Trim(nfeXmlNode.AsString);
-      if nfeXmlStr[1] <> '<' then
-        nfeXmlStr := DecodeStringBase64(nfeXmlStr);
-      if nfeXmlStr <> stringXml then
-        facbr.NotasFiscais.LoadFromString(nfeXmlStr);
-    end;
+    Try
+      facbr.NotasFiscais.Clear;
+      nfeXmlNode := xmlEvento.Find('XMLNFe');
+      if not Assigned(nfeXmlNode) then nfeXmlNode := xmlEvento.Find('xml_nfe');
+      if not Assigned(nfeXmlNode) then nfeXmlNode := xmlEvento.Find('NFeXML');
+      if not Assigned(nfeXmlNode) then nfeXmlNode := xmlEvento.Find(RSXMLField);
+      if not Assigned(nfeXmlNode) then nfeXmlNode := xmlEvento.Find(RSXmlKey);
+      if Assigned(nfeXmlNode) and (Trim(nfeXmlNode.AsString) <> '') then
+      begin
+        nfeXmlStr := Trim(nfeXmlNode.AsString);
+        if nfeXmlStr[1] <> '<' then
+          nfeXmlStr := DecodeStringBase64(nfeXmlStr);
+        if nfeXmlStr <> stringXml then
+          facbr.NotasFiscais.LoadFromString(nfeXmlStr);
+      end;
 
+      facbr.EventoNFe.Evento.Clear;
+      facbr.EventoNFe.LerXMLFromString(stringXml);
+
+      If facbr.EventoNFe.Evento.Count = 0 Then
+      Begin
+        Result.Add(RSStatusField, RSStatusErro);
+        Result.Add(RSMessageField, 'Nenhum evento foi carregado a partir do XML.');
+        Exit;
+      End;
+
+      If facbr.NotasFiscais.Count = 0 Then
+        facbr.NotasFiscais.Add.NFe.infNFe.ID := 'NFe' + facbr.EventoNFe.Evento.Items[0].InfEvento.chNFe;
+
+      fdanfe.MostraPreview := False;
+      fdanfe.MostraStatus := False;
+
+      pdfDir := CreateIsolatedTempDir(ExtractFilePath(ParamStr(0)) + RSPDFDir);
+      Try
+        fdanfe.PathPDF := pdfDir;
+
+        facbr.ImprimirEventoPDF;
+        fileName := fdanfe.ArquivoPDF;
+        if (fileName = '') or (not FileExists(fileName)) then
+          fileName := pdfDir +
+            TpEventoToStr(facbr.EventoNFe.Evento.Items[0].InfEvento.tpEvento) +
+            StringReplace(facbr.EventoNFe.Evento.Items[0].InfEvento.chNFe, 'NFe', '', [rfIgnoreCase]) + '-nfe.pdf';
+
+        arquivofinal := FileToStringBase64(fileName, True, tamanho);
+      Finally
+        CleanupTempDir(pdfDir);
+      End;
+
+      Result.Add(RSPDFField, arquivofinal);
+      Result.Add(RSTamanhoField, tamanho.ToString);
+      Result.Add(RSStatusField, RSStatusSucesso);
+    Except
+      on E: Exception Do
+      Begin
+        Result.Add(RSStatusField, RSStatusErro);
+        Result.Add(RSMessageField, 'Erro ao gerar PDF do Evento: ' + E.Message);
+      End;
+    End;
+  Finally
     facbr.EventoNFe.Evento.Clear;
-    facbr.EventoNFe.LerXMLFromString(stringXml);
-
-    If facbr.EventoNFe.Evento.Count = 0 Then
-    Begin
-      Result.Add(RSStatusField, RSStatusErro);
-      Result.Add(RSMessageField, 'Nenhum evento foi carregado a partir do XML.');
-      Exit;
-    End;
-
-    If facbr.NotasFiscais.Count = 0 Then
-      facbr.NotasFiscais.Add.NFe.infNFe.ID := 'NFe' + facbr.EventoNFe.Evento.Items[0].InfEvento.chNFe;
-
-    fdanfe.MostraPreview := False;
-    fdanfe.MostraStatus := False;
-
-    fileName := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim;
-    if not DirectoryExists(fileName) then
-      CreateDir(fileName);
-    fdanfe.PathPDF := fileName;
-
-    facbr.ImprimirEventoPDF;
-    fileName := fdanfe.ArquivoPDF;
-    if (fileName = '') or (not FileExists(fileName)) then
-      fileName := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim +
-        TpEventoToStr(facbr.EventoNFe.Evento.Items[0].InfEvento.tpEvento) +
-        StringReplace(facbr.EventoNFe.Evento.Items[0].InfEvento.chNFe, 'NFe', '', [rfIgnoreCase]) + '-nfe.pdf';
-
-    arquivofinal := FileToStringBase64(fileName, False, tamanho);
-
-    Result.Add(RSPDFField, arquivofinal);
-    Result.Add(RSTamanhoField, tamanho.ToString);
-    Result.Add(RSStatusField, RSStatusSucesso);
-  Except
-    on E: Exception Do
-    Begin
-      Result.Add(RSStatusField, RSStatusErro);
-      Result.Add(RSMessageField, 'Erro ao gerar PDF do Evento: ' + E.Message);
-    End;
+    facbr.NotasFiscais.Clear;
   End;
 End;
 
@@ -1320,15 +1324,19 @@ Begin
           posPrinter.Modelo := TACBrPosPrinterModelo(xmlData.Get('ModeloImpressora', Integer(ppTexto)));
       end;
 
-      tempFile := ExtractFilePath(ParamStr(0)) + 'escpos_' + IntToStr(GetTickCount64) + '.txt';
-      posPrinter.Porta := tempFile;
-      facbr.DANFE := escPosDanfe;
+      tempFile := BuildUniqueTempFilePath(ExtractFilePath(ParamStr(0)) + 'tmp', 'escpos_', '.txt');
+      Try
+        posPrinter.Porta := tempFile;
+        facbr.DANFE := escPosDanfe;
 
-      escPosDanfe.ImprimirDANFE;
+        escPosDanfe.ImprimirDANFE;
 
-      bufferTxt := posPrinter.Buffer.Text;
-      If FileExists(tempFile) Then
-        SysUtils.DeleteFile(tempFile);
+        bufferTxt := posPrinter.Buffer.Text;
+      Finally
+        posPrinter.Porta := '';
+        If (tempFile <> '') and FileExists(tempFile) Then
+          SysUtils.DeleteFile(tempFile);
+      End;
 
       chClean := StringReplace(facbr.NotasFiscais.Items[0].NFe.infNFe.ID, 'NFe', '', [rfIgnoreCase]);
 
@@ -1492,18 +1500,20 @@ Begin
         Exit;
       end;
 
-      pdfDir := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim;
-      if not DirectoryExists(pdfDir) then
-        CreateDir(pdfDir);
-      fdanfe.PathPDF := pdfDir;
-      fdanfe.MostraPreview := False;
-      fdanfe.MostraStatus := False;
-      fdanfe.MostraSetup := False;
+      pdfDir := CreateIsolatedTempDir(ExtractFilePath(ParamStr(0)) + RSPDFDir);
+      Try
+        fdanfe.PathPDF := pdfDir;
+        fdanfe.MostraPreview := False;
+        fdanfe.MostraStatus := False;
+        fdanfe.MostraSetup := False;
 
-      facbr.DANFE := fdanfe;
-      facbr.MAIL := mailComponent;
+        facbr.DANFE := fdanfe;
+        facbr.MAIL := mailComponent;
 
-      facbr.NotasFiscais.Items[0].EnviarEmail(para, assunto, msgLines, enviaPdf, ccLines, nil, nil);
+        facbr.NotasFiscais.Items[0].EnviarEmail(para, assunto, msgLines, enviaPdf, ccLines, nil, nil);
+      Finally
+        CleanupTempDir(pdfDir);
+      End;
 
       Result.Add(RSStatusField, RSStatusSucesso);
       Result.Add('para', para);

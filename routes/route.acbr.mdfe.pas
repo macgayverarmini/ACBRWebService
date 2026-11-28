@@ -19,13 +19,11 @@ procedure GetModeloMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc
 procedure GetModeloDistribuicaoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure GetModeloMDFeFromXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure GetModeloMDFeToXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
-procedure GetMDFePDFFile(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
 // --- Handlers para Endpoints de Operacoes (POST) ---
 procedure PostEnviarMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostEventosMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostDamdfeMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
-procedure PostDamdfeURLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostDistribuicaoMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostMDFeFromXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostMDFeToXMLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
@@ -177,24 +175,6 @@ begin
   end;
 end;
 
-procedure GetMDFePDFFile(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
-var
-  Chave, FilePath, PdfDir: string;
-begin
-  Chave := Req.Params[RSChaveField];
-  Chave := StringReplace(Chave, 'MDFe', '', [rfIgnoreCase]);
-
-  PdfDir := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim;
-  FilePath := PdfDir + 'MDFe' + Chave + '-mdfe.pdf';
-  if not FileExists(FilePath) then
-    FilePath := PdfDir + Chave + '-mdfe.pdf';
-
-  if FileExists(FilePath) then
-    Res.Download(FilePath, 'damdfe.pdf')
-  else
-    Res.Status(404).Send('PDF do MDF-e nao encontrado');
-end;
-
 procedure PostEnviarMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   O, LJson: TJSONObject;
@@ -252,28 +232,6 @@ begin
   Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
   try
     LJson := Ac.Damdfe(O);
-    try
-      Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
-    finally
-      LJson.Free;
-    end;
-  finally
-    O.Free;
-    Ac.Free;
-  end;
-end;
-
-procedure PostDamdfeURLMDFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
-var
-  O, LJson: TJSONObject;
-  Ac: TACBRBridgeMDFe;
-begin
-  if not TryParseJSONObject(Req, Res, O) then
-    Exit;
-
-  Ac := TACBRBridgeMDFe.Create(TJSONTools.ExtractConfig(O));
-  try
-    LJson := Ac.Damdfe(O, True);
     try
       Res.ContentType(TMimeTypes.ApplicationJSON.ToString).Send(LJson.AsJSON);
     finally
@@ -702,7 +660,6 @@ begin
   THorse.Get(RSModeloMDFeDistribuicaoRoute, GetModeloDistribuicaoMDFe);
   THorse.Get(RSModeloMDFeMDFeFromXMLRoute, GetModeloMDFeFromXMLMDFe);
   THorse.Get(RSModeloMDFeMDFeToXMLRoute, GetModeloMDFeToXMLMDFe);
-  THorse.Get(RSMDFePDFRoute, GetMDFePDFFile);
   THorse.Get(RSModeloMDFeStatusRoute, GetModeloStatusMDFe);
   THorse.Get(RSModeloMDFeConsultaRoute, GetModeloConsultaMDFe);
   THorse.Get(RSModeloMDFeCancelamentoRoute, GetModeloCancelamentoMDFe);
@@ -716,7 +673,6 @@ begin
   THorse.Post(RSMDFeMDFeRoute, PostEnviarMDFe);
   THorse.Post(RSMDFeEventosRoute, PostEventosMDFe);
   THorse.Post(RSMDFeDAMDFeRoute, PostDamdfeMDFe);
-  THorse.Post(RSMDFeDAMDFeURLRoute, PostDamdfeURLMDFe);
   THorse.Post(RSMDFeDistribuicaoRoute, PostDistribuicaoMDFe);
   THorse.Post(RSMDFeMDFeFromXMLRoute, PostMDFeFromXMLMDFe);
   THorse.Post(RSMDFeMDFeToXMLRoute, PostMDFeToXMLMDFe);

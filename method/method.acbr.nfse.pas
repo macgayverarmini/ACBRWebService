@@ -1055,7 +1055,7 @@ Var
   stringXml: string;
   tamanho: integer;
   id: TJSONString;
-  fileName: string;
+  fileName, pdfDir: string;
 Begin
   CarregaConfig(True);
   Result := TJSONObject.Create;
@@ -1092,44 +1092,45 @@ Begin
   fdanfse.MostraStatus := False;
   fdanfse.MostraSetup := False;
 
-  fileName := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim;
-  if not DirectoryExists(fileName) then
-    CreateDir(fileName);
+  pdfDir := CreateIsolatedTempDir(ExtractFilePath(ParamStr(0)) + RSPDFDir);
   Try
-    fdanfse.Cancelada := facbr.NotasFiscais.Items[0].NFSe.NfseCancelamento.DataHora <> 0;
-    fdanfse.PathPDF := filename;
-    facbr.NotasFiscais.ImprimirPDF;
-    filename := fdanfse.ArquivoPDF;
-  Except
-    Begin
-      Result.Add(RSErrorField, RSPDFGenerationError);
-      Exit;
+    Try
+      fdanfse.Cancelada := facbr.NotasFiscais.Items[0].NFSe.NfseCancelamento.DataHora <> 0;
+      fdanfse.PathPDF := pdfDir;
+      facbr.NotasFiscais.ImprimirPDF;
+      filename := fdanfse.ArquivoPDF;
+    Except
+      Begin
+        Result.Add(RSErrorField, RSPDFGenerationError);
+        Exit;
+      End;
     End;
+
+    Try
+      arquivofinal := FileToStringBase64(filename, True, tamanho);
+    Except
+      on E: Exception Do
+      Begin
+        Result.Add(RSErrorField, E.Message);
+        Exit;
+      End;
+    End;
+
+    Result.Add(RSPDFField, arquivofinal);
+
+    If facbr.NotasFiscais.Items[0].NFSe.IdentificacaoRps.Numero <> '' Then
+      Result.Add(RSChaveField, facbr.NotasFiscais.Items[0].NFSe.IdentificacaoRps.Numero)
+    Else
+      Result.Add(RSChaveField, facbr.NotasFiscais.Items[0].NFSe.Numero);
+
+    Result.Add(RSTamanhoField, tamanho.ToString);
+
+    If xmlData.Find(RSIDField, id) Then
+      Result.Add(RSIDField, id);
+  Finally
+    CleanupTempDir(pdfDir);
+    facbr.NotasFiscais.Clear;
   End;
-
-  Try
-    arquivofinal := FileToStringBase64(filename, False, tamanho);
-  Except
-    on E: Exception Do
-          Begin
-            Result.Add(RSErrorField, E.Message);
-            Exit;
-          End;
-  End;
-
-  Result.Add(RSPDFField, arquivofinal);
-
-  If facbr.NotasFiscais.Items[0].NFSe.IdentificacaoRps.Numero <> '' Then
-    Result.Add(RSChaveField, facbr.NotasFiscais.Items[0].NFSe.IdentificacaoRps.Numero)
-  Else
-    Result.Add(RSChaveField, facbr.NotasFiscais.Items[0].NFSe.Numero);
-
-  Result.Add(RSTamanhoField, tamanho.ToString);
-
-  If xmlData.Find(RSIDField, id) Then
-    Result.Add(RSIDField, id);
-
-  facbr.NotasFiscais.Clear;
 End;
 
 Function TACBRBridgeNFSe.NFSeFromXML(Const jXML: TJSONObject): TJSONObject;

@@ -109,8 +109,7 @@ begin
       begin
         isTempFile := True;
         tmpDir := ExtractFilePath(ParamStr(0)) + 'tmp' + PathDelim;
-        ForceDirectories(tmpDir);
-        facbr.FileName := tmpDir + Format('sintegra_%d_%d.txt', [GetTickCount64, Random(1000000)]);
+        facbr.FileName := BuildUniqueTempFilePath(tmpDir, 'sintegra_', '.txt');
       end;
 
       jData := jSintegra;
@@ -136,13 +135,13 @@ begin
     except
       on E: Exception do
       begin
-        if isTempFile and (facbr.FileName <> '') and FileExists(facbr.FileName) then
-          SysUtils.DeleteFile(facbr.FileName);
         Result.Add(RSStatusField, RSStatusErro);
         Result.Add(RSMessageField, 'Erro ao gerar Sintegra: ' + E.Message);
       end;
     end;
   finally
+    if isTempFile and (facbr.FileName <> '') and FileExists(facbr.FileName) then
+      SysUtils.DeleteFile(facbr.FileName);
     facbr.LimparRegistros;
   end;
 end;

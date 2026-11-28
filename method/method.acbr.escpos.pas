@@ -225,8 +225,7 @@ begin
     if isTempSpool then
     begin
       tmpDir := ExtractFilePath(ParamStr(0)) + 'tmp' + PathDelim;
-      ForceDirectories(tmpDir);
-      spoolFile := tmpDir + Format('escpos_%d_%d.bin', [GetTickCount64, Random(1000000)]);
+      spoolFile := BuildUniqueTempFilePath(tmpDir, 'escpos_', '.bin');
       facbr.Porta := spoolFile;
     end;
 

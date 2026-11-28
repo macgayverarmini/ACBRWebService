@@ -194,26 +194,30 @@ var
 begin
   Result := TJSONObject.Create;
   acbr := TACBrCargaBal.Create(nil);
-  outDir := ExtractFilePath(ParamStr(0)) + 'tmp' + PathDelim +
-            'balanca_' + IntToStr(GetTickCount64) + '_' + IntToStr(Random(1000000)) + PathDelim;
+  outDir := CreateIsolatedTempDir(ExtractFilePath(ParamStr(0)) + 'tmp' + PathDelim + 'balanca');
   try
     try
       TJSONTools.JsonToObj(jCarga, acbr);
 
-      ForceDirectories(outDir);
       acbr.GerarArquivos(outDir);
 
       arrArquivos := TJSONArray.Create;
-      if FindFirst(outDir + '*.*', faAnyFile - faDirectory, SR) = 0 then
+      if FindFirst(outDir + '*', faAnyFile - faDirectory, SR) = 0 then
       begin
-        repeat
-          fileObj := TJSONObject.Create;
-          fileObj.Add('nome', SR.Name);
-          fileObj.Add('conteudo_base64', FileToStringBase64(outDir + SR.Name, True, tamanho));
-          fileObj.Add('tamanho', tamanho);
-          arrArquivos.Add(fileObj);
-        until FindNext(SR) <> 0;
-        FindClose(SR);
+        try
+          repeat
+            if (SR.Name <> '.') and (SR.Name <> '..') then
+            begin
+              fileObj := TJSONObject.Create;
+              fileObj.Add('nome', SR.Name);
+              fileObj.Add('conteudo_base64', FileToStringBase64(outDir + SR.Name, True, tamanho));
+              fileObj.Add('tamanho', tamanho);
+              arrArquivos.Add(fileObj);
+            end;
+          until FindNext(SR) <> 0;
+        finally
+          FindClose(SR);
+        end;
       end;
 
       Result.Add(RSStatusField, RSStatusSucesso);
@@ -228,17 +232,7 @@ begin
       end;
     end;
   finally
-    if DirectoryExists(outDir) then
-    begin
-      if FindFirst(outDir + '*.*', faAnyFile - faDirectory, SR) = 0 then
-      begin
-        repeat
-          SysUtils.DeleteFile(outDir + SR.Name);
-        until FindNext(SR) <> 0;
-        FindClose(SR);
-      end;
-      RemoveDir(outDir);
-    end;
+    CleanupTempDir(outDir);
     acbr.Free;
   end;
 end;

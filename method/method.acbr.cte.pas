@@ -60,7 +60,7 @@ type
     function Cancelamento(const jCancelamento: TJSONObject): TJSONObject;
     function CTeFromXML(const jXML: TJSONObject): TJSONObject;
     function CTeToXML(const jCTe: TJSONObject): TJSONObject;
-    function DACTE(const xmlData: TJSONObject; const OnlyURL: Boolean = False): TJSONObject;
+    function DACTE(const xmlData: TJSONObject): TJSONObject;
     function ValidarRegras(const jCTe: TJSONObject): TJSONObject;
     function DACTEEvento(const xmlEvento: TJSONObject): TJSONObject;
 
@@ -626,7 +626,7 @@ begin
   if Assigned(facbr.Conhecimentos) then facbr.Conhecimentos.Clear;
 end;
 
-function TACBRBridgeCTe.DACTE(const xmlData: TJSONObject; const OnlyURL: Boolean = False): TJSONObject;
+function TACBRBridgeCTe.DACTE(const xmlData: TJSONObject): TJSONObject;
 var
   arquivofinal: string;
   stringXml: string;
@@ -682,50 +682,44 @@ begin
     fdacte.MostraStatus := False;
     fdacte.MostraSetup := False;
 
-    pdfDir := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim;
-    if not DirectoryExists(pdfDir) then
-      CreateDir(pdfDir);
-
-    fileName := pdfDir + chClean + '-cte.pdf';
-    if FileExists(fileName) then
-      SysUtils.DeleteFile(fileName);
-
+    pdfDir := CreateIsolatedTempDir(ExtractFilePath(ParamStr(0)) + RSPDFDir);
     try
-      fdacte.PathPDF := pdfDir;
-      facbr.DACTE := fdacte;
-      facbr.Conhecimentos.ImprimirPDF;
+      fileName := pdfDir + chClean + '-cte.pdf';
+      try
+        fdacte.PathPDF := pdfDir;
+        facbr.DACTE := fdacte;
+        facbr.Conhecimentos.ImprimirPDF;
 
-      if not FileExists(fileName) then
-        fileName := fdacte.ArquivoPDF;
+        if not FileExists(fileName) then
+          fileName := fdacte.ArquivoPDF;
 
-      if not FileExists(fileName) then
-        fileName := pdfDir + facbr.Conhecimentos.Items[0].CTe.infCTe.ID + '-cte.pdf';
+        if not FileExists(fileName) then
+          fileName := pdfDir + facbr.Conhecimentos.Items[0].CTe.infCTe.ID + '-cte.pdf';
 
-      if not FileExists(fileName) then
-      begin
-        Result.Add(RSErrorField, 'Arquivo PDF nao foi gerado em disco pelo ACBr.');
-        Exit;
-      end;
+        if not FileExists(fileName) then
+        begin
+          Result.Add(RSErrorField, 'Arquivo PDF nao foi gerado em disco pelo ACBr.');
+          Exit;
+        end;
 
-      if not OnlyURL then
-      begin
-        arquivofinal := FileToStringBase64(fileName, False, tamanho);
+        arquivofinal := FileToStringBase64(fileName, True, tamanho);
         Result.Add(RSPDFField, arquivofinal);
         Result.Add(RSTamanhoField, tamanho.ToString);
+      except
+        on E: Exception do
+        begin
+          Result.Add(RSErrorField, 'Falha ao gerar o PDF no ACBr: ' + E.Message);
+          Exit;
+        end;
       end;
-    except
-      on E: Exception do
-      begin
-        Result.Add(RSErrorField, 'Falha ao gerar o PDF no ACBr: ' + E.Message);
-        Exit;
-      end;
+
+      Result.Add(RSChaveField, chClean);
+
+      if xmlData.Find(RSIDField, id) then
+        Result.Add(RSIDField, id);
+    finally
+      CleanupTempDir(pdfDir);
     end;
-
-    Result.Add(RSChaveField, chClean);
-    Result.Add(RSURLField, '/cte/pdf/' + chClean);
-
-    if xmlData.Find(RSIDField, id) then
-      Result.Add(RSIDField, id);
   finally
     facbr.Conhecimentos.Clear;
   end;
@@ -896,16 +890,17 @@ begin
       fdacte.MostraStatus := False;
       fdacte.MostraSetup := False;
 
-      pdfDir := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim;
-      if not DirectoryExists(pdfDir) then
-        CreateDir(pdfDir);
+      pdfDir := CreateIsolatedTempDir(ExtractFilePath(ParamStr(0)) + RSPDFDir);
+      try
+        fdacte.PathPDF := pdfDir;
+        facbr.DACTE := fdacte;
+        facbr.ImprimirEventoPDF;
+        fileName := fdacte.ArquivoPDF;
 
-      fdacte.PathPDF := pdfDir;
-      facbr.DACTE := fdacte;
-      facbr.ImprimirEventoPDF;
-      fileName := fdacte.ArquivoPDF;
-
-      arquivofinal := FileToStringBase64(fileName, False, tamanho);
+        arquivofinal := FileToStringBase64(fileName, True, tamanho);
+      finally
+        CleanupTempDir(pdfDir);
+      end;
 
       Result.Add(RSPDFField, arquivofinal);
       Result.Add(RSTamanhoField, tamanho.ToString);

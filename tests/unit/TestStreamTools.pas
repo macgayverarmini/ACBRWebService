@@ -16,6 +16,8 @@ type
     procedure TestFileToStringBase64_EmptyFile;
     procedure TestFileToStringBase64_EmptyFile_Delete;
     procedure TestFileToStringBase64_ValidFile;
+    procedure TestGenerateUniqueTempToken_IsDistinctAndClean;
+    procedure TestIsolatedTempDir_CreatesAndCleansUpRecursively;
   end;
 
 implementation
@@ -28,7 +30,6 @@ var
   Size: Integer;
 begin
   TempFile := 'empty_test_file_nodelete.pdf';
-  // Create an empty file
   with TFileStream.Create(TempFile, fmCreate) do
     Free;
 
@@ -40,7 +41,6 @@ begin
       on E: Exception do
         AssertEquals('O arquivo gerado não parece ser válido.', E.Message);
     end;
-    // Since Apagar was false, file should still exist
     AssertTrue('File should still exist', FileExists(TempFile));
   finally
     if FileExists(TempFile) then
@@ -54,7 +54,6 @@ var
   Size: Integer;
 begin
   TempFile := 'empty_test_file_delete.pdf';
-  // Create an empty file
   with TFileStream.Create(TempFile, fmCreate) do
     Free;
 
@@ -66,7 +65,6 @@ begin
       on E: Exception do
       begin
         AssertEquals('O arquivo gerado não parece ser válido.', E.Message);
-        // Since Apagar was true, file should be deleted even if exception occurs
         AssertFalse('File should have been deleted', FileExists(TempFile));
       end;
     end;
@@ -96,13 +94,49 @@ begin
   try
     ResultStr := FileToStringBase64(TempFile, True, Size);
     AssertEquals('Size should match', Length(TestData), Size);
-    // 'Hello World' in Base64 is 'SGVsbG8gV29ybGQ='
     AssertEquals('Base64 content mismatch', 'SGVsbG8gV29ybGQ=', ResultStr);
     AssertFalse('File should have been deleted', FileExists(TempFile));
   finally
     if FileExists(TempFile) then
       DeleteFile(TempFile);
   end;
+end;
+
+procedure TTestStreamTools.TestGenerateUniqueTempToken_IsDistinctAndClean;
+var
+  Tok1, Tok2: string;
+begin
+  Tok1 := GenerateUniqueTempToken;
+  Tok2 := GenerateUniqueTempToken;
+  AssertTrue('Token must not be empty', Length(Tok1) > 32);
+  AssertTrue('Consecutive UUID tokens must differ', Tok1 <> Tok2);
+  AssertEquals('Must not contain braces', 0, Pos('{', Tok1) + Pos('}', Tok1));
+end;
+
+procedure TTestStreamTools.TestIsolatedTempDir_CreatesAndCleansUpRecursively;
+var
+  BaseDir, IsoDir, FilePath: string;
+  FS: TFileStream;
+  Payload: string;
+begin
+  BaseDir := IncludeTrailingPathDelimiter(GetTempDir(False)) + 'acbr_ws_test';
+  IsoDir := CreateIsolatedTempDir(BaseDir);
+  AssertTrue('Isolated dir must exist', DirectoryExists(IsoDir));
+
+  FilePath := BuildUniqueTempFilePath(IsoDir, 'danfe_', '.pdf');
+  Payload := '%PDF-1.4';
+  FS := TFileStream.Create(FilePath, fmCreate);
+  try
+    FS.WriteBuffer(Payload[1], Length(Payload));
+  finally
+    FS.Free;
+  end;
+
+  AssertTrue('Temp file must exist before cleanup', FileExists(FilePath));
+  CleanupTempDir(IsoDir);
+  AssertFalse('Temp file must be deleted', FileExists(FilePath));
+  AssertFalse('Isolated dir must be removed', DirectoryExists(IsoDir));
+  CleanupTempDir(BaseDir);
 end;
 
 initialization

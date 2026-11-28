@@ -49,7 +49,6 @@ procedure PostConsultaCadastroNFe(Req: THorseRequest; Res: THorseResponse; Next:
 procedure GetModeloConsultaCadastroNFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostEmailNFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure GetModeloEmailNFe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
-procedure GetNFePDF(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
 implementation
 
@@ -673,25 +672,6 @@ begin
   end;
 end;
 
-procedure GetNFePDF(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
-var
-  chave, pdfDir, filePath: string;
-begin
-  chave := Req.Params[RSChaveField];
-  pdfDir := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim;
-  filePath := pdfDir + chave + '-nfe.pdf';
-  if not FileExists(filePath) then
-    filePath := pdfDir + 'NFe' + chave + '-nfe.pdf';
-  if not FileExists(filePath) then
-    filePath := pdfDir + chave + '.pdf';
-
-  if FileExists(filePath) then
-    Res.Download(filePath, chave + '-danfe.pdf')
-  else
-    Res.Status(404).ContentType(TMimeTypes.ApplicationJSON.ToString)
-      .Send('{"error":"Arquivo PDF nao encontrado para a chave informada."}');
-end;
-
 procedure regRouter;
 begin
   THorse.Get(RSModeloNFeConfigRoute, GetModeloConfig);
@@ -709,7 +689,6 @@ begin
   THorse.Get(RSModeloNFeDanfeEscPosRoute, GetModeloDanfeEscPos);
   THorse.Get(RSModeloNFeConsultaCadastroRoute, GetModeloConsultaCadastroNFe);
   THorse.Get(RSModeloNFeEmailRoute, GetModeloEmailNFe);
-  THorse.Get(RSNFePDFRoute, GetNFePDF);
 
   THorse.Post(RSNFeEventosRoute, PostEventos);
   THorse.Post(RSNFeDistribuicaoRoute, PostDistribuicao);

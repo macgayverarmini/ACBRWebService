@@ -23,7 +23,6 @@ procedure GetModeloCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc)
 procedure GetModeloCancelamento(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure GetModeloCTeFromXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure GetModeloCTeToXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
-procedure GetCTePDFFile(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 
 procedure PostEventosCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostStatusServico(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
@@ -31,7 +30,6 @@ procedure PostConsulta(Req: THorseRequest; Res: THorseResponse; Next: TNextProc)
 procedure PostInutilizacao(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostDistCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostDACTE(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
-procedure PostDACTEURL(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostCancelamento(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 procedure PostCTeFromXML(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
@@ -106,24 +104,6 @@ begin
   end;
 end;
 
-procedure GetCTePDFFile(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
-var
-  Chave, FilePath, PdfDir: string;
-begin
-  Chave := Req.Params[RSChaveField];
-  Chave := StringReplace(Chave, 'CTe', '', [rfIgnoreCase]);
-  PdfDir := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim;
-
-  FilePath := PdfDir + 'CTe' + Chave + '-cte.pdf';
-  if not FileExists(FilePath) then
-    FilePath := PdfDir + Chave + '-cte.pdf';
-
-  if FileExists(FilePath) then
-    Res.Download(FilePath, 'dacte.pdf')
-  else
-    Res.Status(404).Send('PDF do CT-e nao encontrado');
-end;
-
 procedure PostEventosCTe(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
 var
   O: TJSONObject;
@@ -174,24 +154,6 @@ begin
     on E: Exception do
       Res.Status(500).ContentType(TMimeTypes.ApplicationJSON.ToString)
         .Send(TJSONTools.JsonAndFree(TJSONObject.Create([RSStatusField, RSStatusErro, RSErrorField, E.Message])));
-  end;
-end;
-
-procedure PostDACTEURL(Req: THorseRequest; Res: THorseResponse; Next: TNextProc);
-var
-  O: TJSONObject;
-  Ac: TACBRBridgeCTe;
-begin
-  if not TryParseJSONObject(Req, Res, O) then
-    Exit;
-
-  Ac := TACBRBridgeCTe.Create(TJSONTools.ExtractConfig(O));
-  try
-    Res.ContentType(TMimeTypes.ApplicationJSON.ToString)
-      .Send(TJSONTools.JsonAndFree(Ac.DACTE(O, True)));
-  finally
-    O.Free;
-    Ac.Free;
   end;
 end;
 
@@ -517,8 +479,6 @@ begin
   THorse.Post(RSCTeInutilizacaoRoute, PostInutilizacao);
   THorse.Post(RSCTeDistribuicaoRoute, PostDistCTe);
   THorse.Post(RSCTeDACTERoute, PostDACTE);
-  THorse.Post(RSCTeDACTEURLRoute, PostDACTEURL);
-  THorse.Get(RSCTePDFRoute, GetCTePDFFile);
   THorse.Post(RSCTeCTeRoute, PostCTe);
   THorse.Post(RSCTeCancelamentoRoute, PostCancelamento);
   THorse.Post(RSCTeCTeFromXMLRoute, PostCTeFromXML);

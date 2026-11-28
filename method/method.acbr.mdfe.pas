@@ -52,7 +52,7 @@ type
 
     function Evento(const jEventos: TJSONArray): string;
     function Distribuicao(const jDistribuicao: TJSONObject): TJSONObject;
-    function Damdfe(const xmlData: TJSONObject; const OnlyURL: Boolean = False): TJSONObject;
+    function Damdfe(const xmlData: TJSONObject): TJSONObject;
     function DamdfeEvento(const xmlEvento: TJSONObject): TJSONObject;
     function MDFe(const jMDFe: TJSONObject): TJSONObject;
     function MDFeFromXML(const jXML: TJSONObject): TJSONObject;
@@ -687,7 +687,7 @@ begin
   Result := TJSONObject(TJSONTools.ObjToJson(objDistribuicao.RetDistDFeInt));
 end;
 
-function TACBRBridgeMDFe.Damdfe(const xmlData: TJSONObject; const OnlyURL: Boolean = False): TJSONObject;
+function TACBRBridgeMDFe.Damdfe(const xmlData: TJSONObject): TJSONObject;
 var
   arquivofinal: string;
   stringXml: string;
@@ -701,6 +701,7 @@ begin
   CarregaConfig(True);
   Result := TJSONObject.Create;
   tempLogoFile := '';
+  pdfDir := '';
 
   try
     stringXml := ReadXMLFromJSON(xmlData);
@@ -738,16 +739,12 @@ begin
     fdamdfe.MostraStatus := False;
     fdamdfe.MostraSetup := False;
 
-    pdfDir := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim;
-    if not DirectoryExists(pdfDir) then
-      CreateDir(pdfDir);
+    pdfDir := CreateIsolatedTempDir(ExtractFilePath(ParamStr(0)) + RSPDFDir);
 
     ApplyLogoFromJSON(xmlData, pdfDir, tempLogoFile);
 
     chClean := StringReplace(facbr.Manifestos.Items[0].MDFe.infMDFe.ID, 'MDFe', '', [rfIgnoreCase]);
     fileName := pdfDir + chClean + '-mdfe.pdf';
-    if FileExists(fileName) then
-      SysUtils.DeleteFile(fileName);
 
     try
       fdamdfe.PathPDF := pdfDir;
@@ -776,28 +773,25 @@ begin
       end;
     end;
 
-    if not OnlyURL then
-    begin
-      try
-        arquivofinal := FileToStringBase64(fileName, False, tamanho);
-        Result.Add(RSPDFField, arquivofinal);
-        Result.Add(RSTamanhoField, tamanho.ToString);
-      except
-        on E: Exception do
-        begin
-          Result.Add(RSErrorField, E.Message);
-          Exit;
-        end;
+    try
+      arquivofinal := FileToStringBase64(fileName, True, tamanho);
+      Result.Add(RSPDFField, arquivofinal);
+      Result.Add(RSTamanhoField, tamanho.ToString);
+    except
+      on E: Exception do
+      begin
+        Result.Add(RSErrorField, E.Message);
+        Exit;
       end;
     end;
 
     Result.Add(RSChaveField, chClean);
-    Result.Add(RSURLField, '/mdfe/pdf/' + chClean);
 
     if xmlData.Find(RSIDField, id) then
       Result.Add(RSIDField, id.AsString);
   finally
     CleanupTempLogo(tempLogoFile);
+    CleanupTempDir(pdfDir);
     facbr.Manifestos.Clear;
   end;
 end;
@@ -816,6 +810,7 @@ begin
   CarregaConfig(True);
   Result := TJSONObject.Create;
   tempLogoFile := '';
+  pdfDir := '';
 
   try
     evtXmlNode := xmlEvento.Find('XMLEvento');
@@ -891,9 +886,7 @@ begin
     fdamdfe.MostraStatus := False;
     fdamdfe.MostraSetup := False;
 
-    pdfDir := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim;
-    if not DirectoryExists(pdfDir) then
-      CreateDir(pdfDir);
+    pdfDir := CreateIsolatedTempDir(ExtractFilePath(ParamStr(0)) + RSPDFDir);
 
     ApplyLogoFromJSON(xmlEvento, pdfDir, tempLogoFile);
 
@@ -922,7 +915,7 @@ begin
     end;
 
     try
-      arquivofinal := FileToStringBase64(fileName, False, tamanho);
+      arquivofinal := FileToStringBase64(fileName, True, tamanho);
     except
       on E: Exception do
       begin
@@ -939,6 +932,7 @@ begin
       Result.Add(RSIDField, id.AsString);
   finally
     CleanupTempLogo(tempLogoFile);
+    CleanupTempDir(pdfDir);
     facbr.EventoMDFe.Evento.Clear;
     facbr.Manifestos.Clear;
   end;
@@ -1580,18 +1574,20 @@ begin
         Exit;
       end;
 
-      pdfDir := ExtractFilePath(ParamStr(0)) + RSPDFDir + PathDelim;
-      if not DirectoryExists(pdfDir) then
-        CreateDir(pdfDir);
-      fdamdfe.PathPDF := pdfDir;
-      fdamdfe.MostraPreview := False;
-      fdamdfe.MostraStatus := False;
-      fdamdfe.MostraSetup := False;
+      pdfDir := CreateIsolatedTempDir(ExtractFilePath(ParamStr(0)) + RSPDFDir);
+      try
+        fdamdfe.PathPDF := pdfDir;
+        fdamdfe.MostraPreview := False;
+        fdamdfe.MostraStatus := False;
+        fdamdfe.MostraSetup := False;
 
-      facbr.DAMDFE := fdamdfe;
-      facbr.MAIL := mailComponent;
+        facbr.DAMDFE := fdamdfe;
+        facbr.MAIL := mailComponent;
 
-      facbr.Manifestos.Items[0].EnviarEmail(para, assunto, msgLines, enviaPdf, ccLines, nil, nil);
+        facbr.Manifestos.Items[0].EnviarEmail(para, assunto, msgLines, enviaPdf, ccLines, nil, nil);
+      finally
+        CleanupTempDir(pdfDir);
+      end;
 
       Result.Add(RSStatusField, RSStatusSucesso);
       Result.Add('para', para);
